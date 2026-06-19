@@ -1,26 +1,84 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@theme {
+  --color-crimson: #FF2E2E;
+  --color-secondary: #ffcb8d;
+  --color-tertiary: #e9c400;
+  --color-surface: #131313;
+  --color-on-surface: #e5e2e1;
+  --color-on-surface-variant: #e8bcb7;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+/* ── Font utilities ───────────────────────────────────── */
+.font-orbitron { font-family: var(--font-orbitron); }
+.font-sora     { font-family: var(--font-sora); }
+
+/* ── Neon glow text ───────────────────────────────────── */
+/* White text with subtle red neon edge (ULTIMATE, BATTLE) */
+.neon-red {
+  text-shadow:
+    0 0 4px  rgba(255, 46, 46, 0.7),
+    0 0 12px rgba(255, 46, 46, 0.4),
+    0 0 28px rgba(255, 46, 46, 0.2);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* Red text with blazing crimson glow (TOURNAMENT) */
+.neon-crimson {
+  color: #FF2E2E;
+  text-shadow:
+    0 0 8px  rgba(255, 46, 46, 1),
+    0 0 20px rgba(255, 46, 46, 1),
+    0 0 50px rgba(255, 46, 46, 0.9),
+    0 0 100px rgba(255, 46, 46, 0.6),
+    0 0 160px rgba(255, 46, 46, 0.3);
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* ── Glass card ───────────────────────────────────────── */
+.glass {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(8px);
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
+.glass:hover {
+  border-color: rgba(255, 46, 46, 0.45);
+  box-shadow: 0 0 32px rgba(255, 46, 46, 0.18), 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+/* ── Animations ───────────────────────────────────────── */
+@keyframes slowZoom {
+  from { transform: scale(1); }
+  to   { transform: scale(1.08); }
+}
+@keyframes particlePulse {
+  from { opacity: 0.08; transform: scale(1); }
+  to   { opacity: 0.65; transform: scale(1.5); }
+}
+@keyframes pulseGlow {
+  0%, 100% { box-shadow: 0 0 14px rgba(255, 46, 46, 0.4); }
+  50%       { box-shadow: 0 0 32px rgba(255, 46, 46, 0.85); }
+}
+
+.animate-slow-zoom   { animation: slowZoom   20s infinite alternate ease-in-out; }
+.animate-pulse-glow  { animation: pulseGlow   2s infinite ease-in-out; }
+.animate-dot-pulse   { animation: particlePulse 2s ease-in-out infinite alternate; }
+
+/* delay helpers used by static particles */
+.delay-d0  { animation-delay: 0s;    }
+.delay-d1  { animation-delay: 0.3s;  }
+.delay-d2  { animation-delay: 0.6s;  }
+.delay-d3  { animation-delay: 0.9s;  }
+.delay-d4  { animation-delay: 1.2s;  }
+.delay-d5  { animation-delay: 1.5s;  }
+.delay-d6  { animation-delay: 1.8s;  }
+.delay-d7  { animation-delay: 2.1s;  }
+
+/* ── Global ───────────────────────────────────────────── */
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { background: #131313; color: #e5e2e1; overflow-x: hidden; }
+
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: #0e0e0e; }
+::-webkit-scrollbar-thumb { background: rgba(255,46,46,0.3); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255,46,46,0.6); }
