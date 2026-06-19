@@ -10,8 +10,9 @@
 }
 
 /* ── Font utilities ───────────────────────────────────── */
-.font-orbitron { font-family: var(--font-orbitron); }
-.font-sora     { font-family: var(--font-sora); }
+.font-orbitron      { font-family: var(--font-orbitron); }
+.font-sora          { font-family: var(--font-sora); }
+.font-jetbrains     { font-family: var(--font-jetbrains-mono); }
 
 /* ── Neon glow text ───────────────────────────────────── */
 /* White text with subtle red neon edge (ULTIMATE, BATTLE) */
