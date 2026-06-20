@@ -92,16 +92,19 @@ export async function POST(req: NextRequest) {
       createdAt: new Date(),
     };
 
-    // Insert into both databases in parallel
-    const [result1, result2] = await Promise.all([
-      db1.collection("users").insertOne(userData),
-      db2.collection("users").insertOne(userData),
-    ]);
-
-    console.log("User created in both DB1 and DB2");
+    // Insert into db1, fallback to db2 on failure
+    let result;
+    try {
+      result = await db1.collection("users").insertOne(userData);
+      console.log("User created in DB1");
+    } catch (insertError) {
+      console.log("Insert into DB1 failed, trying DB2:", insertError);
+      result = await db2.collection("users").insertOne(userData);
+      console.log("User created in DB2 (fallback)");
+    }
 
     return NextResponse.json(
-      { success: true, userId: result1.insertedId },
+      { success: true, userId: result.insertedId },
       { status: 201 },
     );
   } catch (error) {

@@ -27,7 +27,34 @@ export default function LoginPage() {
       if (!res.ok) {
         setError(data.error ?? "Login failed.");
       } else {
-        router.push("/");
+        // Convert user name to binary and use as route
+        const name = data.user?.name as string;
+        const role = data.user?.role as string;
+
+        if (!name || !role) {
+          setError("User data is incomplete.");
+          setLoading(false);
+          return;
+        }
+
+        const generateToken = (str: string): string => {
+          let hash = 0;
+          for (let i = 0; i < str.length; i++) {
+            const char = str.charCodeAt(i);
+            hash = (hash << 5) - hash + char;
+            hash = hash & hash; // Convert to 32-bit integer
+          }
+          return Math.abs(hash).toString(36) + Date.now().toString(36);
+        };
+
+        const binaryRoute = generateToken(name);
+        const binaryRoleRoute = generateToken(role);
+
+        if (role === "Admin") {
+          router.push(`/dashboard/${binaryRoute}`);
+        } else {
+          router.push(`/dashboard/${binaryRoleRoute}/${binaryRoute}`);
+        }
       }
     } catch {
       setError("Network error. Please try again.");
@@ -38,10 +65,8 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen w-full flex bg-[#12151e] overflow-hidden">
-
       {/* ── LEFT: hero panel ─────────────────────────────── */}
       <div className="hidden lg:block lg:w-[55%] relative overflow-hidden">
-
         {/* Background image */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
@@ -58,9 +83,11 @@ export default function LoginPage() {
 
         {/* TITAN ARENA text */}
         <div className="absolute bottom-16 left-10 xl:left-14">
-          <h1 className="font-orbitron font-black uppercase leading-[0.85] tracking-tight
+          <h1
+            className="font-orbitron font-black uppercase leading-[0.85] tracking-tight
                          text-[4.5rem] xl:text-[5.5rem] text-[#ffb4ab]"
-              style={{ textShadow: "0 0 60px rgba(255,180,171,0.3)" }}>
+            style={{ textShadow: "0 0 60px rgba(255,180,171,0.3)" }}
+          >
             TITAN
             <br />
             ARENA
@@ -76,14 +103,13 @@ export default function LoginPage() {
 
       {/* ── RIGHT: form panel ────────────────────────────── */}
       <div className="flex-1 flex flex-col items-center justify-center px-6 py-12 relative">
-
         {/* Centered card */}
         <div className="w-full max-w-[420px]">
-
           {/* Card */}
-          <div className="bg-[#1a1a1f] border border-white/[0.07] rounded-2xl p-8 xl:p-10
-                          shadow-[0_24px_80px_rgba(0,0,0,0.6)]">
-
+          <div
+            className="bg-[#1a1a1f] border border-white/[0.07] rounded-2xl p-8 xl:p-10
+                          shadow-[0_24px_80px_rgba(0,0,0,0.6)]"
+          >
             {/* Header */}
             <div className="mb-8">
               <h2 className="font-sora font-bold text-3xl text-on-surface mb-2 leading-tight">
@@ -96,7 +122,6 @@ export default function LoginPage() {
 
             {/* Form */}
             <form className="flex flex-col gap-6" onSubmit={handleSubmit}>
-
               {/* ID Entifier */}
               <div className="flex flex-col gap-2">
                 <label className="font-jetbrains text-[10px] tracking-[0.22em] text-on-surface-variant uppercase">
@@ -104,8 +129,18 @@ export default function LoginPage() {
                 </label>
                 <div className="relative">
                   <span className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30 text-base select-none">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                      <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.8"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <circle cx="12" cy="8" r="4" />
+                      <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
                     </svg>
                   </span>
                   <input
@@ -130,8 +165,18 @@ export default function LoginPage() {
                 </label>
                 <div className="relative">
                   <span className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30 text-base select-none">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                      <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.8"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <rect x="3" y="11" width="18" height="11" rx="2" />
+                      <path d="M7 11V7a5 5 0 0 1 10 0v4" />
                     </svg>
                   </span>
                   <input
@@ -168,13 +213,21 @@ export default function LoginPage() {
                     onClick={() => setRemember((v) => !v)}
                     className={`w-4 h-4 rounded border flex items-center justify-center shrink-0
                                  transition-all duration-200
-                                 ${remember
-                                   ? "bg-[#ffb4ab] border-[#ffb4ab]"
-                                   : "bg-transparent border-white/25 hover:border-white/50"}`}
+                                 ${
+                                   remember
+                                     ? "bg-[#ffb4ab] border-[#ffb4ab]"
+                                     : "bg-transparent border-white/25 hover:border-white/50"
+                                 }`}
                   >
                     {remember && (
                       <svg width="8" height="6" viewBox="0 0 8 6" fill="none">
-                        <path d="M1 3L3 5L7 1" stroke="#690005" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path
+                          d="M1 3L3 5L7 1"
+                          stroke="#690005"
+                          strokeWidth="1.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
                       </svg>
                     )}
                   </button>
@@ -183,17 +236,21 @@ export default function LoginPage() {
                   </span>
                 </label>
 
-                <button type="button"
+                <button
+                  type="button"
                   className="font-jetbrains text-[10px] tracking-[0.18em] text-on-surface-variant
-                             hover:text-[#ffb4ab] uppercase transition-colors">
+                             hover:text-[#ffb4ab] uppercase transition-colors"
+                >
                   Forgot Access?
                 </button>
               </div>
 
               {/* Error message */}
               {error && (
-                <p className="font-jetbrains text-[11px] tracking-widest text-crimson uppercase
-                              text-center border border-crimson/30 rounded-lg px-4 py-2.5 bg-crimson/5">
+                <p
+                  className="font-jetbrains text-[11px] tracking-widest text-crimson uppercase
+                              text-center border border-crimson/30 rounded-lg px-4 py-2.5 bg-crimson/5"
+                >
                   {error}
                 </p>
               )}
@@ -218,12 +275,23 @@ export default function LoginPage() {
               <p className="font-sora text-sm text-on-surface-variant mb-3">
                 No active squad detected?
               </p>
-              <Link href="/register"
+              <Link
+                href="/register"
                 className="font-jetbrains text-[11px] tracking-[0.2em] text-on-surface uppercase
-                           hover:text-[#ffb4ab] transition-colors inline-flex items-center gap-2">
+                           hover:text-[#ffb4ab] transition-colors inline-flex items-center gap-2"
+              >
                 Create Account
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M5 12h14M12 5l7 7-7 7"/>
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M5 12h14M12 5l7 7-7 7" />
                 </svg>
               </Link>
             </div>
@@ -241,7 +309,6 @@ export default function LoginPage() {
           </div>
         </div>
       </div>
-
     </div>
   );
 }
