@@ -42,19 +42,16 @@ export default function LoginPage() {
           for (let i = 0; i < str.length; i++) {
             const char = str.charCodeAt(i);
             hash = (hash << 5) - hash + char;
-            hash = hash & hash; // Convert to 32-bit integer
+            hash = hash & hash;
           }
           return Math.abs(hash).toString(36) + Date.now().toString(36);
         };
 
-        const binaryRoute = generateToken(name);
-        const binaryRoleRoute = generateToken(role);
+        const userToken = generateToken(name);
+        const roleToken = generateToken(role);
 
-        if (role === "Admin") {
-          router.push(`/dashboard/${binaryRoute}`);
-        } else {
-          router.push(`/dashboard/${binaryRoleRoute}/${binaryRoute}`);
-        }
+        // Always use consistent route structure with role as query parameter
+        router.push(`/dashboard/${userToken}?role=${roleToken}`);
       }
     } catch {
       setError("Network error. Please try again.");
