@@ -1,0 +1,83 @@
+// Prisma schema file
+// Learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User model for authentication
+model User {
+  id        Int       @id @default(autoincrement())
+  username  String    @unique
+  player_id String    @unique
+  name      String
+  email     String    @unique
+  phone     String?
+  whatsapp  String?
+  password  String
+  role      String    @default("player") // "player" or "admin"
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  // Relations
+  stats     UserStats?
+  matches   Match[]
+  rooms     Room[]
+}
+
+// User statistics
+model UserStats {
+  id        Int       @id @default(autoincrement())
+  userId    Int       @unique
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  totalMatches Int    @default(0)
+  wins      Int       @default(0)
+  losses    Int       @default(0)
+  kills     Int       @default(0)
+  deaths    Int       @default(0)
+  assists   Int       @default(0)
+  winRate   Float     @default(0)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+// Match details
+model Match {
+  id        Int       @id @default(autoincrement())
+  userId    Int
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  kills     Int       @default(0)
+  deaths    Int       @default(0)
+  assists   Int       @default(0)
+  damage    Int       @default(0)
+  placement Int?
+  duration  Int?      // in seconds
+  mapName   String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([userId])
+}
+
+// Room/Tournament data
+model Room {
+  id        Int       @id @default(autoincrement())
+  roomName  String
+  roomCode  String    @unique
+  createdBy Int
+  creator   User      @relation(fields: [createdBy], references: [id])
+  maxPlayers Int      @default(10)
+  currentPlayers Int  @default(0)
+  status    String    @default("waiting") // "waiting", "active", "completed"
+  startTime DateTime?
+  endTime   DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([createdBy])
+}

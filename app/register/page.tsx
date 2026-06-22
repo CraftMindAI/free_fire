@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 
 interface FormState {
   username: string;
+  playerId: string;
   email: string;
   phone: string;
   whatsapp: string;
@@ -16,6 +17,7 @@ interface FormState {
 
 const EMPTY: FormState = {
   username: "",
+  playerId: "",
   email: "",
   phone: "",
   whatsapp: "",
@@ -56,6 +58,7 @@ export default function RegisterPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           username: form.username,
+          player_id: form.playerId,
           email: form.email,
           phone: form.phone,
           whatsapp: form.whatsapp,
@@ -185,10 +188,10 @@ export default function RegisterPage() {
             {/* Form */}
             <form className="flex flex-col gap-5" onSubmit={handleSubmit}>
 
-              {/* Row 1: Username + Email */}
+              {/* Row 1: Username + Player ID */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className={labelClass}>Username</label>
+                  <label className={labelClass}>Player Name</label>
                   <input
                     type="text"
                     placeholder="GamerTagX"
@@ -199,19 +202,32 @@ export default function RegisterPage() {
                   />
                 </div>
                 <div>
-                  <label className={labelClass}>Email Address</label>
+                  <label className={labelClass}>Player ID</label>
                   <input
-                    type="email"
-                    placeholder="titan@arena.com"
-                    value={form.email}
-                    onChange={(e) => set("email", e.target.value)}
+                    type="text"
+                    placeholder="1234567890"
+                    value={form.playerId}
+                    onChange={(e) => set("playerId", e.target.value)}
                     required
                     className={inputClass}
                   />
                 </div>
               </div>
 
-              {/* Row 2: Phone + WhatsApp */}
+              {/* Row 2: Email */}
+              <div>
+                <label className={labelClass}>Email Address</label>
+                <input
+                  type="email"
+                  placeholder="titan@arena.com"
+                  value={form.email}
+                  onChange={(e) => set("email", e.target.value)}
+                  required
+                  className={inputClass}
+                />
+              </div>
+
+              {/* Row 3: Phone + WhatsApp */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className={labelClass}>Phone Number</label>

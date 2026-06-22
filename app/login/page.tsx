@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
   const router = useRouter();
-  const [email, setEmail] = useState("");
+  const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [remember, setRemember] = useState(false);
@@ -21,7 +21,7 @@ export default function LoginPage() {
       const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ identifier, password }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -122,7 +122,7 @@ export default function LoginPage() {
               {/* ID Entifier */}
               <div className="flex flex-col gap-2">
                 <label className="font-jetbrains text-[10px] tracking-[0.22em] text-on-surface-variant uppercase">
-                  ID Entifier
+                  Email, Phone, or Username
                 </label>
                 <div className="relative">
                   <span className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30 text-base select-none">
@@ -141,10 +141,10 @@ export default function LoginPage() {
                     </svg>
                   </span>
                   <input
-                    type="email"
-                    placeholder="commander@titan.io"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    type="text"
+                    placeholder="email, phone, or username"
+                    value={identifier}
+                    onChange={(e) => setIdentifier(e.target.value)}
                     required
                     className="w-full bg-white/[0.05] border border-white/[0.09] rounded-xl
                                pl-11 pr-4 py-3.5

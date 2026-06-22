@@ -1,12 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
-import { getDb1, getDb2 } from "@/app/lib/mongodb";
+import prisma from "@/app/lib/prisma";
 
 export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => ({}));
 
   const username =
     typeof body.username === "string" ? body.username.trim() : "";
+  const playerId =
+    typeof body.player_id === "string" ? body.player_id.trim() : "";
   const email =
     typeof body.email === "string" ? body.email.toLowerCase().trim() : "";
   const phone = typeof body.phone === "string" ? body.phone.trim() : "";
@@ -16,9 +18,9 @@ export async function POST(req: NextRequest) {
   const confirmPassword =
     typeof body.confirmPassword === "string" ? body.confirmPassword : "";
 
-  if (!username || !email || !password || !confirmPassword) {
+  if (!username || !playerId || !email || !password || !confirmPassword) {
     return NextResponse.json(
-      { error: "Username, email and password are required." },
+      { error: "Username, player ID, email and password are required." },
       { status: 400 },
     );
   }
@@ -37,78 +39,53 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  let db1, db2;
-
   try {
-    // Connect to both databases in parallel
-    const connections = await Promise.all([getDb1(), getDb2()]);
-    db1 = connections[0];
-    db2 = connections[1];
-    console.log("Connected to both DB1 and DB2");
-  } catch (error) {
-    console.error("Database connection failed:", error);
-    return NextResponse.json(
-      { error: "Database connection failed. Please try again later." },
-      { status: 500 },
-    );
-  }
+    const existingUser = await prisma.user.findFirst({
+      where: {
+        OR: [{ email }, { username }, { player_id: playerId }],
+      },
+    });
 
-  try {
-    // Check if user exists in both databases in parallel
-    const [existing1, existing2] = await Promise.all([
-      db1.collection("users").findOne({
-        $or: [{ email }, { username }],
-      }),
-      db2.collection("users").findOne({
-        $or: [{ email }, { username }],
-      }),
-    ]);
-
-    if (existing1 || existing2) {
-      const existing = existing1 || existing2;
-      if (!existing) {
-        return NextResponse.json(
-          { error: "An account with this email or username already exists." },
-          { status: 409 },
-        );
-      }
-      const field = existing.email === email ? "email" : "username";
+    if (existingUser) {
+      let field = "username";
+      if (existingUser.email === email) field = "email";
+      else if (existingUser.player_id === playerId) field = "player ID";
       return NextResponse.json(
         { error: `An account with this ${field} already exists.` },
         { status: 409 },
       );
     }
 
+    // Hash password
     const hashedPassword = await bcrypt.hash(password, 12);
 
-    const userData = {
-      username,
-      name: username,
-      email,
-      phone,
-      whatsapp,
-      password: hashedPassword,
-      role: "player",
-      createdAt: new Date(),
-    };
+    // Create new user
+    const user = await prisma.user.create({
+      data: {
+        username,
+        player_id: playerId,
+        name: username,
+        email,
+        phone: phone || null,
+        whatsapp: whatsapp || null,
+        password: hashedPassword,
+        role: "player",
+      },
+    });
 
-    // Insert into db1, fallback to db2 on failure
-    let result;
-    try {
-      result = await db1.collection("users").insertOne(userData);
-      console.log("User created in DB1");
-    } catch (insertError) {
-      console.log("Insert into DB1 failed, trying DB2:", insertError);
-      result = await db2.collection("users").insertOne(userData);
-      console.log("User created in DB2 (fallback)");
-    }
+    // Create user stats record
+    await prisma.userStats.create({
+      data: {
+        userId: user.id,
+      },
+    });
 
     return NextResponse.json(
-      { success: true, userId: result.insertedId },
+      { success: true, userId: user.id },
       { status: 201 },
     );
   } catch (error) {
-    console.error("Database operation failed:", error);
+    console.error("Registration error:", error);
     return NextResponse.json(
       { error: "Failed to create account. Please try again." },
       { status: 500 },

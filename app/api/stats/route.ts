@@ -1,38 +1,27 @@
 import { NextResponse } from "next/server";
-import { getDb1, getDb2 } from "@/app/lib/mongodb";
-
-async function getCollections() {
-  try {
-    const db2 = await getDb2();
-    return {
-      users: db2.collection("users"),
-      rooms: db2.collection("rooms"),
-    };
-  } catch {
-    const db1 = await getDb1();
-    return {
-      users: db1.collection("users"),
-      rooms: db1.collection("rooms"),
-    };
-  }
-}
+import prisma from "@/app/lib/prisma";
 
 export async function GET() {
   try {
-    const { users, rooms } = await getCollections();
+    // Count rooms with published status
+    const activeRoomsCount = await prisma.room.count({
+      where: { status: "active" },
+    });
 
-    // 1. Count rooms with published status (isPublished: true)
-    const activeRoomsCount = await rooms.countDocuments({ isPublished: true });
+    // Count rooms with draft status
+    const draftRoomsCount = await prisma.room.count({
+      where: { status: "waiting" },
+    });
 
-    // 2. Count rooms with draft status
-    const draftRoomsCount = await rooms.countDocuments({ status: "DRAFT" });
+    // Count rooms with closed status (fallback to 84 if none exist)
+    const closedRoomsCount = (await prisma.room.count({
+      where: { status: "completed" },
+    })) || 84;
 
-    // 3. Count rooms with closed status (fallback to 84 if none exist)
-    const closedDbCount = await rooms.countDocuments({ status: "Closed" });
-    const closedRoomsCount = closedDbCount || 84;
-
-    // 4. Count users with role: 'player'
-    const playerUsersCount = await users.countDocuments({ role: "player" });
+    // Count users with role: 'player'
+    const playerUsersCount = await prisma.user.count({
+      where: { role: "player" },
+    });
 
     // Mock constants for premium financials
     const rawReceivedAmount = 482500; // 482.5K
