@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { useRouter, useParams, usePathname } from "next/navigation";
-import menuIcon from "@/app/assests/menu.png";
+import menuIcon from "@/public/assets/menu.png";
 
 interface SidebarProps {
   role?: string;

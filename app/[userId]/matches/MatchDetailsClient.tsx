@@ -11,6 +11,7 @@ interface MatchDetailsClientProps {
     name: string;
     email: string;
     role: string;
+    profile_img?: string | null;
   };
   initialRooms: RoomData[];
   initialStats: {
@@ -186,7 +187,7 @@ export default function MatchDetailsClient({
 
       <div className="flex-1 flex flex-col min-h-screen">
         {/* Header */}
-        <Header username={user.name} />
+        <Header username={user.name} profileImg={user.profile_img || undefined} />
 
         {/* Main Content Area */}
         <main className="flex-1 px-8 pt-28 pb-12 relative z-10">

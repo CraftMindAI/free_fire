@@ -4,9 +4,10 @@ import React from "react";
 
 interface HeaderProps {
   username?: string;
+  profileImg?: string;
 }
 
-export default function Header({ username = "Admin" }: HeaderProps) {
+export default function Header({ username = "Admin", profileImg }: HeaderProps) {
   return (
     <header className="fixed top-0 right-0 w-full z-50 bg-[#131313]/70 backdrop-blur-xl border-b border-white/10 shadow-[0_0_15px_rgba(255,46,46,0.2)]">
       <div className="flex justify-between items-center px-6 py-4 mx-auto w-full">
@@ -21,9 +22,14 @@ export default function Header({ username = "Admin" }: HeaderProps) {
               {username}
             </span>
             <div className="w-10 h-10 rounded-full border border-[#ffb4ab]/50 overflow-hidden flex items-center justify-center bg-surface-container-highest">
-              <span className="material-symbols-outlined text-[#ffb4ab]">
-                person
-              </span>
+              {profileImg ? (
+                /* eslint-disable-next-line @next/next/no-img-element */
+                <img src={profileImg} alt={username} className="w-full h-full object-cover" />
+              ) : (
+                <span className="material-symbols-outlined text-[#ffb4ab]">
+                  person
+                </span>
+              )}
             </div>
           </div>
         </div>

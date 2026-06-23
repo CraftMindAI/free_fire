@@ -11,17 +11,22 @@ datasource db {
 }
 
 // User model for authentication
+
+enum Role {
+  player
+  admin
+}
 model User {
   id        Int       @id @default(autoincrement())
   username  String    @unique
   player_id String    @unique
   name      String
   email     String    @unique
+  profile_img String?
   phone     String?
   whatsapp  String?
   password  String
-  role      String    @default("player") // "player" or "admin"
-  designation String?                    // e.g. "Security Lead" or "Tournament Moderator"
+  role      Role    @default(player)                  
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 

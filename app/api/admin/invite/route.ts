@@ -16,71 +16,68 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json().catch(() => ({}));
-    const name = typeof body.name === "string" ? body.name.trim() : "";
-    const email = typeof body.email === "string" ? body.email.toLowerCase().trim() : "";
-    const designation = typeof body.role === "string" ? body.role.trim() : "Moderator"; // mapping Assign Role field
 
-    if (!name || !email) {
+    const username = typeof body.username === "string" ? body.username.trim() : "";
+    const playerId = typeof body.player_id === "string" ? body.player_id.trim() : "";
+    const email = typeof body.email === "string" ? body.email.toLowerCase().trim() : "";
+    const phone = typeof body.phone === "string" ? body.phone.trim() : "";
+    const whatsapp = typeof body.whatsapp === "string" ? body.whatsapp.trim() : "";
+    const password = typeof body.password === "string" ? body.password : "";
+    const confirmPassword = typeof body.confirmPassword === "string" ? body.confirmPassword : "";
+
+    if (!username || !playerId || !email || !password || !confirmPassword) {
       return NextResponse.json(
-        { error: "Full Name and Work Email are required fields." },
+        { error: "Username, player ID, email, and password are required." },
         { status: 400 }
       );
     }
 
-    // Check if user with this email already exists
-    const existingUser = await prisma.user.findUnique({
-      where: { email },
+    if (password.length < 6) {
+      return NextResponse.json(
+        { error: "Password must be at least 6 characters." },
+        { status: 400 }
+      );
+    }
+
+    if (password !== confirmPassword) {
+      return NextResponse.json(
+        { error: "Passwords do not match." },
+        { status: 400 }
+      );
+    }
+
+    // Check if user already exists
+    const existingUser = await prisma.user.findFirst({
+      where: {
+        OR: [{ email }, { username }, { player_id: playerId }],
+      },
     });
 
     if (existingUser) {
+      let field = "username";
+      if (existingUser.email === email) field = "email";
+      else if (existingUser.player_id === playerId) field = "player ID";
       return NextResponse.json(
-        { error: "An administrator or player with this email address already exists." },
+        { error: `An account with this ${field} already exists.` },
         { status: 409 }
       );
     }
 
-    // Generate unique username
-    let baseUsername = name.toLowerCase().replace(/[^a-z0-9]/g, "");
-    if (!baseUsername) baseUsername = "admin";
-    let username = baseUsername;
-    let usernameExists = true;
-    let attempts = 0;
-    while (usernameExists && attempts < 10) {
-      const userCheck = await prisma.user.findUnique({ where: { username } });
-      if (!userCheck) {
-        usernameExists = false;
-      } else {
-        username = `${baseUsername}${Math.floor(100 + Math.random() * 900)}`;
-      }
-      attempts++;
-    }
-
-    // Generate unique player ID (9 digits)
-    let playerId = "";
-    let playerIdExists = true;
-    attempts = 0;
-    while (playerIdExists && attempts < 10) {
-      playerId = Math.floor(100000000 + Math.random() * 900000000).toString();
-      const idCheck = await prisma.user.findUnique({ where: { player_id: playerId } });
-      if (!idCheck) {
-        playerIdExists = false;
-      }
-      attempts++;
-    }
-
-    // Create default password (admin1234)
-    const hashedPassword = await bcrypt.hash("admin1234", 12);
+    // Hash password
+    const hashedPassword = await bcrypt.hash(password, 12);
 
     // Create the new administrator user
     const newAdmin = await prisma.user.create({
       data: {
         username,
         player_id: playerId,
-        name,
+        name: username, // Default name to username
         email,
+        phone: phone || null,
+        whatsapp: whatsapp || null,
+        profile_img: body.profile_img || null,
         password: hashedPassword,
         role: "admin",
-        designation,
       },
     });
 
@@ -93,13 +90,15 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: "Administrator invited and created successfully.",
+      message: "Administrator created successfully.",
       user: {
         id: newAdmin.id,
+        username: newAdmin.username,
+        player_id: newAdmin.player_id,
         name: newAdmin.name,
         email: newAdmin.email,
         role: newAdmin.role,
-        designation: newAdmin.designation,
+        profile_img: newAdmin.profile_img,
       },
     });
   } catch (error) {

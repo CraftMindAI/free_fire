@@ -1,0 +1,17 @@
+export const PROFILE_IMAGES: string[] = [
+  "/assets/profiles/Pic1.png",
+  "/assets/profiles/Pic2.png",
+  "/assets/profiles/Pic3.png",
+  "/assets/profiles/Pic4.png",
+  "/assets/profiles/Pic5.png",
+  "/assets/profiles/Pic6.png",
+  "/assets/profiles/Pic7.png",
+  "/assets/profiles/Pic8.png",
+  "/assets/profiles/Pic9.png",
+  "/assets/profiles/Pic10.png",
+  "/assets/profiles/Pic11.png",
+  "/assets/profiles/Pic12.png",
+  "/assets/profiles/Pic13.png",
+  "/assets/profiles/Pic14.png",
+  "/assets/profiles/Pic15.png",
+];

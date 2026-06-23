@@ -1,9 +1,12 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Header from "@/app/components/common/Header";
 import Sidebar from "@/app/components/common/Sidebar";
+import RegisterForm from "@/app/components/auth/RegisterForm";
 
+import { PROFILE_IMAGES as AVAILABLE_AVATARS } from "@/app/data/profile";
 interface User {
   id: string;
   username: string;
@@ -13,7 +16,8 @@ interface User {
   phone: string;
   whatsapp: string;
   role: string;
-  designation: string;
+  designation?: string;
+  profile_img?: string | null;
 }
 
 interface AdminTeamMember {
@@ -22,9 +26,12 @@ interface AdminTeamMember {
   player_id: string;
   name: string;
   email: string;
+  phone?: string;
+  whatsapp?: string;
   role: string;
-  designation: string;
   status: string;
+  designation?: string;
+  profile_img?: string | null;
 }
 
 interface SettingsClientProps {
@@ -36,6 +43,7 @@ export default function SettingsClient({
   user: initialUser,
   initialAdmins,
 }: SettingsClientProps) {
+  const router = useRouter();
   const [user, setUser] = useState<User>(initialUser);
   const [admins, setAdmins] = useState<AdminTeamMember[]>(initialAdmins);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -44,6 +52,12 @@ export default function SettingsClient({
   const [showUpdateProfileModal, setShowUpdateProfileModal] = useState(false);
   const [showResetPasswordModal, setShowResetPasswordModal] = useState(false);
   const [showAddAdminModal, setShowAddAdminModal] = useState(false);
+  const [showAvatarModal, setShowAvatarModal] = useState(false);
+  const [avatarLoading, setAvatarLoading] = useState(false);
+  const [selectedAvatar, setSelectedAvatar] = useState<string | null>(null);
+
+  const [adminToEdit, setAdminToEdit] = useState<AdminTeamMember | null>(null);
+  const [adminToDelete, setAdminToDelete] = useState<AdminTeamMember | null>(null);
 
   // Form States - Profile
   const [profileName, setProfileName] = useState(user.name);
@@ -74,15 +88,10 @@ export default function SettingsClient({
   const [passwordSuccess, setPasswordSuccess] = useState("");
   const [passwordLoading, setPasswordLoading] = useState(false);
 
-  // Form States - Add Admin
-  const [adminName, setAdminName] = useState("");
-  const [adminEmail, setAdminEmail] = useState("");
-  const [adminRole, setAdminRole] = useState("Moderator");
-  const [adminError, setAdminError] = useState("");
-  const [adminSuccess, setAdminSuccess] = useState("");
-  const [adminLoading, setAdminLoading] = useState(false);
+// Form States - Add Admin
+// State removed because it is handled by RegisterForm
 
-  // UI States
+// UI States
   const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
   const [generalError, setGeneralError] = useState("");
   const [generalSuccess, setGeneralSuccess] = useState("");
@@ -151,6 +160,13 @@ export default function SettingsClient({
           phone: profilePhone,
           whatsapp: profileWhatsapp,
         }));
+        setAdmins((prev) => prev.map(adm => adm.id === user.id ? { 
+          ...adm, 
+          name: profileName, 
+          email: profileEmail,
+          player_id: profilePlayerId
+        } : adm));
+        router.refresh();
         // Auto-close after delay
         setTimeout(() => {
           setShowUpdateProfileModal(false);
@@ -161,6 +177,40 @@ export default function SettingsClient({
       setProfileError("Network error. Please try again.");
     } finally {
       setProfileLoading(false);
+    }
+  };
+
+  // Handle Avatar Update
+  const handleUpdateAvatar = async (imgPath: string) => {
+    setGeneralError("");
+    setAvatarLoading(true);
+
+    try {
+      const res = await fetch("/api/auth/profile-image", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ profile_img: imgPath }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        setGeneralError(data.error || "Failed to update profile image.");
+      } else {
+        setGeneralSuccess("Profile image updated successfully!");
+        setUser((prev) => ({
+          ...prev,
+          profile_img: imgPath,
+        }));
+        setAdmins((prev) => prev.map(adm => adm.id === user.id ? { ...adm, profile_img: imgPath } : adm));
+        router.refresh();
+        setTimeout(() => setGeneralSuccess(""), 3000);
+      }
+    } catch {
+      setGeneralError("Network error. Please try again.");
+    } finally {
+      setAvatarLoading(false);
+      setShowAvatarModal(false);
+      setSelectedAvatar(null);
     }
   };
 
@@ -220,67 +270,60 @@ export default function SettingsClient({
     }
   };
 
-  // Handle Add Admin
-  const handleAddAdmin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setAdminError("");
-    setAdminSuccess("");
-    setAdminLoading(true);
+  // Handle Add Admin Success Callback
+  const handleAddAdminSuccess = (data: any) => {
+    setGeneralSuccess("Administrator created successfully!");
+    const newMember: AdminTeamMember = {
+      id: String(data.user.id),
+      username: data.user.username,
+      player_id: data.user.player_id,
+      name: data.user.name,
+      email: data.user.email,
+      phone: data.user.phone || "",
+      whatsapp: data.user.whatsapp || "",
+      role: data.user.role,
+      status: "Active",
+      profile_img: data.user.profile_img,
+    };
+    setAdmins((prev) => [...prev, newMember]);
+    setShowAddAdminModal(false);
+    router.refresh();
+    setTimeout(() => {
+      setGeneralSuccess("");
+    }, 3000);
+  };
 
-    if (!adminName || !adminEmail) {
-      setAdminError("Full Name and Work Email are required.");
-      setAdminLoading(false);
-      return;
+  // Handle Edit Admin Success Callback
+  const handleEditAdminSuccess = (data: any) => {
+    setGeneralSuccess("Administrator updated successfully!");
+    setAdmins((prev) => prev.map(adm => adm.id === String(data.user.id) ? {
+      ...adm,
+      ...data.user,
+      id: String(data.user.id)
+    } : adm));
+    
+    // If the edited admin is the current user, update the user state so header/sidebar updates instantly
+    if (String(data.user.id) === user.id) {
+      setUser((prev) => ({
+        ...prev,
+        ...data.user,
+        id: String(data.user.id)
+      }));
     }
 
-    try {
-      const res = await fetch("/api/admin/invite", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: adminName,
-          email: adminEmail,
-          role: adminRole,
-        }),
-      });
-
-      const data = await res.json();
-      if (!res.ok) {
-        setAdminError(data.error || "Failed to add administrator.");
-      } else {
-        setAdminSuccess("Administrator created successfully!");
-        const newMember: AdminTeamMember = {
-          id: String(data.user.id),
-          username: data.user.username,
-          player_id: data.user.player_id,
-          name: data.user.name,
-          email: data.user.email,
-          role: data.user.role,
-          designation: data.user.designation,
-          status: "Active",
-        };
-        setAdmins((prev) => [...prev, newMember]);
-        setAdminName("");
-        setAdminEmail("");
-        setAdminRole("Moderator");
-        // Auto-close after delay
-        setTimeout(() => {
-          setShowAddAdminModal(false);
-          setAdminSuccess("");
-        }, 1500);
-      }
-    } catch {
-      setAdminError("Network error. Please try again.");
-    } finally {
-      setAdminLoading(false);
-    }
+    setAdminToEdit(null);
+    router.refresh();
+    setTimeout(() => {
+      setGeneralSuccess("");
+    }, 3000);
   };
 
   // Handle Remove/Delete Admin
-  const handleDeleteAdmin = async (adminId: string) => {
+  const handleDeleteAdmin = async () => {
+    if (!adminToDelete) return;
+    const adminId = adminToDelete.id;
     setGeneralError("");
     setGeneralSuccess("");
-    if (!confirm("Are you sure you want to remove this administrator?")) return;
 
     try {
       const res = await fetch(`/api/admin/${adminId}`, {
@@ -298,6 +341,7 @@ export default function SettingsClient({
     } catch {
       setGeneralError("Network error. Please try again.");
     }
+    setAdminToDelete(null);
     setActiveMenuId(null);
   };
 
@@ -308,6 +352,10 @@ export default function SettingsClient({
         setShowAddAdminModal(false);
         setShowUpdateProfileModal(false);
         setShowResetPasswordModal(false);
+        setShowAvatarModal(false);
+        setSelectedAvatar(null);
+        setAdminToEdit(null);
+        setAdminToDelete(null);
         setActiveMenuId(null);
       }
     };
@@ -342,7 +390,7 @@ export default function SettingsClient({
 
       <div className="flex-1 flex flex-col min-h-screen">
         {/* Header */}
-        <Header username={user.name} />
+        <Header username={user.name} profileImg={user.profile_img || undefined} />
 
         {/* Main Panel Canvas */}
         <main className="flex-1 px-8 pt-28 pb-12 relative z-10">
@@ -389,22 +437,37 @@ export default function SettingsClient({
               >
                 {/* Avatar area */}
                 <div className="relative group">
-                  <div className="w-36 h-36 sm:w-40 sm:h-40 rounded-full border-4 border-[#ffb4ab]/30 p-1 bg-gradient-to-tr from-[#ffb4ab] to-transparent overflow-hidden flex items-center justify-center">
-                    {getAvatarForAdmin(user.name) ? (
+                  <div className="w-36 h-36 sm:w-40 sm:h-40 rounded-full border-4 border-[#ffb4ab]/30 p-1 bg-gradient-to-tr from-[#ffb4ab] to-transparent overflow-hidden flex items-center justify-center relative">
+                    {user.profile_img || getAvatarForAdmin(user.name) ? (
                       /* eslint-disable-next-line @next/next/no-img-element */
                       <img
-                        className="w-full h-full object-cover rounded-full"
-                        src={getAvatarForAdmin(user.name)}
+                        className="w-full h-full object-cover rounded-full bg-[#1e1e22]"
+                        src={user.profile_img || getAvatarForAdmin(user.name) || ""}
                         alt={user.name}
+                        onError={(e) => {
+                          // Fallback to initial icon if image fails to load
+                          e.currentTarget.style.display = 'none';
+                          e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                        }}
                       />
-                    ) : (
-                      <div className="w-full h-full rounded-full bg-[#353534] flex items-center justify-center">
-                        <span className="material-symbols-outlined text-4xl text-[#ffb4ab]">
-                          person
-                        </span>
-                      </div>
-                    )}
+                    ) : null}
+                    
+                    {/* Fallback avatar */}
+                    <div className={`w-full h-full rounded-full bg-[#353534] flex items-center justify-center ${user.profile_img || getAvatarForAdmin(user.name) ? 'hidden' : ''}`}>
+                      <span className="material-symbols-outlined text-4xl text-[#ffb4ab]">
+                        person
+                      </span>
+                    </div>
                   </div>
+                  
+                  {/* Edit Avatar Overlay */}
+                  <button 
+                    onClick={() => setShowAvatarModal(true)}
+                    className="absolute inset-0 bg-black/60 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col items-center justify-center cursor-pointer border-4 border-transparent"
+                  >
+                    <span className="material-symbols-outlined text-white text-3xl mb-1">photo_camera</span>
+                    <span className="text-white text-[10px] font-jetbrains uppercase font-bold tracking-wider">Change</span>
+                  </button>
                 </div>
 
                 <div className="flex-1 text-center md:text-left space-y-4">
@@ -414,7 +477,7 @@ export default function SettingsClient({
                     </h2>
                     <span className="inline-flex items-center px-3 py-1 rounded-full bg-[#ffb4ab]/10 border border-[#ffb4ab] text-[#ffb4ab] font-jetbrains text-[10px] uppercase tracking-wider w-fit mx-auto md:mx-0 font-semibold">
                       <span className="w-1.5 h-1.5 rounded-full bg-[#ffb4ab] mr-2 animate-ping"></span>
-                      {isAdmin ? user.designation : "Combat Player"}
+                      Combat Player
                     </span>
                   </div>
 
@@ -493,7 +556,10 @@ export default function SettingsClient({
                             Administrator
                           </th>
                           <th className="px-6 py-4 font-jetbrains text-xs text-[#e8bcb7] uppercase tracking-widest">
-                            Role / Designation
+                            Phone Number
+                          </th>
+                          <th className="px-6 py-4 font-jetbrains text-xs text-[#e8bcb7] uppercase tracking-widest">
+                            WhatsApp Number
                           </th>
                           <th className="px-6 py-4 font-jetbrains text-xs text-[#e8bcb7] uppercase tracking-widest">
                             Status
@@ -512,18 +578,24 @@ export default function SettingsClient({
                             <td className="px-6 py-4">
                               <div className="flex items-center gap-3">
                                 <div className="w-10 h-10 rounded-lg overflow-hidden border border-white/10 flex items-center justify-center bg-[#201f1f]">
-                                  {getAvatarForAdmin(adm.name) ? (
+                                  {adm.profile_img || getAvatarForAdmin(adm.name) ? (
                                     /* eslint-disable-next-line @next/next/no-img-element */
                                     <img
                                       className="w-full h-full object-cover"
-                                      src={getAvatarForAdmin(adm.name)}
+                                      src={adm.profile_img || getAvatarForAdmin(adm.name) || ""}
                                       alt={adm.name}
+                                      onError={(e) => {
+                                        e.currentTarget.style.display = 'none';
+                                        e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                                      }}
                                     />
-                                  ) : (
+                                  ) : null}
+                                  
+                                  <div className={`flex items-center justify-center ${adm.profile_img || getAvatarForAdmin(adm.name) ? 'hidden' : ''}`}>
                                     <span className="material-symbols-outlined text-xl text-[#ffb4ab]">
                                       person
                                     </span>
-                                  )}
+                                  </div>
                                 </div>
                                 <div>
                                   <div className="font-sora text-sm font-semibold text-on-surface">
@@ -535,9 +607,15 @@ export default function SettingsClient({
                                 </div>
                               </div>
                             </td>
+                           
                             <td className="px-6 py-4">
-                              <span className="font-sora text-sm text-[#ffcb8d] font-semibold">
-                                {adm.designation}
+                              <span className="font-sora text-xs text-[#e8bcb7]">
+                                {adm.phone || "N/A"}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4">
+                              <span className="font-sora text-xs text-[#e8bcb7]">
+                                {adm.whatsapp || "N/A"}
                               </span>
                             </td>
                             <td className="px-6 py-4">
@@ -548,44 +626,31 @@ export default function SettingsClient({
                                 </span>
                               </div>
                             </td>
-                            <td className="px-6 py-4 text-right relative">
+                            <td className="px-6 py-4 text-right">
                               {adm.id === user.id ? (
                                 <span className="font-jetbrains text-[10px] text-[#e8bcb7]/50 tracking-wider">
                                   Current User
                                 </span>
                               ) : (
-                                <div className="inline-block text-left">
+                                <div className="flex items-center justify-end gap-3">
                                   <button
-                                    onClick={() =>
-                                      setActiveMenuId(
-                                        activeMenuId === adm.id ? null : adm.id
-                                      )
-                                    }
-                                    className="material-symbols-outlined text-on-surface-variant hover:text-[#ffb4ab] transition-colors p-1 rounded hover:bg-white/5 cursor-pointer"
+                                    onClick={() => setAdminToEdit(adm)}
+                                    className="w-8 h-8 rounded bg-white/5 hover:bg-[#ffb4ab]/10 border border-white/5 hover:border-[#ffb4ab]/20 flex items-center justify-center transition-all cursor-pointer group"
+                                    title="Edit Admin"
                                   >
-                                    more_vert
+                                    <span className="material-symbols-outlined text-sm text-on-surface-variant group-hover:text-[#ffb4ab] transition-colors">
+                                      edit
+                                    </span>
                                   </button>
-                                  {activeMenuId === adm.id && (
-                                    <>
-                                      <div
-                                        onClick={() => setActiveMenuId(null)}
-                                        className="fixed inset-0 z-20 cursor-default"
-                                      />
-                                      <div className="absolute right-6 mt-1 w-36 rounded-lg bg-[#201f1f] border border-white/10 shadow-2xl z-30 py-1 overflow-hidden">
-                                        <button
-                                          onClick={() =>
-                                            handleDeleteAdmin(adm.id)
-                                          }
-                                          className="w-full text-left px-4 py-2 text-xs font-semibold text-[#ffb4ab] hover:bg-red-950/20 hover:text-red-300 flex items-center gap-2 cursor-pointer"
-                                        >
-                                          <span className="material-symbols-outlined text-sm">
-                                            delete
-                                          </span>
-                                          Remove Admin
-                                        </button>
-                                      </div>
-                                    </>
-                                  )}
+                                  <button
+                                    onClick={() => setAdminToDelete(adm)}
+                                    className="w-8 h-8 rounded bg-white/5 hover:bg-red-950/40 border border-white/5 hover:border-red-500/30 flex items-center justify-center transition-all cursor-pointer group"
+                                    title="Remove Admin"
+                                  >
+                                    <span className="material-symbols-outlined text-sm text-on-surface-variant group-hover:text-red-400 transition-colors">
+                                      delete
+                                    </span>
+                                  </button>
                                 </div>
                               )}
                             </td>
@@ -604,6 +669,95 @@ export default function SettingsClient({
             )}
           </div>
         </main>
+      </div>
+
+      {/* MODAL: AVATAR SELECTION */}
+      <div
+        className={`fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/85 backdrop-blur-md transition-opacity duration-300 ${
+          showAvatarModal ? "opacity-100 visible" : "opacity-0 invisible pointer-events-none"
+        }`}
+      >
+        <div
+          className={`glass-card rounded-2xl w-full max-w-2xl p-6 sm:p-8 transform transition-transform duration-300 border border-white/10 ${
+            showAvatarModal ? "scale-100" : "scale-95"
+          }`}
+          style={{
+            background: "rgba(18, 18, 18, 0.95)",
+            boxShadow: "0 0 30px rgba(255, 74, 74, 0.15), inset 0 0 20px rgba(255, 255, 255, 0.02)",
+            borderColor: "rgba(255, 74, 74, 0.3)",
+          }}
+        >
+          <div className="flex justify-between items-center mb-6">
+            <h3 className="font-orbitron font-extrabold text-xl sm:text-2xl text-[#ffb4ab] uppercase tracking-tight">
+              Select Profile Picture
+            </h3>
+            <button
+              onClick={() => {
+                setShowAvatarModal(false);
+                setSelectedAvatar(null);
+              }}
+              className="material-symbols-outlined text-on-surface-variant hover:text-white cursor-pointer"
+            >
+              close
+            </button>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4 py-4">
+            {AVAILABLE_AVATARS.map((avatar, idx) => {
+              const isSelected = selectedAvatar ? selectedAvatar === avatar : user.profile_img === avatar;
+              return (
+                <button
+                  key={idx}
+                  onClick={() => setSelectedAvatar(avatar)}
+                  disabled={avatarLoading}
+                  className={`relative group rounded-xl overflow-hidden border-2 transition-all cursor-pointer ${
+                    isSelected ? "border-[#ffb4ab]" : "border-transparent hover:border-white/30"
+                  }`}
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={avatar}
+                    alt={`Avatar ${idx + 1}`}
+                    className="w-full h-auto aspect-square object-cover"
+                  />
+                  <div className={`absolute inset-0 bg-black/40 transition-opacity ${isSelected ? "opacity-0" : "opacity-0 group-hover:opacity-100"} flex items-center justify-center`}>
+                    <span className="material-symbols-outlined text-white text-3xl">check_circle</span>
+                  </div>
+                  {isSelected && (
+                    <div className="absolute top-2 right-2 bg-[#ffb4ab] rounded-full p-0.5 text-black shadow-lg z-10 flex items-center justify-center">
+                      <span className="material-symbols-outlined text-[16px] font-bold">check</span>
+                    </div>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+          
+          <div className="mt-4 pt-4 border-t border-white/10 flex justify-end gap-3">
+            <button
+              onClick={() => {
+                setShowAvatarModal(false);
+                setSelectedAvatar(null);
+              }}
+              className="px-5 py-2 rounded-lg font-bold text-xs uppercase tracking-widest text-[#e8bcb7] hover:bg-white/5 transition-colors cursor-pointer"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={() => {
+                if (selectedAvatar && selectedAvatar !== user.profile_img) {
+                  handleUpdateAvatar(selectedAvatar);
+                } else {
+                  setShowAvatarModal(false);
+                }
+              }}
+              disabled={avatarLoading || (!selectedAvatar && !user.profile_img)}
+              className="px-6 py-2 bg-[#ffb4ab] hover:bg-[#ffb4ab]/90 text-[#410002] rounded-lg font-bold text-xs uppercase tracking-widest transition-all shadow-lg shadow-[#ffb4ab]/10 cursor-pointer disabled:opacity-50"
+            >
+              {avatarLoading ? "Updating..." : "Change"}
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* MODAL: UPDATE PROFILE */}
@@ -862,8 +1016,6 @@ export default function SettingsClient({
             <button
               onClick={() => {
                 setShowAddAdminModal(false);
-                setAdminError("");
-                setAdminSuccess("");
               }}
               className="material-symbols-outlined text-on-surface-variant hover:text-white cursor-pointer"
             >
@@ -871,77 +1023,106 @@ export default function SettingsClient({
             </button>
           </div>
 
-          <form onSubmit={handleAddAdmin} className="space-y-5">
-            {adminError && (
-              <div className="bg-red-950/40 border border-red-500/30 text-red-200 px-3 py-2 rounded text-xs">
-                {adminError}
-              </div>
-            )}
-            {adminSuccess && (
-              <div className="bg-emerald-950/40 border border-emerald-500/30 text-emerald-200 px-3 py-2 rounded text-xs">
-                {adminSuccess}
-              </div>
-            )}
+          <div className="max-h-[70vh] overflow-y-auto px-1">
+            <RegisterForm role="admin" onSuccess={handleAddAdminSuccess} />
+          </div>
+        </div>
+      </div>
+      {/* MODAL: EDIT ADMIN */}
+      <div
+        className={`fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/85 backdrop-blur-md transition-opacity duration-300 ${
+          adminToEdit ? "opacity-100 visible" : "opacity-0 invisible pointer-events-none"
+        }`}
+      >
+        <div
+          className={`glass-card rounded-2xl w-full max-w-lg p-6 sm:p-8 transform transition-transform duration-300 border border-white/10 ${
+            adminToEdit ? "scale-100" : "scale-95"
+          }`}
+          style={{
+            background: "rgba(18, 18, 18, 0.95)",
+            boxShadow: "0 0 30px rgba(255, 74, 74, 0.15), inset 0 0 20px rgba(255, 255, 255, 0.02)",
+            borderColor: "rgba(255, 74, 74, 0.3)",
+          }}
+        >
+          <div className="flex justify-between items-center mb-6">
+            <h3 className="font-orbitron font-extrabold text-xl sm:text-2xl text-[#ffb4ab] uppercase tracking-tight">
+              Edit Admin
+            </h3>
+            <button
+              onClick={() => {
+                setAdminToEdit(null);
+              }}
+              className="material-symbols-outlined text-on-surface-variant hover:text-white cursor-pointer"
+            >
+              close
+            </button>
+          </div>
 
-            <div className="space-y-1">
-              <label className="block font-jetbrains text-[10px] tracking-[0.15em] text-[#e8bcb7]/70 uppercase">
-                Full Name
-              </label>
-              <input
-                type="text"
-                value={adminName}
-                onChange={(e) => setAdminName(e.target.value)}
-                className="w-full bg-[#1c1b1b] border border-white/10 rounded-lg py-2.5 px-3 text-sm focus:border-[#ffb4ab] focus:ring-1 focus:ring-[#ffb4ab] focus:outline-none transition-all placeholder:text-[#e8bcb7]/20"
-                placeholder="Sarah Jenkins"
-                required
+          <div className="max-h-[70vh] overflow-y-auto px-1">
+            {adminToEdit && (
+              <RegisterForm
+                role="admin"
+                mode="edit"
+                adminId={adminToEdit.id}
+                initialData={{
+                  username: adminToEdit.username,
+                  playerId: adminToEdit.player_id,
+                  email: adminToEdit.email,
+                  phone: adminToEdit.phone || "",
+                  whatsapp: adminToEdit.whatsapp || "",
+                  role: adminToEdit.role,
+                }}
+                onSuccess={handleEditAdminSuccess}
               />
-            </div>
+            )}
+          </div>
+        </div>
+      </div>
 
-            <div className="space-y-1">
-              <label className="block font-jetbrains text-[10px] tracking-[0.15em] text-[#e8bcb7]/70 uppercase">
-                Work Email
-              </label>
-              <input
-                type="email"
-                value={adminEmail}
-                onChange={(e) => setAdminEmail(e.target.value)}
-                className="w-full bg-[#1c1b1b] border border-white/10 rounded-lg py-2.5 px-3 text-sm focus:border-[#ffb4ab] focus:ring-1 focus:ring-[#ffb4ab] focus:outline-none transition-all placeholder:text-[#e8bcb7]/20"
-                placeholder="sarah.j@titanarena.com"
-                required
-              />
+      {/* MODAL: DELETE ADMIN */}
+      <div
+        className={`fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/85 backdrop-blur-md transition-opacity duration-300 ${
+          adminToDelete ? "opacity-100 visible" : "opacity-0 invisible pointer-events-none"
+        }`}
+      >
+        <div
+          className={`glass-card rounded-2xl w-full max-w-md p-6 sm:p-8 transform transition-transform duration-300 border border-white/10 ${
+            adminToDelete ? "scale-100" : "scale-95"
+          }`}
+          style={{
+            background: "rgba(18, 18, 18, 0.95)",
+            boxShadow: "0 0 30px rgba(255, 74, 74, 0.15), inset 0 0 20px rgba(255, 255, 255, 0.02)",
+            borderColor: "rgba(255, 74, 74, 0.3)",
+          }}
+        >
+          <div className="text-center mb-6">
+            <div className="w-16 h-16 mx-auto rounded-full bg-red-500/20 flex items-center justify-center mb-4 border border-red-500/30">
+              <span className="material-symbols-outlined text-3xl text-red-400">
+                warning
+              </span>
             </div>
+            <h3 className="font-orbitron font-extrabold text-xl text-[#ffb4ab] uppercase tracking-tight mb-2">
+              Remove Administrator?
+            </h3>
+            <p className="font-sora text-sm text-[#e8bcb7]">
+              Are you sure you want to remove <strong className="text-white">{adminToDelete?.name}</strong> from the administrative team? This action cannot be undone.
+            </p>
+          </div>
 
-            <div className="space-y-1">
-              <label className="block font-jetbrains text-[10px] tracking-[0.15em] text-[#e8bcb7]/70 uppercase">
-                Assign Role Designation
-              </label>
-              <select
-                value={adminRole}
-                onChange={(e) => setAdminRole(e.target.value)}
-                className="w-full bg-[#1c1b1b] border border-white/10 rounded-lg py-2.5 px-3 text-sm focus:border-[#ffb4ab] focus:ring-1 focus:ring-[#ffb4ab] focus:outline-none transition-all text-[#e5e2e1]"
-              >
-                <option value="Security Lead">Security Lead</option>
-                <option value="Tournament Moderator">Tournament Moderator</option>
-                <option value="System Architect">System Architect</option>
-                <option value="Operations Lead">Operations Lead</option>
-                <option value="Editor">Editor</option>
-                <option value="Finance Manager">Finance Manager</option>
-              </select>
-            </div>
-
-            <div className="pt-4">
-              <button
-                type="submit"
-                disabled={adminLoading}
-                className="w-full bg-[#ffb4ab] hover:bg-[#ffb4ab]/90 text-[#410002] py-3.5 rounded-lg font-bold text-xs uppercase tracking-widest transition-all active:scale-95 shadow-lg shadow-[#ffb4ab]/10 cursor-pointer disabled:opacity-50"
-              >
-                {adminLoading ? "Creating..." : "Confirm & Invite Admin"}
-              </button>
-              <p className="text-center mt-3 font-sora text-[11px] text-[#e8bcb7]/50">
-                Newly created administrators can log in instantly with default credentials.
-              </p>
-            </div>
-          </form>
+          <div className="flex flex-col sm:flex-row gap-3">
+            <button
+              onClick={handleDeleteAdmin}
+              className="flex-1 bg-red-900/80 hover:bg-red-800 text-red-100 py-3 rounded-lg font-bold text-xs uppercase tracking-widest transition-all cursor-pointer border border-red-500/30 shadow-[0_0_15px_rgba(255,0,0,0.2)]"
+            >
+              Confirm Remove
+            </button>
+            <button
+              onClick={() => setAdminToDelete(null)}
+              className="flex-1 bg-white/5 hover:bg-white/10 text-[#e8bcb7] py-3 rounded-lg font-bold text-xs uppercase tracking-widest transition-all cursor-pointer border border-white/10"
+            >
+              Cancel
+            </button>
+          </div>
         </div>
       </div>
     </div>

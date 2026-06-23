@@ -11,6 +11,7 @@ interface PlayerDashboardClientProps {
     name: string;
     email: string;
     role: string;
+    profile_img?: string | null;
   };
   initialRooms: RoomData[];
 }
@@ -41,6 +42,7 @@ export default function PlayerDashboardClient({
       <div className="flex-1 flex flex-col min-h-screen">
         <Header
           username={user.name}
+          profileImg={user.profile_img || undefined}
         />
 
         <main className="flex-1 px-8 pt-28 pb-12 relative z-10">

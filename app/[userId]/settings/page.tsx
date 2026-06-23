@@ -27,7 +27,7 @@ export default async function SettingsPage(props: {
       phone: true,
       whatsapp: true,
       role: true,
-      designation: true,
+      profile_img: true,
     },
   });
 
@@ -41,10 +41,7 @@ export default async function SettingsPage(props: {
   if (isAdmin) {
     admins = await prisma.user.findMany({
       where: {
-        OR: [
-          { role: "admin" },
-          { role: "Admin" },
-        ],
+        role: "admin",
       },
       select: {
         id: true,
@@ -52,8 +49,10 @@ export default async function SettingsPage(props: {
         player_id: true,
         name: true,
         email: true,
+        phone: true,
+        whatsapp: true,
         role: true,
-        designation: true,
+        profile_img: true,
         createdAt: true,
       },
       orderBy: {
@@ -73,7 +72,7 @@ export default async function SettingsPage(props: {
         phone: user.phone || "",
         whatsapp: user.whatsapp || "",
         role: user.role,
-        designation: user.designation || "Moderator",
+        profile_img: user.profile_img,
       }}
       initialAdmins={admins.map((adm) => ({
         id: String(adm.id),
@@ -81,9 +80,11 @@ export default async function SettingsPage(props: {
         player_id: adm.player_id,
         name: adm.name,
         email: adm.email,
+        phone: adm.phone || "",
+        whatsapp: adm.whatsapp || "",
         role: adm.role,
-        designation: adm.designation || "Moderator",
         status: "Active", // Custom UI status
+        profile_img: adm.profile_img,
       }))}
     />
   );
