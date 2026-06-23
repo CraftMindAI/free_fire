@@ -21,6 +21,7 @@ model User {
   whatsapp  String?
   password  String
   role      String    @default("player") // "player" or "admin"
+  designation String?                    // e.g. "Security Lead" or "Tournament Moderator"
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 

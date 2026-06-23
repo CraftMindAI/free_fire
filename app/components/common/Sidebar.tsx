@@ -24,9 +24,10 @@ export default function Sidebar({
 
   const slug = params?.slug as string[] | undefined;
   const pathUserId = params?.userId as string | undefined;
-  const userId = pathUserId || slug?.[0] || "";
+  const userId = pathUserId || (slug && slug.length > 1 ? slug[1] : slug?.[0]) || "";
   const isMatchDetails = pathname.endsWith("/matches");
   const isDistribution = pathname.endsWith("/distribution");
+  const isSettings = pathname.endsWith("/settings");
 
   const isAdmin = role.toLowerCase() === "admin";
 
@@ -60,18 +61,18 @@ export default function Sidebar({
   // Define navigation items based on the user's role
   const navItems = isAdmin
     ? [
-        { label: "Dashboard", icon: "dashboard", href: `/dashboard/${userId}`, active: !isMatchDetails && !isDistribution },
+        { label: "Dashboard", icon: "dashboard", href: `/dashboard/${userId}`, active: !isMatchDetails && !isDistribution && !isSettings },
         { label: "Match Details", icon: "sports_esports", href: `/${userId}/matches`, active: isMatchDetails },
         { label: "Distribution", icon: "groups", href: `/${userId}/distribution`, active: isDistribution },
         { label: "Payment History", icon: "account_balance_wallet", href: "#" },
-        { label: "Settings", icon: "settings", href: "#" },
+        { label: "Settings", icon: "settings", href: `/${userId}/settings`, active: isSettings },
       ]
     : [
-        { label: "Dashboard", icon: "dashboard", href: `/dashboard/player/${userId}`, active: true },
+        { label: "Dashboard", icon: "dashboard", href: `/dashboard/player/${userId}`, active: !isSettings },
         { label: "Upcoming Matches", icon: "schedule", href: "#" },
         { label: "My Matches", icon: "sports_esports", href: "#" },
         { label: "Payment History", icon: "account_balance_wallet", href: "#" },
-        { label: "Settings", icon: "settings", href: "#" },
+        { label: "Settings", icon: "settings", href: `/${userId}/settings`, active: isSettings },
       ];
 
   const handleToggle = () => {
