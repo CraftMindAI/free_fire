@@ -8,7 +8,7 @@ async function getRooms() {
   const rooms = await prisma.room.findMany();
 
   return rooms.map((r) => ({
-    roomId: `#RT-${r.id}`,
+    roomId: String(r.id),
     name: r.roomName,
     map: r.roomName,
     matchType: "Battle Royale (Squad)",
@@ -31,7 +31,7 @@ async function getPublishedRooms() {
   });
 
   return rooms.map((r) => ({
-    roomId: `#RT-${r.id}`,
+    roomId: String(r.id),
     name: r.roomName,
     map: r.roomName,
     matchType: "Battle Royale (Squad)",

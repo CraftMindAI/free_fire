@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect } from "react";
 import Header from "@/app/components/common/Header";
 import Sidebar from "@/app/components/common/Sidebar";
 import { RoomData } from "@/app/components/admin/ActiveRooms";
+import * as XLSX from "xlsx";
 
 interface DistributionClientProps {
   user: {
@@ -24,8 +25,9 @@ export default function DistributionClient({
   const [selectedRoom, setSelectedRoom] = useState<RoomData | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [uploadedFile, setUploadedFile] = useState<string | null>("winners_list_v2.xlsx");
+  const [uploadedFile, setUploadedFile] = useState<string | null>(null);
   const [dragActive, setDragActive] = useState(false);
+  const [parsedData, setParsedData] = useState<any[] | null>(null);
 
   // Simulation states
   const [timelineStep, setTimelineStep] = useState<"pending" | "processing" | "completed">("pending");
@@ -63,21 +65,39 @@ export default function DistributionClient({
     }
   };
 
+  const processFile = async (file: File) => {
+    setUploadedFile(file.name);
+    setSuccessMessage(null);
+    setTimelineStep("pending");
+
+    try {
+      const buffer = await file.arrayBuffer();
+      const workbook = XLSX.read(buffer, { type: "array" });
+      const firstSheetName = workbook.SheetNames[0];
+      const worksheet = workbook.Sheets[firstSheetName];
+      const data = XLSX.utils.sheet_to_json(worksheet);
+      setParsedData(data);
+    } catch (err) {
+      console.error("Failed to parse file", err);
+      alert("Failed to parse the file. Please ensure it's a valid Excel or CSV file.");
+      setUploadedFile(null);
+      setParsedData(null);
+    }
+  };
+
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
     setDragActive(false);
 
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      setUploadedFile(e.dataTransfer.files[0].name);
-      setSuccessMessage(null);
+      processFile(e.dataTransfer.files[0]);
     }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      setUploadedFile(e.target.files[0].name);
-      setSuccessMessage(null);
+      processFile(e.target.files[0]);
     }
   };
 
@@ -112,11 +132,24 @@ export default function DistributionClient({
     }, 150);
   };
 
-  // Statistics (Dynamic based on selected room, fallback to static defaults)
-  const defaultParticipants = selectedRoom ? selectedRoom.playersCount || 84 : 1240;
-  const validatedEntries = selectedRoom ? Math.max(0, defaultParticipants - 2) : 1238;
-  const errorsDetected = selectedRoom ? (defaultParticipants > 0 ? 2 : 0) : 2;
-  const prizePoolDisplay = selectedRoom ? `${(selectedRoom.prizePool ?? 0).toLocaleString()} CR` : "$25,000";
+  // Statistics (Dynamic based on selected room and uploaded file)
+  let defaultParticipants = 0;
+  let validatedEntries = 0;
+  let errorsDetected = 0;
+
+  if (parsedData) {
+    defaultParticipants = parsedData.length;
+    // Errors if there are more participants than the room allows
+    const maxAllowed = selectedRoom ? selectedRoom.maxPlayers : defaultParticipants;
+    errorsDetected = defaultParticipants > maxAllowed ? defaultParticipants - maxAllowed : 0;
+    validatedEntries = Math.max(0, defaultParticipants - errorsDetected);
+  } else if (selectedRoom) {
+    defaultParticipants = selectedRoom.playersCount || 0;
+    validatedEntries = 0;
+    errorsDetected = 0;
+  }
+
+  const prizePoolDisplay = selectedRoom ? `${(selectedRoom.prizePool ?? 0).toLocaleString()} CR` : "$0 CR";
 
   return (
     <div className="flex bg-[#131313] text-on-surface min-h-screen relative font-sora">
@@ -255,7 +288,7 @@ export default function DistributionClient({
             {/* Selection & Upload Area */}
             <div className="lg:col-span-8 flex flex-col gap-6">
               {/* Dropdown Card */}
-              <div className="glass-panel p-6 rounded-2xl relative" ref={dropdownRef}>
+              <div className="glass-panel p-6 rounded-2xl relative z-50" ref={dropdownRef}>
                 <label className="font-jetbrains text-xs text-on-surface-variant uppercase tracking-wider mb-4 block">
                   Select Published Room
                 </label>
@@ -349,7 +382,7 @@ export default function DistributionClient({
                   id="prize-list-file"
                   onChange={handleFileChange}
                   accept=".csv,.xlsx,.xls"
-                  className="hidden"
+                  className="sr-only"
                 />
 
                 <label
@@ -379,6 +412,7 @@ export default function DistributionClient({
                       <button
                         onClick={() => {
                           setUploadedFile(null);
+                          setParsedData(null);
                           setSuccessMessage(null);
                           setTimelineStep("pending");
                         }}

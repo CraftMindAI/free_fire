@@ -164,4 +164,11 @@ body { background: #131313; color: #e5e2e1; overflow-x: hidden; }
   box-shadow: 0 0 8px rgba(34, 197, 94, 0.5);
 }
 
+/* ── Toast animation ─────────────────────────────────── */
+@keyframes toastIn {
+  from { transform: translateX(110%) scale(0.92); opacity: 0; }
+  to   { transform: translateX(0)    scale(1);    opacity: 1; }
+}
+
+
 

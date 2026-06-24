@@ -1,9 +1,148 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
+import Image from "next/image";
 import Header from "@/app/components/common/Header";
 import Sidebar from "@/app/components/common/Sidebar";
 import { RoomData } from "@/app/components/admin/ActiveRooms";
+import { ToastProvider, useToast } from "@/app/components/common/Toast";
+
+const MAP_OPTIONS = [
+  { value: "Bermuda", label: "BERMUDA", src: "/assets/map/Bermuda.png" },
+  { value: "Purgatory", label: "PURGATORY", src: "/assets/map/Purgatory.png" },
+  { value: "Kalahari", label: "KALAHARI", src: "/assets/map/Kalahari.png" },
+  { value: "Alpine", label: "ALPINE", src: "/assets/map/Alpine.png" },
+  { value: "Nexterra", label: "NEXTERRA", src: "/assets/map/Nexterra.png" },
+  { value: "Solara", label: "SOLARA", src: "/assets/map/Solara.png" },
+];
+
+// Infer matchType from maxPlayers since DB column not yet migrated
+function inferMatchType(maxPlayers: number): string {
+  if (maxPlayers <= 12) return "Squad";
+  if (maxPlayers <= 24) return "Duo";
+  return "Solo";
+}
+
+// ── Map Carousel ────────────────────────────────────────────────
+function MapCarousel({
+  map,
+  setMap,
+}: {
+  map: string;
+  setMap: (v: string) => void;
+}) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const CARD_W = 112; // px — card width + gap
+
+  const scrollLeft = () =>
+    scrollRef.current?.scrollBy({ left: -CARD_W, behavior: "smooth" });
+  const scrollRight = () =>
+    scrollRef.current?.scrollBy({ left: CARD_W, behavior: "smooth" });
+
+  return (
+    <div className="space-y-2">
+      <label className="font-jetbrains text-on-surface-variant text-[10px] uppercase tracking-wider">
+        ARENA MAP
+      </label>
+
+      {/* Outer group — hover on this reveals the arrows */}
+      <div className="relative group/carousel">
+        {/* Left fade edge + arrow */}
+        <div className="absolute left-0 top-0 bottom-0 z-10 flex items-center pointer-events-none">
+          <div className="w-10 h-full bg-gradient-to-r from-[#111]/95 to-transparent" />
+          <button
+            type="button"
+            onClick={scrollLeft}
+            className="
+              absolute left-1 w-7 h-7 rounded-full
+              bg-[#1e1e1e]/90 border border-white/15
+              flex items-center justify-center
+              text-white/60 hover:text-[#ffb4ab] hover:border-[#ffb4ab]/50 hover:bg-[#2a2a2a]
+              transition-all duration-200 cursor-pointer
+              opacity-0 pointer-events-none
+              group-hover/carousel:opacity-100 group-hover/carousel:pointer-events-auto
+            "
+          >
+            <span className="material-symbols-outlined text-[16px]">chevron_left</span>
+          </button>
+        </div>
+
+        {/* Hidden-scrollbar card row */}
+        <div
+          ref={scrollRef}
+          className="flex gap-3 overflow-x-auto px-2 py-3"
+          style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+        >
+          <style>{`.map-scroll::-webkit-scrollbar{display:none}`}</style>
+          {MAP_OPTIONS.map((m) => {
+            const isSelected = map === m.value;
+            return (
+              <button
+                key={m.value}
+                type="button"
+                onClick={() => setMap(m.value)}
+                className={`relative flex-shrink-0 w-24 rounded-xl overflow-hidden transition-all duration-200 group/card ${isSelected
+                  ? "ring-2 ring-[#ffb4ab] shadow-[0_0_16px_rgba(255,180,171,0.55)] scale-105"
+                  : "ring-1 ring-white/10 hover:ring-[#ffb4ab]/50 hover:scale-105"
+                  }`}
+                style={{ aspectRatio: "3/4" }}
+              >
+                <Image
+                  src={m.src}
+                  alt={m.label}
+                  fill
+                  className="object-cover object-top"
+                  sizes="96px"
+                />
+                <div
+                  className={`absolute inset-0 transition-all duration-200 ${isSelected
+                    ? "bg-gradient-to-t from-[#690005]/90 via-black/20 to-transparent"
+                    : "bg-gradient-to-t from-black/80 via-black/30 to-transparent group-hover/card:from-black/60"
+                    }`}
+                />
+                <span
+                  className={`absolute bottom-1.5 left-0 right-0 text-center font-jetbrains text-[8px] font-bold tracking-widest uppercase px-1 ${isSelected ? "text-[#ffb4ab]" : "text-white/80"
+                    }`}
+                >
+                  {m.label}
+                </span>
+                {isSelected && (
+                  <div className="absolute top-1.5 right-1.5 w-4 h-4 bg-[#ffb4ab] rounded-full flex items-center justify-center">
+                    <span className="material-symbols-outlined text-[10px] text-[#690005] font-bold">
+                      check
+                    </span>
+                  </div>
+                )}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Right fade edge + arrow */}
+        <div className="absolute right-0 top-0 bottom-0 z-10 flex items-center pointer-events-none">
+          <div className="w-10 h-full bg-gradient-to-l from-[#111]/95 to-transparent" />
+          <button
+            type="button"
+            onClick={scrollRight}
+            className="
+              absolute right-1 w-7 h-7 rounded-full
+              bg-[#1e1e1e]/90 border border-white/15
+              flex items-center justify-center
+              text-white/60 hover:text-[#ffb4ab] hover:border-[#ffb4ab]/50 hover:bg-[#2a2a2a]
+              transition-all duration-200 cursor-pointer
+              opacity-0 pointer-events-none
+              group-hover/carousel:opacity-100 group-hover/carousel:pointer-events-auto
+            "
+          >
+            <span className="material-symbols-outlined text-[16px]">chevron_right</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+// ────────────────────────────────────────────────────────────────
+
 
 interface MatchDetailsClientProps {
   user: {
@@ -21,7 +160,7 @@ interface MatchDetailsClientProps {
   };
 }
 
-export default function MatchDetailsClient({
+function MatchDetailsClientInner({
   user,
   initialRooms,
   initialStats,
@@ -33,16 +172,31 @@ export default function MatchDetailsClient({
   const [editingRoom, setEditingRoom] = useState<RoomData | null>(null);
 
   // Form State
-  const [map, setMap] = useState("Cyber-Grid 9");
-  const [gameMode, setGameMode] = useState("Battle Royale (Squad)");
+  const [map, setMap] = useState("Bermuda");
+  const [gameMode, setGameMode] = useState("Solo");
   const [entryFee, setEntryFee] = useState("50");
   const [prizePool, setPrizePool] = useState("5000");
-  const [seats, setSeats] = useState("100");
+  const [seats, setSeats] = useState("48");
   const [startDate, setStartDate] = useState("");
   const [startTime, setStartTime] = useState("");
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const toast = useToast();
+
+  // Auto-clear the modal inline error after 4 s
+  useEffect(() => {
+    if (!error) return;
+    const t = setTimeout(() => setError(null), 4000);
+    return () => clearTimeout(t);
+  }, [error]);
+
+  // Auto-set seats to the mode's max when mode changes
+  const MODE_MAX: Record<string, number> = { Solo: 48, Duo: 24, Squad: 12 };
+  useEffect(() => {
+    setSeats(String(MODE_MAX[gameMode] ?? 48));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [gameMode]);
 
   const fetchUpdatedData = async () => {
     try {
@@ -54,7 +208,32 @@ export default function MatchDetailsClient({
         const roomsData = await roomsRes.json();
 
         setStats(statsData.stats);
-        setRooms(roomsData.rooms);
+
+        // Map raw DB rooms to RoomData shape (same as page.tsx)
+        const mappedRooms: RoomData[] = (roomsData.rooms ?? []).map(
+          (r: any) => ({
+            roomId: `${r.id}`,
+            name: r.roomName,
+            map: r.roomName,
+            matchType: inferMatchType(r.maxPlayers),
+            entryFee: 50,
+            prizePool: 5000,
+            playersCount: r.currentPlayers,
+            maxPlayers: r.maxPlayers,
+            matchDate: r.startTime
+              ? new Date(r.startTime).toLocaleDateString()
+              : "",
+            matchTime: r.startTime
+              ? new Date(r.startTime).toLocaleTimeString()
+              : "",
+            status: r.status,
+            isPublished: r.status === "active",
+            tier: "Legendary",
+            icon: "sports_esports",
+          })
+        );
+
+        setRooms(mappedRooms);
       }
     } catch (err) {
       console.error("Failed to refresh data:", err);
@@ -63,11 +242,11 @@ export default function MatchDetailsClient({
 
   const handleOpenCreateModal = () => {
     setEditingRoom(null);
-    setMap("Cyber-Grid 9");
-    setGameMode("Battle Royale (Squad)");
+    setMap("Bermuda");
+    setGameMode("Solo");
     setEntryFee("50");
     setPrizePool("5000");
-    setSeats("100");
+    setSeats("48");
     setStartDate(new Date().toISOString().split("T")[0]);
     setStartTime("18:00");
     setError(null);
@@ -77,11 +256,11 @@ export default function MatchDetailsClient({
   const handleOpenEditModal = (room: RoomData) => {
     setEditingRoom(room);
     setMap(room.map);
-    setGameMode(room.matchType || "Battle Royale (Squad)");
+    setGameMode(room.matchType || "Solo");
     setEntryFee(String(room.entryFee || 0));
     setPrizePool(String(room.prizePool || 0));
-    setSeats(String(room.maxPlayers));
-    
+    setSeats(String(Math.min(48, room.maxPlayers)));
+
     if (room.matchTime) {
       const timeParts = room.matchTime.split(" ");
       setStartTime(timeParts[0] || "18:00");
@@ -106,14 +285,17 @@ export default function MatchDetailsClient({
       maxPlayers: Number(seats),
       matchDate: startDate
         ? new Date(startDate).toLocaleDateString("en-US", {
-            month: "short",
-            day: "numeric",
-            year: "numeric",
-          })
+          month: "short",
+          day: "numeric",
+          year: "numeric",
+        })
         : undefined,
       matchTime: startTime,
     };
 
+    console.log("Client payload matchType:", payload.matchType);
+
+    let statusCode = 200;
     try {
       const res = await fetch("/api/rooms", {
         method: "POST",
@@ -121,6 +303,7 @@ export default function MatchDetailsClient({
         body: JSON.stringify(payload),
       });
 
+      statusCode = res.status;
       if (!res.ok) {
         const data = await res.json();
         throw new Error(data.error || "Failed to save match details");
@@ -128,8 +311,19 @@ export default function MatchDetailsClient({
 
       setIsModalOpen(false);
       await fetchUpdatedData();
+
+      if (editingRoom) {
+        toast.update("Room Updated", `${map} room has been reconfigured.`);
+      } else {
+        toast.success("Room Created", `${map} arena is ready — publish when set!`);
+      }
     } catch (err: any) {
-      setError(err.message || "An error occurred");
+      const msg = err.message || "An error occurred";
+      setError(msg);
+      toast.error(
+        statusCode === 409 ? "Duplicate Room" : "Failed to Save",
+        msg
+      );
     } finally {
       setLoading(false);
     }
@@ -149,8 +343,10 @@ export default function MatchDetailsClient({
       }
 
       await fetchUpdatedData();
-    } catch (err) {
+      toast.success("Room Published", `Room #${roomId} is now live in the arena!`);
+    } catch (err: any) {
       console.error("Publish failed:", err);
+      toast.error("Publish Failed", err.message || "Could not publish the room.");
     }
   };
 
@@ -170,8 +366,10 @@ export default function MatchDetailsClient({
       }
 
       await fetchUpdatedData();
-    } catch (err) {
+      toast.delete("Room Deleted", `Room #${roomId} has been permanently removed.`);
+    } catch (err: any) {
       console.error("Delete failed:", err);
+      toast.error("Delete Failed", err.message || "Could not delete the room.");
     }
   };
 
@@ -277,11 +475,10 @@ export default function MatchDetailsClient({
                       return (
                         <tr
                           key={room.roomId}
-                          className={`transition-colors ${
-                            isPublished
-                              ? "published-row group"
-                              : "hover:bg-white/[0.02]"
-                          }`}
+                          className={`transition-colors ${isPublished
+                            ? "published-row group"
+                            : "hover:bg-white/[0.02]"
+                            }`}
                         >
                           <td className="p-6 font-semibold text-on-surface">
                             {room.roomId}
@@ -330,11 +527,10 @@ export default function MatchDetailsClient({
                               <button
                                 onClick={() => handleOpenEditModal(room)}
                                 disabled={isPublished}
-                                className={`p-2 rounded-lg transition-all ${
-                                  isPublished
-                                    ? "opacity-20 cursor-not-allowed text-on-surface-variant"
-                                    : "bg-white/5 text-on-surface-variant hover:text-[#ffb4ab] hover:bg-white/10 cursor-pointer"
-                                }`}
+                                className={`p-2 rounded-lg transition-all ${isPublished
+                                  ? "opacity-20 cursor-not-allowed text-on-surface-variant"
+                                  : "bg-white/5 text-on-surface-variant hover:text-[#ffb4ab] hover:bg-white/10 cursor-pointer"
+                                  }`}
                               >
                                 <span className="material-symbols-outlined text-[18px]">
                                   edit
@@ -343,11 +539,10 @@ export default function MatchDetailsClient({
                               <button
                                 onClick={() => handleDeleteMatch(room.roomId)}
                                 disabled={isPublished}
-                                className={`p-2 rounded-lg transition-all ${
-                                  isPublished
-                                    ? "opacity-20 cursor-not-allowed text-on-surface-variant"
-                                    : "bg-white/5 text-on-surface-variant hover:text-[#ff2e2e] hover:bg-[#ff2e2e]/10 cursor-pointer"
-                                }`}
+                                className={`p-2 rounded-lg transition-all ${isPublished
+                                  ? "opacity-20 cursor-not-allowed text-on-surface-variant"
+                                  : "bg-white/5 text-on-surface-variant hover:text-[#ff2e2e] hover:bg-[#ff2e2e]/10 cursor-pointer"
+                                  }`}
                               >
                                 <span className="material-symbols-outlined text-[18px]">
                                   delete
@@ -356,11 +551,10 @@ export default function MatchDetailsClient({
                               <button
                                 onClick={() => handlePublishMatch(room.roomId)}
                                 disabled={isPublished}
-                                className={`p-2 rounded-lg transition-all ${
-                                  isPublished
-                                    ? "opacity-20 cursor-not-allowed text-on-surface-variant"
-                                    : "bg-[#ffb4ab]/20 text-[#ffb4ab] hover:bg-[#ffb4ab] hover:text-[#690005] animate-pulse-live cursor-pointer"
-                                }`}
+                                className={`p-2 rounded-lg transition-all ${isPublished
+                                  ? "opacity-20 cursor-not-allowed text-on-surface-variant"
+                                  : "bg-[#ffb4ab]/20 text-[#ffb4ab] hover:bg-[#ffb4ab] hover:text-[#690005] animate-pulse-live cursor-pointer"
+                                  }`}
                               >
                                 <span className="material-symbols-outlined text-[18px]">
                                   publish
@@ -383,7 +577,7 @@ export default function MatchDetailsClient({
       {/* Initialize Arena Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 z-[100] items-center justify-center bg-black/80 backdrop-blur-md p-6 flex">
-          <div className="glass-panel w-full max-w-2xl rounded-3xl overflow-hidden relative border border-[#ffb4ab]/20 shadow-[0_0_50px_rgba(255,46,46,0.15)]">
+          <div className="glass-panel w-full max-w-2xl rounded-3xl relative border border-[#ffb4ab]/20 shadow-[0_0_50px_rgba(255,46,46,0.15)] overflow-y-auto max-h-[90vh]">
             {/* Modal Header */}
             <div className="bg-[#ffb4ab]/5 px-8 py-6 border-b border-white/10 flex justify-between items-center">
               <div className="flex items-center gap-3">
@@ -408,22 +602,9 @@ export default function MatchDetailsClient({
                 </div>
               )}
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <label className="font-jetbrains text-on-surface-variant text-[10px] uppercase tracking-wider">
-                    ARENA MAP
-                  </label>
-                  <select
-                    value={map}
-                    onChange={(e) => setMap(e.target.value)}
-                    className="w-full bg-[#353534]/50 border-b-2 border-[#ffb4ab]/30 focus:border-[#ffb4ab] outline-none py-3 px-2 text-on-surface transition-all rounded"
-                  >
-                    <option value="Cyber-Grid 9">Cyber-Grid 9</option>
-                    <option value="Neon Canyon">Neon Canyon</option>
-                    <option value="The Void">The Void</option>
-                    <option value="Hyper-Spire">Hyper-Spire</option>
-                  </select>
-                </div>
+              <MapCarousel map={map} setMap={setMap} />
+
+              <div className="grid grid-cols-1 md:grid-cols-1 gap-6">
                 <div className="space-y-2">
                   <label className="font-jetbrains text-on-surface-variant text-[10px] uppercase tracking-wider">
                     GAME MODE
@@ -431,12 +612,11 @@ export default function MatchDetailsClient({
                   <select
                     value={gameMode}
                     onChange={(e) => setGameMode(e.target.value)}
-                    className="w-full bg-[#353534]/50 border-b-2 border-[#ffb4ab]/30 focus:border-[#ffb4ab] outline-none py-3 px-2 text-on-surface transition-all rounded"
+                    className="w-full bg-[#353534]/80 border-b-2 border-[#ffb4ab]/30 focus:border-[#ffb4ab] outline-none py-3 px-2 text-on-surface transition-all rounded"
                   >
-                    <option value="Battle Royale (Squad)">Battle Royale (Squad)</option>
-                    <option value="1v1 Duel">1v1 Duel</option>
-                    <option value="Capture the Core">Capture the Core</option>
-                    <option value="Search & Destroy">Search & Destroy</option>
+                    <option value="Solo" className="bg-[#1e1e1e] text-white">Solo </option>
+                    <option value="Duo" className="bg-[#1e1e1e] text-white">Duo </option>
+                    <option value="Squad" className="bg-[#1e1e1e] text-white">Squad </option>
                   </select>
                 </div>
               </div>
@@ -472,17 +652,26 @@ export default function MatchDetailsClient({
                 </div>
                 <div className="space-y-2">
                   <label className="font-jetbrains text-on-surface-variant text-[10px] uppercase tracking-wider">
-                    SEATS
+                    SEATS{" "}
+                    <span className="text-[#ffb4ab]">
+                      (MAX {MODE_MAX[gameMode] ?? 48})
+                    </span>
                   </label>
                   <input
                     value={seats}
-                    onChange={(e) => setSeats(e.target.value)}
+                    onChange={(e) => {
+                      const max = MODE_MAX[gameMode] ?? 48;
+                      const v = Math.min(max, Math.max(1, Number(e.target.value)));
+                      setSeats(String(v));
+                    }}
                     required
                     type="number"
                     min="1"
-                    placeholder="100"
+                    max={MODE_MAX[gameMode] ?? 48}
+                    placeholder={String(MODE_MAX[gameMode] ?? 48)}
                     className="w-full bg-[#353534]/50 border-b-2 border-[#ffb4ab]/30 focus:border-[#ffb4ab] outline-none py-3 px-2 text-on-surface transition-all rounded"
                   />
+
                 </div>
               </div>
 
@@ -536,5 +725,13 @@ export default function MatchDetailsClient({
         </div>
       )}
     </div>
+  );
+}
+
+export default function MatchDetailsClient(props: MatchDetailsClientProps) {
+  return (
+    <ToastProvider>
+      <MatchDetailsClientInner {...props} />
+    </ToastProvider>
   );
 }
