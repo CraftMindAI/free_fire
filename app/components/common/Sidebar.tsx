@@ -34,12 +34,8 @@ export default function Sidebar({
   const handleLogout = async () => {
     setLoggingOut(true);
     try {
-      const res = await fetch("/api/auth/logout", {
-        method: "POST",
-      });
-      if (res.ok) {
-        router.push("/login");
-      }
+      const res = await fetch("/api/auth/logout", { method: "POST" });
+      if (res.ok) router.push("/login");
     } catch (err) {
       console.error("Logout failed:", err);
     } finally {
@@ -50,9 +46,7 @@ export default function Sidebar({
   // Close on Escape key press
   React.useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && isOpen && onClose) {
-        onClose();
-      }
+      if (e.key === "Escape" && isOpen && onClose) onClose();
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
@@ -75,60 +69,47 @@ export default function Sidebar({
         { label: "Settings", icon: "settings", href: `/${userId}/settings`, active: isSettings },
       ];
 
-  const handleToggle = () => {
-    if (isOpen && onClose) {
-      onClose();
-    } else if (!isOpen && onOpen) {
-      onOpen();
-    }
-  };
-
   return (
-    <>
-      {/* Semi-transparent Backdrop Overlay */}
-      <div
-        onClick={onClose}
-        className={`fixed left-0 top-[73px] w-full h-[calc(100vh-73px)] bg-black/60 backdrop-blur-sm z-40 transition-opacity duration-300 ${
-          isOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
-        }`}
-      />
-
-      {/* Slide-over Panel (Offcanvas Sidebar) */}
-      <aside
-        className={`fixed left-0 top-[73px] h-[calc(100vh-73px)] w-[80vw] md:w-[360px] z-50 bg-[#1c1b1b]/95 border-r border-white/5 flex flex-col shadow-[10px_0_30px_rgba(0,0,0,0.5)] transition-transform duration-300 rounded-r-2xl ${
-          isOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
-      >
-        {/* Floating Circular Toggle Button (Centered vertically on the left side) */}
-        <button
-          onClick={handleToggle}
-          className="absolute left-full top-1/2 -translate-y-1/2 ml-4 z-50 flex items-center justify-center w-12 h-12 rounded-full bg-white/5 backdrop-blur-md border border-white/10 hover:bg-[#ffb4ab]/20 hover:border-[#ffb4ab]/40 hover:scale-105 active:scale-95 transition-all duration-300 shadow-[0_0_20px_rgba(255,46,46,0.2)] cursor-pointer"
-          aria-label={isOpen ? "Close sidebar menu" : "Open sidebar menu"}
-        >
-          {isOpen ? (
-            <span className="material-symbols-outlined text-[24px] text-[#ffb4ab] rotate-90 transition-transform duration-300">
-              close
-            </span>
-          ) : (
-            /* eslint-disable-next-line @next/next/no-img-element */
-            <img
-              src={menuIcon.src}
-              alt="Menu"
-              className="w-6 h-6 object-contain transition-transform duration-300"
-            />
-          )}
-        </button>
-
+    /*
+     * Push-layout sidebar — sits in the normal flex flow of the page.
+     * Width animates between 0 and 360px; overflow-hidden clips content
+     * during the transition so nothing spills outside the sidebar column.
+     * No backdrop, no overlay, no dimming of main content.
+     */
+    <aside
+      className={`
+        relative flex-shrink-0 overflow-hidden
+        transition-[width] duration-300 ease-in-out
+        ${isOpen ? "w-[80vw] md:w-[360px]" : "w-0"}
+      `}
+      aria-hidden={!isOpen}
+    >
+      {/* Inner panel — fixed visual width so content does not squish during animation */}
+      <div className="w-[80vw] md:w-[360px] h-full bg-[#1c1b1b]/95 border-r border-white/5 flex flex-col shadow-[10px_0_30px_rgba(0,0,0,0.5)]">
         {/* Inner Scrollable Container */}
         <div className="flex-1 flex flex-col h-full overflow-y-auto py-10 px-6">
-          {/* Brand Header */}
-          <div className="mb-10">
-            <h2 className="font-orbitron text-[32px] font-bold text-[#ffb4ab] uppercase orbitron-header">
-              TITAN
-            </h2>
-            <p className="text-on-surface-variant font-jetbrains text-xs tracking-wider uppercase">
-              {isAdmin ? "Admin Console" : "Player Console"}
-            </p>
+
+          {/* Brand Header with close button top-right */}
+          <div className="mb-10 flex items-start justify-between">
+            <div>
+              <h2 className="font-orbitron text-[32px] font-bold text-[#ffb4ab] uppercase orbitron-header">
+                TITAN
+              </h2>
+              <p className="text-on-surface-variant font-jetbrains text-xs tracking-wider uppercase">
+                {isAdmin ? "Admin Console" : "Player Console"}
+              </p>
+            </div>
+
+            {/* ✕ Close button — top-right of TITAN ADMIN CONSOLE header */}
+            <button
+              onClick={onClose}
+              className="flex items-center justify-center w-9 h-9 rounded-full bg-white/5 border border-white/10 hover:bg-[#ffb4ab]/20 hover:border-[#ffb4ab]/40 hover:scale-105 active:scale-95 transition-all duration-300 shadow-[0_0_12px_rgba(255,46,46,0.15)] cursor-pointer mt-1"
+              aria-label="Close sidebar menu"
+            >
+              <span className="material-symbols-outlined text-[20px] text-[#ffb4ab]">
+                close
+              </span>
+            </button>
           </div>
 
           {/* Navigation */}
@@ -167,8 +148,9 @@ export default function Sidebar({
               </span>
             </button>
           </div>
+
         </div>
-      </aside>
-    </>
+      </div>
+    </aside>
   );
 }

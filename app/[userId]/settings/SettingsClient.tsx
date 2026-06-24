@@ -379,7 +379,7 @@ export default function SettingsClient({
   };
 
   return (
-    <div className="flex bg-[#090909] text-[#e5e2e1] min-h-screen relative font-sora overflow-x-hidden">
+    <div className="flex bg-[#090909] text-[#e5e2e1] min-h-screen font-sora overflow-x-hidden">
       {/* Sidebar */}
       <Sidebar
         role={user.role}
@@ -388,9 +388,14 @@ export default function SettingsClient({
         onOpen={() => setIsSidebarOpen(true)}
       />
 
-      <div className="flex-1 flex flex-col min-h-screen">
+      <div className="flex-1 flex flex-col min-h-screen min-w-0">
         {/* Header */}
-        <Header username={user.name} profileImg={user.profile_img || undefined} />
+        <Header
+          username={user.name}
+          profileImg={user.profile_img || undefined}
+          onToggleSidebar={() => setIsSidebarOpen((prev) => !prev)}
+          isSidebarOpen={isSidebarOpen}
+        />
 
         {/* Main Panel Canvas */}
         <main className="flex-1 px-8 pt-28 pb-12 relative z-10">
