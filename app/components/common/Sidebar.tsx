@@ -78,7 +78,7 @@ export default function Sidebar({
      */
     <aside
       className={`
-        relative flex-shrink-0 overflow-hidden
+        relative flex-shrink-0 overflow-hidden mt-[73px] h-[calc(100vh-73px)] z-40
         transition-[width] duration-300 ease-in-out
         ${isOpen ? "w-[80vw] md:w-[360px]" : "w-0"}
       `}
@@ -89,7 +89,7 @@ export default function Sidebar({
         {/* Inner Scrollable Container */}
         <div className="flex-1 flex flex-col h-full overflow-y-auto py-10 px-6">
 
-          {/* Brand Header with close button top-right */}
+          {/* Brand Header */}
           <div className="mb-10 flex items-start justify-between">
             <div>
               <h2 className="font-orbitron text-[32px] font-bold text-[#ffb4ab] uppercase orbitron-header">
@@ -99,17 +99,6 @@ export default function Sidebar({
                 {isAdmin ? "Admin Console" : "Player Console"}
               </p>
             </div>
-
-            {/* ✕ Close button — top-right of TITAN ADMIN CONSOLE header */}
-            <button
-              onClick={onClose}
-              className="flex items-center justify-center w-9 h-9 rounded-full bg-white/5 border border-white/10 hover:bg-[#ffb4ab]/20 hover:border-[#ffb4ab]/40 hover:scale-105 active:scale-95 transition-all duration-300 shadow-[0_0_12px_rgba(255,46,46,0.15)] cursor-pointer mt-1"
-              aria-label="Close sidebar menu"
-            >
-              <span className="material-symbols-outlined text-[20px] text-[#ffb4ab]">
-                close
-              </span>
-            </button>
           </div>
 
           {/* Navigation */}

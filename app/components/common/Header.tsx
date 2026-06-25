@@ -17,24 +17,18 @@ export default function Header({
   isSidebarOpen = false,
 }: HeaderProps) {
   return (
-    <header className="fixed top-0 right-0 w-full z-50 bg-[#131313]/70 backdrop-blur-xl border-b border-white/10 shadow-[0_0_15px_rgba(255,46,46,0.2)]">
+    <header className="fixed top-0 right-0 w-full z-50 bg-[#131313]/70 backdrop-blur-xl border-b border-white/10 shadow-[0_0_15px_rgba(255,46,46,0.2)] h-[73px]">
       <div className="flex justify-between items-center px-6 py-4 mx-auto w-full">
         <div className="flex items-center gap-4">
-          {/* Sidebar toggle — menu icon to open, X to close */}
+          {/* Sidebar toggle — always show hamburger menu icon */}
           {onToggleSidebar && (
             <button
               onClick={onToggleSidebar}
               className="flex items-center justify-center w-10 h-10 rounded-full bg-white/5 border border-white/10 hover:bg-[#ffb4ab]/20 hover:border-[#ffb4ab]/40 hover:scale-105 active:scale-95 transition-all duration-300 shadow-[0_0_15px_rgba(255,46,46,0.15)] cursor-pointer flex-shrink-0"
-              aria-label={isSidebarOpen ? "Close sidebar menu" : "Open sidebar menu"}
+              aria-label="Toggle sidebar menu"
             >
-              {isSidebarOpen ? (
-                <span className="material-symbols-outlined text-[22px] text-[#ffb4ab]">
-                  close
-                </span>
-              ) : (
-                /* eslint-disable-next-line @next/next/no-img-element */
-                <img src={menuIcon.src} alt="Menu" className="w-5 h-5 object-contain" />
-              )}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={menuIcon.src} alt="Menu" className="w-5 h-5 object-contain" />
             </button>
           )}
 

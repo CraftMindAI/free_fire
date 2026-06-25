@@ -811,6 +811,20 @@ export default function SettingsClient({
 
             <div className="space-y-1">
               <label className="block font-jetbrains text-[10px] tracking-[0.15em] text-[#e8bcb7]/70 uppercase">
+                Player ID
+              </label>
+              <input
+                type="text"
+                value={profilePlayerId || ""}
+                onChange={(e) => setProfilePlayerId(e.target.value)}
+                className="w-full bg-[#1c1b1b] border border-white/10 rounded-lg py-2.5 px-3 text-sm focus:border-[#ffb4ab] focus:ring-1 focus:ring-[#ffb4ab] focus:outline-none transition-all placeholder:text-[#e8bcb7]/20"
+                placeholder="Enter your Player ID"
+                required
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className="block font-jetbrains text-[10px] tracking-[0.15em] text-[#e8bcb7]/70 uppercase">
                 Full Name
               </label>
               <input
