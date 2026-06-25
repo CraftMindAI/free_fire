@@ -115,10 +115,10 @@ export default function RegisterForm({ role, mode = "create", initialData, admin
   }
 
   const inputClass =
-    "w-full bg-[#1e1e22] border border-white/[0.08] rounded-lg px-4 py-3 " +
+    "w-full bg-[#1e1e22] border border-white/[0.06] border-b-2 border-b-crimson/50 rounded-lg px-4 py-3 " +
     "text-on-surface placeholder:text-white/20 font-sora text-sm " +
-    "focus:outline-none focus:border-crimson/60 focus:shadow-[0_0_0_3px_rgba(255,46,46,0.1)] " +
-    "transition-all duration-200";
+    "focus:outline-none focus:border-white/[0.06] focus:border-b-2 focus:border-b-crimson " +
+    "focus:shadow-[0_0_0_3px_rgba(255,46,46,0.08)] transition-all duration-200";
 
   const labelClass =
     "block font-jetbrains text-[10px] tracking-[0.2em] text-on-surface-variant uppercase mb-2";

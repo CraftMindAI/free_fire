@@ -5,8 +5,8 @@ export default function Footer() {
     <footer className="border-t border-white/5 py-12 px-6 mt-12 bg-[#0e0e0e]">
       <div className="max-w-[1440px] mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
 
-        <span className="font-orbitron text-crimson text-2xl font-black uppercase tracking-tighter">
-          Free Fire
+        <span className="font-orbitron text-[#ffb4ab] text-xl font-black uppercase tracking-widest">
+          TITAN ARENA
         </span>
 
         <nav className="flex flex-wrap justify-center gap-8">
