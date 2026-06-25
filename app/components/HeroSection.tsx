@@ -1,35 +1,18 @@
 "use client";
 
-/* Static particles — pure Tailwind, no JS DOM injection */
-const PARTICLES = [
-  { size: "w-1 h-1", pos: "left-[5%]  top-[18%]", d: "delay-d0" },
-  { size: "w-0.5 h-0.5", pos: "left-[14%] top-[55%]", d: "delay-d3" },
-  { size: "w-1.5 h-1.5", pos: "left-[23%] top-[30%]", d: "delay-d1" },
-  { size: "w-1 h-1", pos: "left-[32%] top-[72%]", d: "delay-d5" },
-  { size: "w-0.5 h-0.5", pos: "left-[44%] top-[12%]", d: "delay-d2" },
-  { size: "w-1 h-1", pos: "left-[53%] top-[60%]", d: "delay-d6" },
-  { size: "w-1.5 h-1.5", pos: "left-[62%] top-[38%]", d: "delay-d4" },
-  { size: "w-0.5 h-0.5", pos: "left-[71%] top-[22%]", d: "delay-d1" },
-  { size: "w-1 h-1", pos: "left-[80%] top-[66%]", d: "delay-d7" },
-  { size: "w-1.5 h-1.5", pos: "left-[90%] top-[44%]", d: "delay-d3" },
-  { size: "w-1 h-1", pos: "left-[8%]  top-[82%]", d: "delay-d5" },
-  { size: "w-0.5 h-0.5", pos: "left-[38%] top-[88%]", d: "delay-d2" },
-  { size: "w-1 h-1", pos: "left-[58%] top-[8%]", d: "delay-d4" },
-  { size: "w-1.5 h-1.5", pos: "left-[76%] top-[6%]", d: "delay-d6" },
-  { size: "w-0.5 h-0.5", pos: "left-[20%] top-[8%]", d: "delay-d0" },
-  { size: "w-1 h-1", pos: "left-[47%] top-[48%]", d: "delay-d7" },
-  { size: "w-0.5 h-0.5", pos: "left-[67%] top-[78%]", d: "delay-d3" },
-  { size: "w-1.5 h-1.5", pos: "left-[88%] top-[20%]", d: "delay-d1" },
-];
+import ParticleCanvas from "./ParticleCanvas";
 
 export default function HeroSection() {
   return (
     <section
-      className="relative w-full overflow-hidden pt-16
+      className="relative w-full overflow-hidden
                          bg-[url('/card2.jpg')] bg-cover bg-[center_20%]"
     >
       {/* Full-section dark overlay so bg image is subtle */}
       <div className="absolute inset-0 bg-black/70" />
+
+      {/* Floating particle dots — yellow / orange / red */}
+      <ParticleCanvas count={90} />
 
       {/* ── Three-panel image strip ─────────────────────────── */}
       <div
@@ -68,16 +51,6 @@ export default function HeroSection() {
           />
           <div className="absolute top-0 inset-x-0 h-10 bg-gradient-to-b from-black/50 to-transparent" />
         </div>
-
-        {/* Particles */}
-        {PARTICLES.map((p, i) => (
-          <div
-            key={i}
-            className={`absolute rounded-full bg-crimson shadow-[0_0_6px_#FF2E2E]
-                         pointer-events-none animate-dot-pulse
-                         ${p.size} ${p.pos} ${p.d}`}
-          />
-        ))}
 
         {/* Full-width bottom fade into title */}
         <div

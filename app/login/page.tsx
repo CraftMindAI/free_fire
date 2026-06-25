@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import ParticleCanvas from "@/app/components/ParticleCanvas";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -61,13 +62,13 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen w-full flex bg-[#12151e] overflow-hidden">
+    <div className="min-h-screen w-full flex bg-[#0e0e0e] overflow-hidden">
       {/* ── LEFT: hero panel ─────────────────────────────── */}
       <div className="hidden lg:block lg:w-[55%] relative overflow-hidden">
         {/* Background image */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src="/card1.png"
+          src="/login.png"
           alt=""
           aria-hidden="true"
           className="absolute inset-0 w-full h-full object-cover object-center
@@ -100,12 +101,13 @@ export default function LoginPage() {
 
       {/* ── RIGHT: form panel ────────────────────────────── */}
       <div className="flex-1 flex flex-col items-center justify-center px-6 py-12 relative">
+        <ParticleCanvas count={60} />
         {/* Centered card */}
         <div className="w-full max-w-[420px]">
           {/* Card */}
           <div
-            className="bg-[#1a1a1f] border border-white/[0.07] rounded-2xl p-8 xl:p-10
-                          shadow-[0_24px_80px_rgba(0,0,0,0.6)]"
+            className="bg-white/[0.03] backdrop-blur-[20px] border border-crimson/30 rounded-2xl p-8 xl:p-10
+                        shadow-[0_0_60px_rgba(255,46,46,0.08)]"
           >
             {/* Header */}
             <div className="mb-8">
@@ -146,11 +148,11 @@ export default function LoginPage() {
                     value={identifier}
                     onChange={(e) => setIdentifier(e.target.value)}
                     required
-                    className="w-full bg-white/[0.05] border border-white/[0.09] rounded-xl
+                    className="w-full bg-[#1e1e22] border border-white/[0.06] border-b-2 border-b-crimson/50 rounded-lg
                                pl-11 pr-4 py-3.5
                                text-on-surface placeholder:text-white/25 font-sora text-sm
-                               focus:outline-none focus:border-[#ffb4ab]/50 focus:shadow-[0_0_0_3px_rgba(255,180,171,0.1)]
-                               transition-all duration-200"
+                               focus:outline-none focus:border-white/[0.06] focus:border-b-2 focus:border-b-crimson
+                               focus:shadow-[0_0_0_3px_rgba(255,46,46,0.08)] transition-all duration-200"
                   />
                 </div>
               </div>
@@ -182,11 +184,11 @@ export default function LoginPage() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
-                    className="w-full bg-white/[0.05] border border-white/[0.09] rounded-xl
+                    className="w-full bg-[#1e1e22] border border-white/[0.06] border-b-2 border-b-crimson/50 rounded-lg
                                pl-11 pr-16 py-3.5
                                text-on-surface placeholder:text-white/25 font-sora text-sm
-                               focus:outline-none focus:border-[#ffb4ab]/50 focus:shadow-[0_0_0_3px_rgba(255,180,171,0.1)]
-                               transition-all duration-200"
+                               focus:outline-none focus:border-white/[0.06] focus:border-b-2 focus:border-b-crimson
+                               focus:shadow-[0_0_0_3px_rgba(255,46,46,0.08)] transition-all duration-200"
                   />
                   <button
                     type="button"
