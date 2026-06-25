@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
     const { action } = body;
 
     if (action === "create") {
-      const { map, matchType, maxPlayers, matchDate, matchTime } = body;
+      const { map, map_img, matchType, maxPlayers, matchDate, matchTime } = body;
       console.log("Server received create action. matchType:", matchType, "maxPlayers:", maxPlayers);
 
       if (!map || !maxPlayers) {
@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
       let startTime: Date | undefined;
       let endTime: Date | undefined;
       if (matchDate && matchTime) {
-        startTime = new Date(`${matchDate} ${matchTime}`);
+        startTime = new Date(`${matchDate}T${matchTime}:00`);
         endTime = new Date(startTime.getTime() + 2 * 60 * 60 * 1000); // add 2 hours
       }
 
@@ -68,6 +68,7 @@ export async function POST(req: NextRequest) {
           roomName: map,
           roomCode: `RT-${Math.floor(Math.random() * 9000) + 1000}`,
           createdBy: 1,
+          map_img: map_img || null,
           maxPlayers: Number(maxPlayers),
           currentPlayers: 0,
           status: "waiting",
@@ -92,13 +93,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: true, message: "Room published successfully", room: result });
 
     } else if (action === "edit") {
-      const { map, maxPlayers, matchDate, matchTime } = body;
+      const { map, map_img, maxPlayers, matchDate, matchTime } = body;
 
       const updateData: any = {};
       if (map) updateData.roomName = map;
+      if (map_img !== undefined) updateData.map_img = map_img;
       if (maxPlayers !== undefined) updateData.maxPlayers = Number(maxPlayers);
       if (matchDate && matchTime) {
-        updateData.startTime = new Date(`${matchDate} ${matchTime}`);
+        updateData.startTime = new Date(`${matchDate}T${matchTime}:00`);
         updateData.endTime = new Date(updateData.startTime.getTime() + 2 * 60 * 60 * 1000); // add 2 hours
       }
 

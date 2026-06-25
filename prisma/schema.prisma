@@ -42,12 +42,7 @@ model UserStats {
   userId    Int       @unique
   user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   totalMatches Int    @default(0)
-  wins      Int       @default(0)
-  losses    Int       @default(0)
-  kills     Int       @default(0)
-  deaths    Int       @default(0)
-  assists   Int       @default(0)
-  winRate   Float     @default(0)
+  totalPrice Int      @default(0)
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 }
@@ -77,6 +72,7 @@ model Room {
   roomCode  String    @unique
   createdBy Int
   creator   User      @relation(fields: [createdBy], references: [id])
+  map_img String?
   maxPlayers Int      @default(10)
   currentPlayers Int  @default(0)
   status    String    @default("waiting") // "waiting", "active", "completed"

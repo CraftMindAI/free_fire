@@ -207,8 +207,8 @@ function MatchDetailsClientInner({
 
   const fetchUpdatedData = async () => {
     try {
-      const statsRes = await fetch("/api/stats");
-      const roomsRes = await fetch("/api/rooms");
+      const statsRes = await fetch("/api/stats", { cache: 'no-store' });
+      const roomsRes = await fetch("/api/rooms", { cache: 'no-store' });
 
       if (statsRes.ok && roomsRes.ok) {
         const statsData = await statsRes.json();
@@ -222,6 +222,7 @@ function MatchDetailsClientInner({
             roomId: `${r.id}`,
             name: r.roomName,
             map: r.roomName,
+            map_img: r.map_img,
             matchType: inferMatchType(r.maxPlayers),
             entryFee: 50,
             prizePool: 5000,
@@ -282,21 +283,19 @@ function MatchDetailsClientInner({
     setLoading(true);
     setError(null);
 
+    const selectedMapOption = MAP_OPTIONS.find(m => m.value === map);
+    const map_img = selectedMapOption ? selectedMapOption.src : null;
+
     const payload = {
       action: editingRoom ? "edit" : "create",
       roomId: editingRoom?.roomId,
       map,
+      map_img,
       matchType: gameMode,
       entryFee: Number(entryFee),
       prizePool: Number(prizePool),
       maxPlayers: Number(seats),
-      matchDate: startDate
-        ? new Date(startDate).toLocaleDateString("en-US", {
-          month: "short",
-          day: "numeric",
-          year: "numeric",
-        })
-        : undefined,
+      matchDate: startDate,
       matchTime: startTime,
     };
 
@@ -471,7 +470,7 @@ function MatchDetailsClientInner({
                   <thead>
                     <tr className="bg-white/5 border-b border-white/10 text-on-surface-variant text-[10px] font-jetbrains uppercase tracking-wider">
                       <th className="p-6">ROOM ID</th>
-                      <th className="p-6">MAP</th>
+                      <th className="p-6 text-center">MAP</th>
                       <th className="p-6">MATCH TYPE</th>
                       <th className="p-6 text-right">ENTRY</th>
                       <th className="p-6 text-right">PRIZE POOL</th>
@@ -496,9 +495,21 @@ function MatchDetailsClientInner({
                             {room.roomId}
                           </td>
                           <td className="p-6">
-                            <span className="bg-[#353534]/80 px-3 py-1 rounded text-xs font-bold uppercase tracking-wider text-[#ffb4ab]">
-                              {room.map}
-                            </span>
+                            <div className="flex items-center gap-3">
+                              {room.map_img && (
+                                <div className="relative w-10 h-10 rounded-full overflow-hidden border border-white/20">
+                                  <Image
+                                    src={room.map_img}
+                                    alt={room.map}
+                                    fill
+                                    className="object-cover"
+                                  />
+                                </div>
+                              )}
+                              <span className="text-sm text-on-surface-variant">
+                                {room.map}
+                              </span>
+                            </div>
                           </td>
                           <td className="p-6 text-sm text-on-surface-variant">
                             {room.matchType || "Battle Royale (Squad)"}

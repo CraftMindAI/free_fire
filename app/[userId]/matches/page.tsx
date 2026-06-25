@@ -27,6 +27,7 @@ async function getRooms() {
     roomId: String(r.id),
     name: r.roomName,
     map: r.roomName,
+    map_img: r.map_img,
     matchType: inferMatchType(r.maxPlayers),
     entryFee: 50,
     prizePool: 5000,
