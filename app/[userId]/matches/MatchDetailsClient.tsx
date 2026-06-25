@@ -374,7 +374,7 @@ function MatchDetailsClientInner({
   };
 
   return (
-    <div className="flex bg-[#131313] text-on-surface min-h-screen relative font-sora">
+    <div className="flex bg-[#131313] text-on-surface min-h-screen font-sora overflow-hidden">
       {/* Sidebar */}
       <Sidebar
         role={user.role}
@@ -383,9 +383,14 @@ function MatchDetailsClientInner({
         onOpen={() => setIsSidebarOpen(true)}
       />
 
-      <div className="flex-1 flex flex-col min-h-screen">
+      <div className="flex-1 flex flex-col min-h-screen min-w-0">
         {/* Header */}
-        <Header username={user.name} profileImg={user.profile_img || undefined} />
+        <Header
+          username={user.name}
+          profileImg={user.profile_img || undefined}
+          onToggleSidebar={() => setIsSidebarOpen((prev) => !prev)}
+          isSidebarOpen={isSidebarOpen}
+        />
 
         {/* Main Content Area */}
         <main className="flex-1 px-8 pt-28 pb-12 relative z-10">
