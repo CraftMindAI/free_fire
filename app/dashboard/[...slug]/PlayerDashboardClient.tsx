@@ -31,7 +31,7 @@ export default function PlayerDashboardClient({
   ];
 
   return (
-    <div className="flex bg-[#131313] text-on-surface min-h-screen relative font-sora">
+    <div className="flex bg-[#131313] text-on-surface min-h-screen font-sora overflow-hidden">
       <Sidebar
         role={user.role}
         isOpen={isSidebarOpen}
@@ -39,10 +39,12 @@ export default function PlayerDashboardClient({
         onOpen={() => setIsSidebarOpen(true)}
       />
 
-      <div className="flex-1 flex flex-col min-h-screen">
+      <div className="flex-1 flex flex-col min-h-screen min-w-0">
         <Header
           username={user.name}
           profileImg={user.profile_img || undefined}
+          onToggleSidebar={() => setIsSidebarOpen((prev) => !prev)}
+          isSidebarOpen={isSidebarOpen}
         />
 
         <main className="flex-1 px-8 pt-28 pb-12 relative z-10">

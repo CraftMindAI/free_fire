@@ -379,7 +379,7 @@ export default function SettingsClient({
   };
 
   return (
-    <div className="flex bg-[#090909] text-[#e5e2e1] min-h-screen relative font-sora overflow-x-hidden">
+    <div className="flex bg-[#090909] text-[#e5e2e1] min-h-screen font-sora overflow-x-hidden">
       {/* Sidebar */}
       <Sidebar
         role={user.role}
@@ -388,9 +388,14 @@ export default function SettingsClient({
         onOpen={() => setIsSidebarOpen(true)}
       />
 
-      <div className="flex-1 flex flex-col min-h-screen">
+      <div className="flex-1 flex flex-col min-h-screen min-w-0">
         {/* Header */}
-        <Header username={user.name} profileImg={user.profile_img || undefined} />
+        <Header
+          username={user.name}
+          profileImg={user.profile_img || undefined}
+          onToggleSidebar={() => setIsSidebarOpen((prev) => !prev)}
+          isSidebarOpen={isSidebarOpen}
+        />
 
         {/* Main Panel Canvas */}
         <main className="flex-1 px-8 pt-28 pb-12 relative z-10">
@@ -803,6 +808,20 @@ export default function SettingsClient({
                 {profileSuccess}
               </div>
             )}
+
+            <div className="space-y-1">
+              <label className="block font-jetbrains text-[10px] tracking-[0.15em] text-[#e8bcb7]/70 uppercase">
+                Player ID
+              </label>
+              <input
+                type="text"
+                value={profilePlayerId || ""}
+                onChange={(e) => setProfilePlayerId(e.target.value)}
+                className="w-full bg-[#1c1b1b] border border-white/10 rounded-lg py-2.5 px-3 text-sm focus:border-[#ffb4ab] focus:ring-1 focus:ring-[#ffb4ab] focus:outline-none transition-all placeholder:text-[#e8bcb7]/20"
+                placeholder="Enter your Player ID"
+                required
+              />
+            </div>
 
             <div className="space-y-1">
               <label className="block font-jetbrains text-[10px] tracking-[0.15em] text-[#e8bcb7]/70 uppercase">
