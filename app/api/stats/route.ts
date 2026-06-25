@@ -3,6 +3,16 @@ import prisma from "@/app/lib/prisma";
 
 export async function GET() {
   try {
+    const now = new Date();
+    // Auto-close rooms whose endTime is in the past
+    await prisma.room.updateMany({
+      where: {
+        endTime: { lt: now },
+        status: { not: { in: ["closed", "completed"] } },
+      },
+      data: { status: "closed" },
+    });
+
     // Count rooms with published status
     const activeRoomsCount = await prisma.room.count({
       where: { status: "active" },
@@ -13,10 +23,10 @@ export async function GET() {
       where: { status: "waiting" },
     });
 
-    // Count rooms with closed status (fallback to 84 if none exist)
-    const closedRoomsCount = (await prisma.room.count({
-      where: { status: "completed" },
-    })) || 84;
+    // Count rooms with closed or completed status
+    const closedRoomsCount = await prisma.room.count({
+      where: { status: { in: ["closed", "completed"] } },
+    });
 
     // Count users with role: 'player'
     const playerUsersCount = await prisma.user.count({

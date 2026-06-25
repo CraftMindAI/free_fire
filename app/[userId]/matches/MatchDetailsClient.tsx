@@ -32,12 +32,19 @@ function MapCarousel({
   setMap: (v: string) => void;
 }) {
   const scrollRef = useRef<HTMLDivElement>(null);
-  const CARD_W = 112; // px — card width + gap
 
-  const scrollLeft = () =>
-    scrollRef.current?.scrollBy({ left: -CARD_W, behavior: "smooth" });
-  const scrollRight = () =>
-    scrollRef.current?.scrollBy({ left: CARD_W, behavior: "smooth" });
+  const scrollLeft = () => {
+    if (scrollRef.current) {
+      const cardW = scrollRef.current.clientWidth / 3;
+      scrollRef.current.scrollBy({ left: -cardW, behavior: "smooth" });
+    }
+  };
+  const scrollRight = () => {
+    if (scrollRef.current) {
+      const cardW = scrollRef.current.clientWidth / 3;
+      scrollRef.current.scrollBy({ left: cardW, behavior: "smooth" });
+    }
+  };
 
   return (
     <div className="space-y-2">
@@ -46,7 +53,7 @@ function MapCarousel({
       </label>
 
       {/* Outer group — hover on this reveals the arrows */}
-      <div className="relative group/carousel">
+      <div className="relative group/carousel w-full">
         {/* Left fade edge + arrow */}
         <div className="absolute left-0 top-0 bottom-0 z-10 flex items-center pointer-events-none">
           <div className="w-10 h-full bg-gradient-to-r from-[#111]/95 to-transparent" />
@@ -81,7 +88,7 @@ function MapCarousel({
                 key={m.value}
                 type="button"
                 onClick={() => setMap(m.value)}
-                className={`relative flex-shrink-0 w-24 rounded-xl overflow-hidden transition-all duration-200 group/card ${isSelected
+                className={`relative flex-shrink-0 w-[calc(33.333%-8px)] rounded-xl overflow-hidden transition-all duration-200 group/card ${isSelected
                   ? "ring-2 ring-[#ffb4ab] shadow-[0_0_16px_rgba(255,180,171,0.55)] scale-105"
                   : "ring-1 ring-white/10 hover:ring-[#ffb4ab]/50 hover:scale-105"
                   }`}
@@ -92,7 +99,7 @@ function MapCarousel({
                   alt={m.label}
                   fill
                   className="object-cover object-top"
-                  sizes="96px"
+                  sizes="(max-width: 768px) 33vw, 250px"
                 />
                 <div
                   className={`absolute inset-0 transition-all duration-200 ${isSelected
@@ -492,10 +499,10 @@ function MatchDetailsClientInner({
                             {room.matchType || "Battle Royale (Squad)"}
                           </td>
                           <td className="p-6 text-right font-semibold text-[#ffcb8d] text-sm">
-                            {room.entryFee || 0} <span className="text-[10px]">CR</span>
+                            {room.entryFee || 0} <span className="text-[10px]">INR</span>
                           </td>
                           <td className="p-6 text-right font-semibold text-[#ffb4ab] text-sm">
-                            {room.prizePool || 0} <span className="text-[10px]">CR</span>
+                            {room.prizePool || 0} <span className="text-[10px]">INR</span>
                           </td>
                           <td className="p-6 text-center text-sm text-on-surface-variant">
                             {room.playersCount}/{room.maxPlayers}
@@ -511,7 +518,11 @@ function MatchDetailsClientInner({
                             </div>
                           </td>
                           <td className="p-6">
-                            {isPublished ? (
+                            {room.status === "closed" || room.status === "completed" ? (
+                              <span className="bg-[#690005]/50 border border-[#ffb4ab]/30 text-[#ffb4ab] px-3 py-1 rounded-full text-[10px] font-bold uppercase inline-flex items-center gap-1 opacity-80">
+                                Closed
+                              </span>
+                            ) : room.status === "active" ? (
                               <span className="published-badge px-3 py-1 rounded-full text-[10px] font-bold uppercase inline-flex items-center gap-1">
                                 <span className="w-1.5 h-1.5 rounded-full bg-current animate-pulse"></span>
                                 Published
@@ -638,7 +649,7 @@ function MatchDetailsClientInner({
                 </div>
                 <div className="space-y-2">
                   <label className="font-jetbrains text-on-surface-variant text-[10px] uppercase tracking-wider">
-                    PRIZE POOL (CR)
+                    PRIZE POOL
                   </label>
                   <input
                     value={prizePool}
@@ -675,7 +686,7 @@ function MatchDetailsClientInner({
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="space-y-2">
                   <label className="font-jetbrains text-on-surface-variant text-[10px] uppercase tracking-wider">
                     START DATE
@@ -690,7 +701,7 @@ function MatchDetailsClientInner({
                 </div>
                 <div className="space-y-2">
                   <label className="font-jetbrains text-on-surface-variant text-[10px] uppercase tracking-wider">
-                    START TIME (UTC)
+                    START TIME
                   </label>
                   <input
                     value={startTime}
@@ -698,6 +709,18 @@ function MatchDetailsClientInner({
                     required
                     type="time"
                     className="w-full bg-[#353534]/50 border-b-2 border-[#ffb4ab]/30 focus:border-[#ffb4ab] outline-none py-3 px-2 text-on-surface transition-all rounded"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="font-jetbrains text-on-surface-variant text-[10px] uppercase tracking-wider">
+                    END TIME
+                  </label>
+                  <input
+                    value={startTime ? `${String((Number(startTime.split(':')[0]) + 2) % 24).padStart(2, '0')}:${startTime.split(':')[1]}` : ''}
+                    readOnly
+                    disabled
+                    type="time"
+                    className="w-full bg-[#353534]/30 border-b-2 border-white/10 outline-none py-3 px-2 text-on-surface-variant transition-all rounded cursor-not-allowed"
                   />
                 </div>
               </div>

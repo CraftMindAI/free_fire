@@ -3,6 +3,16 @@ import prisma from "@/app/lib/prisma";
 
 export async function GET() {
   try {
+    const now = new Date();
+    // Auto-close rooms whose endTime is in the past
+    await prisma.room.updateMany({
+      where: {
+        endTime: { lt: now },
+        status: { not: "closed" },
+      },
+      data: { status: "closed" },
+    });
+
     const rooms = await prisma.room.findMany();
     return NextResponse.json({ success: true, rooms });
   } catch (error) {
@@ -28,8 +38,10 @@ export async function POST(req: NextRequest) {
       }
 
       let startTime: Date | undefined;
+      let endTime: Date | undefined;
       if (matchDate && matchTime) {
         startTime = new Date(`${matchDate} ${matchTime}`);
+        endTime = new Date(startTime.getTime() + 2 * 60 * 60 * 1000); // add 2 hours
       }
 
       // ── Duplicate check ──────────────────────────────────────────
@@ -60,6 +72,7 @@ export async function POST(req: NextRequest) {
           currentPlayers: 0,
           status: "waiting",
           startTime,
+          endTime,
         },
       });
 
@@ -86,6 +99,7 @@ export async function POST(req: NextRequest) {
       if (maxPlayers !== undefined) updateData.maxPlayers = Number(maxPlayers);
       if (matchDate && matchTime) {
         updateData.startTime = new Date(`${matchDate} ${matchTime}`);
+        updateData.endTime = new Date(updateData.startTime.getTime() + 2 * 60 * 60 * 1000); // add 2 hours
       }
 
       const result = await prisma.room.update({

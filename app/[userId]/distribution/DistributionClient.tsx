@@ -124,7 +124,7 @@ export default function DistributionClient({
           clearInterval(interval);
           setTimelineStep("completed");
           setIsProcessing(false);
-          setSuccessMessage(`Successfully distributed ${selectedRoom.prizePool ?? 0} CR to all verified winners for room ${selectedRoom.roomId}!`);
+          setSuccessMessage(`Successfully distributed ${selectedRoom.prizePool ?? 0} INR to all verified winners for room ${selectedRoom.roomId}!`);
           return 100;
         }
         return prev + 5;
@@ -149,7 +149,7 @@ export default function DistributionClient({
     errorsDetected = 0;
   }
 
-  const prizePoolDisplay = selectedRoom ? `${(selectedRoom.prizePool ?? 0).toLocaleString()} CR` : "$0 CR";
+  const prizePoolDisplay = selectedRoom ? `${(selectedRoom.prizePool ?? 0).toLocaleString()} INR` : "0 INR";
 
   return (
     <div className="flex bg-[#131313] text-on-surface min-h-screen relative font-sora">
