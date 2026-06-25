@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import Link from "next/link";
 import Header from "@/app/components/common/Header";
 import Sidebar from "@/app/components/common/Sidebar";
 import { RoomData } from "@/app/components/admin/ActiveRooms";
@@ -22,11 +23,46 @@ export default function PlayerDashboardClient({
 }: PlayerDashboardClientProps) {
   const [rooms] = useState<RoomData[]>(initialRooms);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [filterType, setFilterType] = useState<"All" | "Today" | "Tomorrow" | "Weekend">("All");
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+
+  const filteredRooms = rooms.filter((room) => {
+    if (filterType === "All") return true;
+    if (!room.matchDateIso) return false;
+
+    const matchDate = new Date(room.matchDateIso);
+    const today = new Date();
+
+    if (filterType === "Today") {
+      return (
+        matchDate.getDate() === today.getDate() &&
+        matchDate.getMonth() === today.getMonth() &&
+        matchDate.getFullYear() === today.getFullYear()
+      );
+    }
+
+    if (filterType === "Tomorrow") {
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      return (
+        matchDate.getDate() === tomorrow.getDate() &&
+        matchDate.getMonth() === tomorrow.getMonth() &&
+        matchDate.getFullYear() === tomorrow.getFullYear()
+      );
+    }
+
+    if (filterType === "Weekend") {
+      const day = matchDate.getDay();
+      return day === 0 || day === 6; // Sunday = 0, Saturday = 6
+    }
+
+    return true;
+  });
 
 
 
   return (
-    <div className="flex bg-[#131313] text-on-surface min-h-screen font-sora overflow-hidden">
+    <div className="flex bg-transparent text-on-surface min-h-screen font-sora overflow-hidden">
       <Sidebar
         role={user.role}
         isOpen={isSidebarOpen}
@@ -46,7 +82,7 @@ export default function PlayerDashboardClient({
           <div className="max-w-[1440px] mx-auto relative z-10">
             {/* Hero Stats Grid */}
             <section className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-              <div className="p-8 rounded-xl relative overflow-hidden group hover:border-[#ffb4ab]/50 transition-all bg-white/[0.03] backdrop-blur-md border border-white/10" style={{ transform: 'perspective(1000px) rotateX(0deg) rotateY(0deg) translateY(0px)' }}>
+              <div className="p-8 rounded-xl relative overflow-hidden group hover:border-[#ffb4ab]/50 hover:-translate-y-1 transition-all duration-300 bg-white/[0.03] backdrop-blur-md border border-white/10">
                 <div className="absolute -right-4 -bottom-4 opacity-10 group-hover:opacity-20 transition-opacity">
                   <span className="material-symbols-outlined text-[120px]">videogame_asset</span>
                 </div>
@@ -56,7 +92,7 @@ export default function PlayerDashboardClient({
                   <span className="material-symbols-outlined text-[#ffb4ab]">trending_up</span>
                 </div>
               </div>
-              <div className="p-8 rounded-xl relative overflow-hidden group hover:border-[#ffcb8d]/50 transition-all bg-white/[0.03] backdrop-blur-md border border-white/10" style={{ transform: 'perspective(1000px) rotateX(0deg) rotateY(0deg) translateY(0px)' }}>
+              <div className="p-8 rounded-xl relative overflow-hidden group hover:border-[#ffcb8d]/50 hover:-translate-y-1 transition-all duration-300 bg-white/[0.03] backdrop-blur-md border border-white/10">
                 <div className="absolute -right-4 -bottom-4 opacity-10 group-hover:opacity-20 transition-opacity">
                   <span className="material-symbols-outlined text-[120px]">schedule</span>
                 </div>
@@ -66,7 +102,7 @@ export default function PlayerDashboardClient({
                   <span className="material-symbols-outlined text-[#ffcb8d]">notifications_active</span>
                 </div>
               </div>
-              <div className="p-8 rounded-xl relative overflow-hidden group border-t-2 border-[#e9c400]/30 hover:border-[#e9c400]/50 transition-all bg-white/[0.03] backdrop-blur-md border border-white/10" style={{ transform: 'perspective(1000px) rotateX(0deg) rotateY(0deg) translateY(0px)' }}>
+              <div className="p-8 rounded-xl relative overflow-hidden group border-t-2 border-[#e9c400]/30 hover:border-[#e9c400]/50 hover:-translate-y-1 transition-all duration-300 bg-white/[0.03] backdrop-blur-md border border-white/10">
                 <div className="absolute -right-4 -bottom-4 opacity-10 group-hover:opacity-20 transition-opacity">
                   <span className="material-symbols-outlined text-[120px]">payments</span>
                 </div>
@@ -85,14 +121,47 @@ export default function PlayerDashboardClient({
                   <span className="w-2 h-8 bg-[#ffb4ab] rounded-full"></span>
                   Upcoming Matches
                 </h2>
-                <div className="flex gap-2">
-                  <button className="p-2 rounded-lg hover:bg-[#ffb4ab]/20 transition-colors bg-white/[0.03] backdrop-blur-md border border-white/10 flex items-center justify-center">
-                    <span className="material-symbols-outlined">filter_list</span>
+                <div className="relative flex gap-2">
+                  <button 
+                    onClick={() => setIsFilterOpen(!isFilterOpen)}
+                    className="p-2 rounded-lg hover:bg-[#ffb4ab]/20 transition-colors bg-white/[0.03] backdrop-blur-md border border-white/10 flex items-center justify-center gap-2 px-4"
+                  >
+                    <span className="material-symbols-outlined text-[18px]">filter_list</span>
+                    <span className="text-sm font-jetbrains">{filterType}</span>
                   </button>
+                  
+                  {isFilterOpen && (
+                    <div className="absolute right-0 top-full mt-2 w-48 bg-[#1a1a1a] border border-white/10 rounded-xl shadow-xl overflow-hidden z-20 font-jetbrains text-sm">
+                      <button
+                        onClick={() => { setFilterType("All"); setIsFilterOpen(false); }}
+                        className={`w-full text-left px-4 py-3 hover:bg-white/5 transition-colors ${filterType === "All" ? "text-[#ffb4ab]" : "text-white/70"}`}
+                      >
+                        All Matches
+                      </button>
+                      <button
+                        onClick={() => { setFilterType("Today"); setIsFilterOpen(false); }}
+                        className={`w-full text-left px-4 py-3 hover:bg-white/5 transition-colors ${filterType === "Today" ? "text-[#ffb4ab]" : "text-white/70"}`}
+                      >
+                        Today's Match
+                      </button>
+                      <button
+                        onClick={() => { setFilterType("Tomorrow"); setIsFilterOpen(false); }}
+                        className={`w-full text-left px-4 py-3 hover:bg-white/5 transition-colors ${filterType === "Tomorrow" ? "text-[#ffb4ab]" : "text-white/70"}`}
+                      >
+                        Tomorrow's Match
+                      </button>
+                      <button
+                        onClick={() => { setFilterType("Weekend"); setIsFilterOpen(false); }}
+                        className={`w-full text-left px-4 py-3 hover:bg-white/5 transition-colors ${filterType === "Weekend" ? "text-[#ffb4ab]" : "text-white/70"}`}
+                      >
+                        Weekend Match
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
               
-              {rooms.length === 0 ? (
+              {filteredRooms.length === 0 ? (
                 <div className="text-center py-12 bg-white/[0.03] backdrop-blur-md border border-white/10 rounded-xl">
                   <span className="material-symbols-outlined text-4xl text-white/20 mb-4 block">event_busy</span>
                   <h3 className="font-sora text-xl text-white/60">No Upcoming Matches</h3>
@@ -100,26 +169,21 @@ export default function PlayerDashboardClient({
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {rooms.map((room, idx) => {
+                  {filteredRooms.slice(0, 3).map((room, idx) => {
                     const filledPercentage = room.maxPlayers > 0 ? (room.playersCount / room.maxPlayers) * 100 : 0;
-                    const images = [
-                      "https://lh3.googleusercontent.com/aida-public/AB6AXuCO3UPQ5_q7ZVYEkxzCi1D1Ri2XlvbtZsuaPt63XBvrHhd97l4VSSaZ0stnK5LKPN68XYKGzsn-r3UAfs2JZ6a3H5l_JMiPUTCa2npAWB0DCn___J_H-ssQQCG_KQw64mqT7WPvAWX6OltquVmS4U2jcEfqW-Pu2fv3OnKatRLQaTYBx4QznWbyxBUN0bZM9g9Enf4JKPGyMDVNT4IYJKar3CMCn9dzbNsHB0HL3bMrEmykSWsy99lUmyZSXVqK-lH4cojwdjS44VU",
-                      "https://lh3.googleusercontent.com/aida-public/AB6AXuCG38wmnvIN02SWfvT02aNkc3Ss_T1wNYbGBgmCF1ePh_UYzJkXY0DW59LqseEekOP5buRMQ5sqYauJO-9HJFAnVZtCZlXqJWly5ZgZ2_kgIru5bP0QMIDszZAe7fbismQECBJ9LlfVr8PjqOCnp0iMofoZgC2h90a_YtPbvIaORH56Lz8BlqkbUsbodZZk--gXRTOk04MS2-GAnM-G6h03xBaXnRd6i_miTQSyls47xNGK2DCndKyxRhrQ0sp-JTuvHS-UwMHBDrA",
-                      "https://lh3.googleusercontent.com/aida-public/AB6AXuBF0J3W9g5qRvVGSsQEgqGuKQHKVC7thYJuwfgiPjsUZb3Yyto8dVyEOskHcunIvzuvf4XNe1LMbOdSpvzj_j26EY1zLVQ4Ea0NadvupVla3unPu2RWVQgvNAbv7w74YltDrx8Z34VFM2q-qdfvh1alI4fLUUP2-YIpOHycane56grc110eIcszEeHOYNZnRVHKUTkt-LX8Nep2eFaNWbunwd1Cq6G5JHjQJt4Tg0G--T53NOrXHqe5pUhwuGbcSyEMs6bsA24Ok1Y"
-                    ];
-                    const imgSrc = images[idx % images.length];
+                    const matchTag = room.maxPlayers === 48 ? "Solo" : room.maxPlayers === 24 ? "Duo" : room.maxPlayers === 12 ? "Squad" : "CUSTOM";
+                    
 
                     return (
                       <div
                         key={room.roomId}
-                        className={`rounded-xl overflow-hidden group hover:border-[#ffb4ab]/50 transition-all flex flex-col bg-white/[0.03] backdrop-blur-md border border-white/10 ${idx % 2 !== 0 ? 'border-t-2 border-[#ffb4ab]/30' : ''}`}
-                        style={{ transform: "perspective(1000px) rotateX(0deg) rotateY(0deg) translateY(0px)" }}
+                        className={`rounded-xl overflow-hidden group hover:border-[#ffb4ab]/50 hover:-translate-y-2 hover:shadow-[0_10px_30px_rgba(255,180,171,0.15)] transition-all duration-300 flex flex-col bg-white/[0.03] backdrop-blur-md border border-white/10 ${idx % 2 !== 0 ? 'border-t-2 border-[#ffb4ab]/30' : ''}`}
                       >
-                        <div className="relative h-48">
+                        <div className="relative h-40 w-full">
                           <img
-                            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                            className="w-full h-full object-cover object-top transition-transform duration-700 group-hover:scale-110"
                             alt={room.map}
-                            src={imgSrc}
+                            src={room.map_img}
                           />
                           <div className="absolute top-4 left-4 bg-[#131313]/80 backdrop-blur-md px-3 py-1 rounded-full border border-white/10">
                             <span className="font-jetbrains text-[10px] text-[#ffb4ab]">MAP: {room.map.toUpperCase()}</span>
@@ -131,7 +195,7 @@ export default function PlayerDashboardClient({
                               <h3 className="font-sora text-xl font-bold mb-1 text-[#e5e2e1]">{room.name}</h3>
                               <p className="text-sm text-[#e8bcb7] flex items-center gap-1">
                                 <span className="material-symbols-outlined text-sm">
-                                  {room.matchType.includes("Solo") ? "person" : room.matchType.includes("Duo") ? "group" : "groups"}
+                                  {matchTag.includes("Solo") ? "person" : matchTag.includes("Duo") ? "group" : "groups"}
                                 </span>{" "}
                                 {room.matchType}
                               </p>
@@ -161,12 +225,20 @@ export default function PlayerDashboardClient({
                             </div>
                           </div>
                           <div className="flex gap-3 mt-auto">
-                            <button className="flex-1 bg-white/[0.03] backdrop-blur-md border border-white/10 py-2 rounded-lg text-sm font-semibold hover:bg-white/10 transition-colors text-[#e5e2e1]">
-                              View Details
-                            </button>
-                            <button className="flex-1 bg-[#ff544a] text-[#5c0004] py-2 rounded-lg text-sm font-bold shadow-lg hover:shadow-[0_0_15px_#ffb4ab] transition-all">
-                              Book Slot
-                            </button>
+                                <Link
+                                  href={`/${user.id}/upcoming-matches/${room.encryptedRoomId || room.roomId}/view`}
+                                  className="flex-1 bg-white/[0.03] hover:bg-white/10 border border-white/10 text-white font-sora font-bold py-3 rounded-lg flex items-center justify-center gap-2 transition-colors text-sm"
+                                >
+                                  View Details
+                                </Link>
+                            <Link
+                              href={`/${user.id}/upcoming-matches/${room.encryptedRoomId || room.roomId}/book-now`}
+                              className="flex-1"
+                            >
+                              <button className="w-full h-full bg-[#ff544a] text-[#5c0004] py-2 rounded-lg text-sm font-bold shadow-lg hover:shadow-[0_0_15px_#ffb4ab] transition-all">
+                                Book Slot
+                              </button>
+                            </Link>
                           </div>
                         </div>
                       </div>
@@ -174,6 +246,19 @@ export default function PlayerDashboardClient({
                   })}
                 </div>
               )}
+              
+              {/* Pagination / Load More */}
+              <div className="mt-12 flex justify-center">
+                <Link href={`/${user.id}/upcoming-matches`}>
+                  <button className="group relative px-8 py-4 bg-background border-2 border-[#ffb4ab] rounded-xl overflow-hidden transition-all hover:scale-105 active:scale-95">
+                    <div className="absolute inset-0 bg-[#ffb4ab]/10 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
+                    <span className="relative font-bold text-[#ffb4ab] flex items-center gap-2">
+                      LOAD MORE TOURNAMENTS
+                      <span className="material-symbols-outlined">expand_more</span>
+                    </span>
+                  </button>
+                </Link>
+              </div>
             </section>
           </div>
         </main>

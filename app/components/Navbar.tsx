@@ -1,6 +1,19 @@
 "use client";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
+
 export default function Navbar() {
+  const pathname = usePathname();
+  
+  // Hide navbar on authenticated routes (dashboard, upcoming matches, etc.)
+  const isDashboard = pathname.includes("/dashboard") || 
+                      pathname.includes("/upcoming-matches") || 
+                      pathname.includes("/settings") || 
+                      pathname.includes("/distribution") || 
+                      pathname.includes("/matches");
+                      
+  if (isDashboard) return null;
+
   return (
     <header className="fixed top-0 w-full z-50 bg-transparent  backdrop-blur-xs border-b border-white/[0.08]">
       <div className="flex justify-between items-center px-6 py-4 max-w-[1440px] mx-auto">

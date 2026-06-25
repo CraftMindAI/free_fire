@@ -39,9 +39,15 @@ export async function POST(req: NextRequest) {
 
       let startTime: Date | undefined;
       let endTime: Date | undefined;
+      const { endTime: providedEndTime } = body;
+      
       if (matchDate && matchTime) {
         startTime = new Date(`${matchDate}T${matchTime}:00`);
-        endTime = new Date(startTime.getTime() + 2 * 60 * 60 * 1000); // add 2 hours
+        if (providedEndTime) {
+          endTime = new Date(`${matchDate}T${providedEndTime}:00`);
+        } else {
+          endTime = new Date(startTime.getTime() + 1 * 60 * 60 * 1000); // add 1 hour by default
+        }
       }
 
       // ── Duplicate check ──────────────────────────────────────────
@@ -63,21 +69,28 @@ export async function POST(req: NextRequest) {
       }
       // ─────────────────────────────────────────────────────────────
 
+      let initialStatus = "Draft";
+      if (startTime && startTime <= new Date()) {
+        initialStatus = "closed";
+      }
+
       const newRoom = await prisma.room.create({
         data: {
           roomName: map,
-          roomCode: `RT-${Math.floor(Math.random() * 9000) + 1000}`,
-          createdBy: 1,
+          createdBy: 1, // hardcoded user id for now
           map_img: map_img || null,
           maxPlayers: Number(maxPlayers),
           currentPlayers: 0,
-          status: "waiting",
+          status: initialStatus,
           startTime,
           endTime,
+          total_price: Number(body.prizePool || 0),
+          entry_fee: Number(body.entryFee || 0),
+          match_type: matchType || "Solo",
         },
       });
 
-      return NextResponse.json({ success: true, room: { ...newRoom, matchType: matchType || "Solo" } });
+      return NextResponse.json({ success: true, room: newRoom });
     }
 
     const { roomId } = body;
@@ -93,15 +106,23 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: true, message: "Room published successfully", room: result });
 
     } else if (action === "edit") {
-      const { map, map_img, maxPlayers, matchDate, matchTime } = body;
+      const { map, map_img, maxPlayers, matchDate, matchTime, matchType, prizePool, entryFee, endTime: providedEndTime } = body;
 
       const updateData: any = {};
       if (map) updateData.roomName = map;
       if (map_img !== undefined) updateData.map_img = map_img;
       if (maxPlayers !== undefined) updateData.maxPlayers = Number(maxPlayers);
+      if (matchType !== undefined) updateData.match_type = matchType;
+      if (prizePool !== undefined) updateData.total_price = Number(prizePool);
+      if (entryFee !== undefined) updateData.entry_fee = Number(entryFee);
+
       if (matchDate && matchTime) {
         updateData.startTime = new Date(`${matchDate}T${matchTime}:00`);
-        updateData.endTime = new Date(updateData.startTime.getTime() + 2 * 60 * 60 * 1000); // add 2 hours
+        if (providedEndTime) {
+          updateData.endTime = new Date(`${matchDate}T${providedEndTime}:00`);
+        } else {
+          updateData.endTime = new Date(updateData.startTime.getTime() + 1 * 60 * 60 * 1000); // add 1 hour
+        }
       }
 
       const result = await prisma.room.update({

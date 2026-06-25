@@ -38,21 +38,11 @@ export default function LoginPage() {
           return;
         }
 
-        const generateToken = (str: string): string => {
-          let hash = 0;
-          for (let i = 0; i < str.length; i++) {
-            const char = str.charCodeAt(i);
-            hash = (hash << 5) - hash + char;
-            hash = hash & hash;
-          }
-          return Math.abs(hash).toString(36) + Date.now().toString(36);
-        };
-
-        const userToken = generateToken(name);
-        const roleToken = generateToken(role);
-
-        // Always use consistent route structure with role as query parameter
-        router.push(`/dashboard/${userToken}?role=${roleToken}`);
+        if (role.toLowerCase() === "admin") {
+          router.push(`/dashboard/${data.user.encryptedId}`);
+        } else {
+          router.push(`/${data.user.encryptedId}/dashboard/home`);
+        }
       }
     } catch {
       setError("Network error. Please try again.");

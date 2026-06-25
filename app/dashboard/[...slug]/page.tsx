@@ -1,9 +1,8 @@
 import { redirect } from "next/navigation";
-import { getSessionUser } from "@/app/lib/auth";
 import prisma from "@/app/lib/prisma";
+import { encryptId, decryptId } from "@/app/lib/encryption";
+import { getSessionUser } from "@/app/lib/auth";
 import DashboardClient from "./DashboardClient";
-import PlayerDashboardClient from "./PlayerDashboardClient";
-
 async function getRooms() {
   const rooms = await prisma.room.findMany();
 
@@ -11,13 +10,15 @@ async function getRooms() {
     roomId: String(r.id),
     name: r.roomName,
     map: r.roomName,
-    matchType: "Battle Royale (Squad)",
-    entryFee: 50,
-    prizePool: 5000,
+    map_img: r.map_img,
+    matchType: r.match_type ? `Battle Royale (${r.match_type})` : r.maxPlayers === 48 ? "Battle Royale (Solo)" : r.maxPlayers === 24 ? "Battle Royale (Duo)" : "Battle Royale (Squad)",
+    entryFee: r.entry_fee || 0,
+    prizePool: r.total_price || 0,
     playersCount: r.currentPlayers,
     maxPlayers: r.maxPlayers,
     matchDate: r.startTime?.toLocaleDateString() || "",
-    matchTime: r.startTime?.toLocaleTimeString() || "",
+    matchTime: r.startTime?.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }) || "",
+    matchDateIso: r.startTime?.toISOString() || "",
     status: r.status,
     isPublished: r.status === "active",
     tier: "Legendary",
@@ -25,28 +26,6 @@ async function getRooms() {
   }));
 }
 
-async function getPublishedRooms() {
-  const rooms = await prisma.room.findMany({
-    where: { status: "active" },
-  });
-
-  return rooms.map((r) => ({
-    roomId: String(r.id),
-    name: r.roomName,
-    map: r.roomName,
-    matchType: "Battle Royale (Squad)",
-    entryFee: 50,
-    prizePool: 5000,
-    playersCount: r.currentPlayers,
-    maxPlayers: r.maxPlayers,
-    matchDate: r.startTime?.toLocaleDateString() || "",
-    matchTime: r.startTime?.toLocaleTimeString() || "",
-    status: r.status,
-    isPublished: r.status === "active",
-    tier: "Legendary",
-    icon: "sports_esports",
-  }));
-}
 
 async function getStats(roomsCount: number) {
   const playerUsersCount = await prisma.user.count({
@@ -92,9 +71,10 @@ export default async function DashboardPage(props: {
   // Admin route has 1 slug segment (e.g. /dashboard/[admin_id])
   // Player route has 2 slug segments (e.g. /dashboard/[roleId]/[userId])
   if (slug.length === 1) {
-    // Double check authorization: must be Admin to view the single-segment dashboard
-    if (user.role.toLowerCase() !== "admin") {
-      redirect("/dashboard/player/home");
+    const decodedId = decryptId(slug[0]);
+
+    if (user.role.toLowerCase() !== "admin" || user.id !== decodedId) {
+      redirect(`/${encryptId(String(user.id))}/dashboard/home`);
     }
 
     const rooms = await getRooms();
@@ -109,13 +89,6 @@ export default async function DashboardPage(props: {
       />
     );
   } else {
-    const activeRooms = await getPublishedRooms();
-
-    return (
-      <PlayerDashboardClient
-        user={user}
-        initialRooms={activeRooms}
-      />
-    );
+    redirect(`/${encryptId(String(user.id))}/dashboard/home`);
   }
 }

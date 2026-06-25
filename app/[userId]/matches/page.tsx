@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { getSessionUser } from "@/app/lib/auth";
 import prisma from "@/app/lib/prisma";
+import { encryptId, decryptId } from "@/app/lib/encryption";
 import MatchDetailsClient from "./MatchDetailsClient";
 
 // Infer matchType from maxPlayers since DB column not yet migrated
@@ -28,13 +29,16 @@ async function getRooms() {
     name: r.roomName,
     map: r.roomName,
     map_img: r.map_img,
-    matchType: inferMatchType(r.maxPlayers),
-    entryFee: 50,
-    prizePool: 5000,
+    matchType: r.match_type ? `Battle Royale (${r.match_type})` : inferMatchType(r.maxPlayers),
+    entryFee: r.entry_fee || 0,
+    prizePool: r.total_price || 0,
     playersCount: r.currentPlayers,
     maxPlayers: r.maxPlayers,
     matchDate: r.startTime?.toLocaleDateString() || "",
-    matchTime: r.startTime?.toLocaleTimeString() || "",
+    matchTime: r.startTime?.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }) || "",
+    matchDateIso: r.startTime?.toISOString() || "",
+    endTimeIso: r.endTime?.toISOString() || "",
+    encryptedRoomId: encryptId(String(r.id)),
     status: r.status,
     isPublished: r.status === "active",
     tier: "Legendary",
@@ -54,10 +58,14 @@ export default async function MatchDetailsPage(props: {
     redirect("/login");
   }
 
+  const decodedId = decryptId(userId);
+
   // Double check authorization: must be Admin
   if (user.role.toLowerCase() !== "admin") {
-    redirect("/dashboard/player/home");
+    redirect(`/${encryptId(String(user.id))}/dashboard/home`);
   }
+
+  const clientUser = { ...user, id: userId };
 
   const rooms = await getRooms();
   const activeRoomsCount = rooms.filter((r) => r.isPublished).length;
@@ -72,7 +80,7 @@ export default async function MatchDetailsPage(props: {
 
   return (
     <MatchDetailsClient
-      user={user}
+      user={clientUser}
       initialRooms={rooms}
       initialStats={stats}
     />
