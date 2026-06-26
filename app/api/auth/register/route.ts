@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import prisma from "@/app/lib/prisma";
+import { encryptId } from "@/app/lib/encryption";
 
 export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => ({}));
@@ -82,7 +83,7 @@ export async function POST(req: NextRequest) {
     });
 
     return NextResponse.json(
-      { success: true, userId: user.id },
+      { success: true, userId: user.id, encryptedId: encryptId(String(user.id)) },
       { status: 201 },
     );
   } catch (error) {

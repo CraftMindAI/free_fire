@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { SignJWT } from "jose";
 import bcrypt from "bcryptjs";
 import prisma from "@/app/lib/prisma";
+import { encryptId } from "@/app/lib/encryption";
 
 const SECRET = new TextEncoder().encode(
   process.env.JWT_SECRET ?? "titan-arena-fallback-secret",
@@ -67,6 +68,7 @@ export async function POST(req: NextRequest) {
       success: true,
       user: { 
         id: user.id,
+        encryptedId: encryptId(String(user.id)),
         name: user.name, 
         email: user.email, 
         role: user.role ?? "player" 

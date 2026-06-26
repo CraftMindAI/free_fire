@@ -25,6 +25,8 @@ model User {
   profile_img String?
   phone     String?
   whatsapp  String?
+   upiId   String?
+  Gpay    String?
   password  String
   role      Role    @default(player)                  
   createdAt DateTime  @default(now())
@@ -34,6 +36,7 @@ model User {
   stats     UserStats?
   matches   Match[]
   rooms     Room[]
+  bookings  Booking[]
 }
 
 // User statistics
@@ -42,12 +45,7 @@ model UserStats {
   userId    Int       @unique
   user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   totalMatches Int    @default(0)
-  wins      Int       @default(0)
-  losses    Int       @default(0)
-  kills     Int       @default(0)
-  deaths    Int       @default(0)
-  assists   Int       @default(0)
-  winRate   Float     @default(0)
+  totalPrice Int      @default(0)
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 }
@@ -74,16 +72,42 @@ model Match {
 model Room {
   id        Int       @id @default(autoincrement())
   roomName  String
-  roomCode  String    @unique
   createdBy Int
   creator   User      @relation(fields: [createdBy], references: [id])
+  map_img String
   maxPlayers Int      @default(10)
   currentPlayers Int  @default(0)
   status    String    @default("waiting") // "waiting", "active", "completed"
+  total_price Int  @default(0)
+  entry_fee Int    @default(0)
+  match_type String
   startTime DateTime?
   endTime   DateTime?
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 
+  bookings Booking[]
+
   @@index([createdBy])
+}
+
+// Seat Bookings for Rooms
+model Booking {
+  id          Int      @id @default(autoincrement())
+  
+  roomId      Int
+  room        Room     @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  userId      Int
+  user        User     @relation(fields: [userId], references: [id])
+  
+  seatNumber  Int
+  playerId    String   @default("")
+  status      String   @default("confirmed")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([roomId, seatNumber])
+  @@unique([roomId, playerId], name: "roomId_playerId_unique")
+  @@index([roomId])
+  @@index([userId])
 }

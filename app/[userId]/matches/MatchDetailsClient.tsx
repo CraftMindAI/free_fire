@@ -150,6 +150,83 @@ function MapCarousel({
 }
 // ────────────────────────────────────────────────────────────────
 
+// ── Custom 12-Hour Time Picker ─────────────────────────────────
+function TimePicker12({
+  value,
+  onChange,
+  label,
+}: {
+  value: string;
+  onChange: (val: string) => void;
+  label: string;
+}) {
+  const parse24 = (time24: string) => {
+    if (!time24) return { h: "12", m: "00", ampm: "PM" };
+    const [hh, mm] = time24.split(":");
+    let h = parseInt(hh, 10);
+    if (isNaN(h)) h = 12;
+    const ampm = h >= 12 ? "PM" : "AM";
+    if (h === 0) h = 12;
+    if (h > 12) h -= 12;
+    return { h: String(h).padStart(2, "0"), m: mm || "00", ampm };
+  };
+
+  const { h, m, ampm } = parse24(value);
+
+  const handleUpdate = (newH: string, newM: string, newAmpm: string) => {
+    let h24 = parseInt(newH, 10);
+    if (newAmpm === "PM" && h24 !== 12) h24 += 12;
+    if (newAmpm === "AM" && h24 === 12) h24 = 0;
+    const time24 = `${String(h24).padStart(2, "0")}:${newM}`;
+    onChange(time24);
+  };
+
+  const hours = Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, "0"));
+  const minutes = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, "0"));
+
+  return (
+    <div className="space-y-2 w-full">
+      <label className="font-jetbrains text-on-surface-variant text-[10px] uppercase tracking-wider">
+        {label}
+      </label>
+      <div className="flex bg-[#353534]/50 border-b-2 border-[#ffb4ab]/30 rounded focus-within:border-[#ffb4ab] transition-all">
+        <select
+          value={h}
+          onChange={(e) => handleUpdate(e.target.value, m, ampm)}
+          className="bg-transparent outline-none py-3 px-1 text-on-surface w-full appearance-none text-center cursor-pointer"
+        >
+          {hours.map((hour) => (
+            <option key={hour} value={hour} className="bg-[#1e1e1e] text-white">
+              {hour}
+            </option>
+          ))}
+        </select>
+        <span className="text-on-surface-variant flex items-center">:</span>
+        <select
+          value={m}
+          onChange={(e) => handleUpdate(h, e.target.value, ampm)}
+          className="bg-transparent outline-none py-3 px-1 text-on-surface w-full appearance-none text-center cursor-pointer"
+        >
+          {minutes.map((min) => (
+            <option key={min} value={min} className="bg-[#1e1e1e] text-white">
+              {min}
+            </option>
+          ))}
+        </select>
+        <select
+          value={ampm}
+          onChange={(e) => handleUpdate(h, m, e.target.value)}
+          className="bg-transparent outline-none py-3 px-1 text-[#ffb4ab] font-bold w-full appearance-none text-center cursor-pointer"
+        >
+          <option value="AM" className="bg-[#1e1e1e] text-white">AM</option>
+          <option value="PM" className="bg-[#1e1e1e] text-white">PM</option>
+        </select>
+      </div>
+    </div>
+  );
+}
+// ────────────────────────────────────────────────────────────────
+
 
 interface MatchDetailsClientProps {
   user: {
@@ -186,6 +263,23 @@ function MatchDetailsClientInner({
   const [seats, setSeats] = useState("48");
   const [startDate, setStartDate] = useState("");
   const [startTime, setStartTime] = useState("");
+  const [endTime, setEndTime] = useState("");
+
+  const handleStartTimeChange = (val: string) => {
+    setStartTime(val);
+    if (val) {
+      const [hh, mm] = val.split(":");
+      const date = new Date();
+      date.setHours(Number(hh));
+      date.setMinutes(Number(mm));
+      date.setHours(date.getHours() + 1); // add 1 hour
+      const endH = String(date.getHours()).padStart(2, '0');
+      const endM = String(date.getMinutes()).padStart(2, '0');
+      setEndTime(`${endH}:${endM}`);
+    } else {
+      setEndTime("");
+    }
+  };
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -207,8 +301,8 @@ function MatchDetailsClientInner({
 
   const fetchUpdatedData = async () => {
     try {
-      const statsRes = await fetch("/api/stats");
-      const roomsRes = await fetch("/api/rooms");
+      const statsRes = await fetch("/api/stats", { cache: 'no-store' });
+      const roomsRes = await fetch("/api/rooms", { cache: 'no-store' });
 
       if (statsRes.ok && roomsRes.ok) {
         const statsData = await statsRes.json();
@@ -222,17 +316,20 @@ function MatchDetailsClientInner({
             roomId: `${r.id}`,
             name: r.roomName,
             map: r.roomName,
-            matchType: inferMatchType(r.maxPlayers),
-            entryFee: 50,
-            prizePool: 5000,
+            map_img: r.map_img,
+            matchType: r.match_type ? `Battle Royale (${r.match_type})` : inferMatchType(r.maxPlayers),
+            entryFee: r.entry_fee || 0,
+            prizePool: r.total_price || 0,
             playersCount: r.currentPlayers,
             maxPlayers: r.maxPlayers,
             matchDate: r.startTime
-              ? new Date(r.startTime).toLocaleDateString()
+              ? new Date(r.startTime).toISOString().split("T")[0]
               : "",
             matchTime: r.startTime
-              ? new Date(r.startTime).toLocaleTimeString()
+              ? new Date(r.startTime).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
               : "",
+            matchDateIso: r.startTime ? new Date(r.startTime).toISOString() : "",
+            endTimeIso: r.endTime ? new Date(r.endTime).toISOString() : "",
             status: r.status,
             isPublished: r.status === "active",
             tier: "Legendary",
@@ -256,6 +353,7 @@ function MatchDetailsClientInner({
     setSeats("48");
     setStartDate(new Date().toISOString().split("T")[0]);
     setStartTime("18:00");
+    setEndTime("19:00");
     setError(null);
     setIsModalOpen(true);
   };
@@ -263,16 +361,37 @@ function MatchDetailsClientInner({
   const handleOpenEditModal = (room: RoomData) => {
     setEditingRoom(room);
     setMap(room.map);
-    setGameMode(room.matchType || "Solo");
+    let extractedMode = "Solo";
+    if (room.matchType) {
+      if (room.matchType.includes("Solo") || room.matchType === "Solo") extractedMode = "Solo";
+      else if (room.matchType.includes("Duo") || room.matchType === "Duo") extractedMode = "Duo";
+      else if (room.matchType.includes("Squad") || room.matchType === "Squad") extractedMode = "Squad";
+    }
+    setGameMode(extractedMode);
     setEntryFee(String(room.entryFee || 0));
     setPrizePool(String(room.prizePool || 0));
     setSeats(String(Math.min(48, room.maxPlayers)));
 
-    if (room.matchTime) {
-      const timeParts = room.matchTime.split(" ");
-      setStartTime(timeParts[0] || "18:00");
+    if (room.matchDateIso) {
+      const d = new Date(room.matchDateIso);
+      setStartDate(d.toISOString().split("T")[0]);
+      setStartTime(`${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`);
+    } else {
+      setStartDate(new Date().toISOString().split("T")[0]);
+      setStartTime("18:00");
     }
-    setStartDate(room.matchDate || new Date().toISOString().split("T")[0]);
+
+    if ((room as any).endTimeIso) {
+      const ed = new Date((room as any).endTimeIso);
+      setEndTime(`${String(ed.getHours()).padStart(2, "0")}:${String(ed.getMinutes()).padStart(2, "0")}`);
+    } else if (room.matchDateIso) {
+      const d = new Date(room.matchDateIso);
+      d.setHours(d.getHours() + 1);
+      setEndTime(`${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`);
+    } else {
+      setEndTime("19:00");
+    }
+
     setError(null);
     setIsModalOpen(true);
   };
@@ -282,22 +401,21 @@ function MatchDetailsClientInner({
     setLoading(true);
     setError(null);
 
+    const selectedMapOption = MAP_OPTIONS.find(m => m.value === map);
+    const map_img = selectedMapOption ? selectedMapOption.src : null;
+
     const payload = {
       action: editingRoom ? "edit" : "create",
       roomId: editingRoom?.roomId,
       map,
+      map_img,
       matchType: gameMode,
       entryFee: Number(entryFee),
       prizePool: Number(prizePool),
       maxPlayers: Number(seats),
-      matchDate: startDate
-        ? new Date(startDate).toLocaleDateString("en-US", {
-          month: "short",
-          day: "numeric",
-          year: "numeric",
-        })
-        : undefined,
+      matchDate: startDate,
       matchTime: startTime,
+      endTime: endTime,
     };
 
     console.log("Client payload matchType:", payload.matchType);
@@ -471,7 +589,7 @@ function MatchDetailsClientInner({
                   <thead>
                     <tr className="bg-white/5 border-b border-white/10 text-on-surface-variant text-[10px] font-jetbrains uppercase tracking-wider">
                       <th className="p-6">ROOM ID</th>
-                      <th className="p-6">MAP</th>
+                      <th className="p-6 text-center">MAP</th>
                       <th className="p-6">MATCH TYPE</th>
                       <th className="p-6 text-right">ENTRY</th>
                       <th className="p-6 text-right">PRIZE POOL</th>
@@ -496,9 +614,21 @@ function MatchDetailsClientInner({
                             {room.roomId}
                           </td>
                           <td className="p-6">
-                            <span className="bg-[#353534]/80 px-3 py-1 rounded text-xs font-bold uppercase tracking-wider text-[#ffb4ab]">
-                              {room.map}
-                            </span>
+                            <div className="flex items-center gap-3">
+                              {room.map_img && (
+                                <div className="relative w-10 h-10 rounded-full overflow-hidden border border-white/20">
+                                  <Image
+                                    src={room.map_img}
+                                    alt={room.map}
+                                    fill
+                                    className="object-cover"
+                                  />
+                                </div>
+                              )}
+                              <span className="text-sm text-on-surface-variant">
+                                {room.map}
+                              </span>
+                            </div>
                           </td>
                           <td className="p-6 text-sm text-on-surface-variant">
                             {room.matchType || "Battle Royale (Squad)"}
@@ -704,30 +834,16 @@ function MatchDetailsClientInner({
                     className="w-full bg-[#353534]/50 border-b-2 border-[#ffb4ab]/30 focus:border-[#ffb4ab] outline-none py-3 px-2 text-on-surface transition-all rounded"
                   />
                 </div>
-                <div className="space-y-2">
-                  <label className="font-jetbrains text-on-surface-variant text-[10px] uppercase tracking-wider">
-                    START TIME
-                  </label>
-                  <input
-                    value={startTime}
-                    onChange={(e) => setStartTime(e.target.value)}
-                    required
-                    type="time"
-                    className="w-full bg-[#353534]/50 border-b-2 border-[#ffb4ab]/30 focus:border-[#ffb4ab] outline-none py-3 px-2 text-on-surface transition-all rounded"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="font-jetbrains text-on-surface-variant text-[10px] uppercase tracking-wider">
-                    END TIME
-                  </label>
-                  <input
-                    value={startTime ? `${String((Number(startTime.split(':')[0]) + 2) % 24).padStart(2, '0')}:${startTime.split(':')[1]}` : ''}
-                    readOnly
-                    disabled
-                    type="time"
-                    className="w-full bg-[#353534]/30 border-b-2 border-white/10 outline-none py-3 px-2 text-on-surface-variant transition-all rounded cursor-not-allowed"
-                  />
-                </div>
+                <TimePicker12
+                  value={startTime}
+                  onChange={handleStartTimeChange}
+                  label="START TIME"
+                />
+                <TimePicker12
+                  value={endTime}
+                  onChange={setEndTime}
+                  label="END TIME"
+                />
               </div>
 
               <div className="pt-6 flex gap-4">

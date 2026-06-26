@@ -62,8 +62,8 @@ export default function Sidebar({
         { label: "Settings", icon: "settings", href: `/${userId}/settings`, active: isSettings },
       ]
     : [
-        { label: "Dashboard", icon: "dashboard", href: `/dashboard/player/${userId}`, active: !isSettings },
-        { label: "Upcoming Matches", icon: "schedule", href: "#" },
+        { label: "Dashboard", icon: "dashboard", href: `/${userId}/dashboard/home`, active: pathname.endsWith("/dashboard/home") },
+        { label: "Upcoming Matches", icon: "schedule", href: `/${userId}/upcoming-matches`, active: pathname.includes("/upcoming-matches") },
         { label: "My Matches", icon: "sports_esports", href: "#" },
         { label: "Payment History", icon: "account_balance_wallet", href: "#" },
         { label: "Settings", icon: "settings", href: `/${userId}/settings`, active: isSettings },

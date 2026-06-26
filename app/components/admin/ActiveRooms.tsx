@@ -17,6 +17,9 @@ export interface RoomData {
   entryFee?: number;
   prizePool?: number;
   matchDate?: string;
+  map_img?: string;
+  matchDateIso?: string;
+  encryptedRoomId?: string;
 }
 
 interface ActiveRoomsProps {
