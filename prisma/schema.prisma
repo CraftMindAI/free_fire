@@ -74,7 +74,7 @@ model Room {
   roomName  String
   createdBy Int
   creator   User      @relation(fields: [createdBy], references: [id])
-  map_img String
+  map_img String?
   maxPlayers Int      @default(10)
   currentPlayers Int  @default(0)
   status    String    @default("waiting") // "waiting", "active", "completed"
