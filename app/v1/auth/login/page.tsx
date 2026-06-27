@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import ParticleCanvas from "@/app/components/ParticleCanvas";
+import ForgotAccessModal from "@/app/components/auth/ForgotAccessModal";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -13,6 +14,7 @@ export default function LoginPage() {
   const [remember, setRemember] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [isForgotModalOpen, setIsForgotModalOpen] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -228,6 +230,7 @@ export default function LoginPage() {
 
                 <button
                   type="button"
+                  onClick={() => setIsForgotModalOpen(true)}
                   className="font-jetbrains text-[10px] tracking-[0.18em] text-on-surface-variant
                              hover:text-[#ffb4ab] uppercase transition-colors"
                 >
@@ -299,6 +302,10 @@ export default function LoginPage() {
           </div>
         </div>
       </div>
+
+      {isForgotModalOpen && (
+        <ForgotAccessModal onClose={() => setIsForgotModalOpen(false)} />
+      )}
     </div>
   );
 }
