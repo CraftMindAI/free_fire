@@ -35,7 +35,7 @@ export default function Sidebar({
     setLoggingOut(true);
     try {
       const res = await fetch("/api/auth/logout", { method: "POST" });
-      if (res.ok) router.push("/login");
+      if (res.ok) router.push("/v1/auth/login");
     } catch (err) {
       console.error("Logout failed:", err);
     } finally {

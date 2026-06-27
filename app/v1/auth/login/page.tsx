@@ -266,7 +266,7 @@ export default function LoginPage() {
                 No active squad detected?
               </p>
               <Link
-                href="/register"
+                href="/v1/auth/register"
                 className="font-jetbrains text-[11px] tracking-[0.2em] text-on-surface uppercase
                            hover:text-[#ffb4ab] transition-colors inline-flex items-center gap-2"
               >

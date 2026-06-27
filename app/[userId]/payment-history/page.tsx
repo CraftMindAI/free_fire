@@ -9,7 +9,7 @@ export default async function PaymentHistoryPage({ params }: { params: Promise<{
   const user = await getSessionUser();
   
   if (!user) {
-    redirect("/login");
+    redirect("/v1/auth/login");
   }
 
   const decodedId = decryptId(resolvedParams.userId);

@@ -12,7 +12,7 @@ export default async function SettingsPage(props: {
 
   // If no user session, redirect to login
   if (!sessionUser) {
-    redirect("/login");
+    redirect("/v1/auth/login");
   }
 
   // Fetch the full details of the logged-in user from the database
@@ -31,7 +31,7 @@ export default async function SettingsPage(props: {
   });
 
   if (!user) {
-    redirect("/login");
+    redirect("/v1/auth/login");
   }
 
   // Fetch administrator team details if the user is an Admin

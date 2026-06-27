@@ -55,7 +55,7 @@ export default async function MatchDetailsPage(props: {
 
   // If no user session, redirect to login
   if (!user) {
-    redirect("/login");
+    redirect("/v1/auth/login");
   }
 
   const decodedId = decryptId(userId);

@@ -5,11 +5,11 @@ import ParticleCanvas from "./ParticleCanvas";
 export default function HeroSection() {
   return (
     <section
-      className="relative w-full overflow-hidden
-                         bg-[url('/card2.jpg')] bg-cover bg-[center_20%]"
+      className="relative w-full overflow-hidden pt-20 md:pt-24
+                 bg-[url('/card2.jpg')] bg-cover bg-[center_20%] bg-blend-overlay bg-black/40"
     >
-      {/* Full-section dark overlay so bg image is subtle */}
-      <div className="absolute inset-0 bg-black/70" />
+      {/* Subtle overlay for readability, transparent enough for fire animation */}
+      <div className="absolute inset-0 bg-black/50" />
 
       {/* Floating particle dots — yellow / orange / red */}
       <ParticleCanvas count={90} />

@@ -1,4 +1,8 @@
 import prisma from "@/app/lib/prisma";
+import { cookies } from "next/headers";
+import Link from "next/link";
+import { jwtVerify } from "jose";
+import { encryptId } from "@/app/lib/encryption";
 
 type RoomType = "SOLO" | "DUO" | "SQUAD" | "CUSTOM";
 
@@ -25,15 +29,24 @@ async function getUpcomingRooms() {
     data: { status: "closed" },
   });
 
-  return prisma.room.findMany({
+  const activeRooms = await prisma.room.findMany({
     where: { status: "active" },
     orderBy: { startTime: "asc" },
   });
+
+  const closedRooms = await prisma.room.findMany({
+    where: { status: "closed" },
+    orderBy: { startTime: "desc" },
+    take: 6,
+  });
+
+  return [...activeRooms, ...closedRooms];
 }
 
-function RoomCard({ room }: { room: Awaited<ReturnType<typeof getUpcomingRooms>>[number] }) {
+function RoomCard({ room, href }: { room: Awaited<ReturnType<typeof getUpcomingRooms>>[number], href: string }) {
   const type = deriveType(room.match_type, room.maxPlayers);
   const { badgeBg, badgeText } = TYPE_STYLES[type];
+  const isClosed = room.status === "closed";
 
   return (
     <div className="glass rounded-2xl overflow-hidden group
@@ -47,7 +60,7 @@ function RoomCard({ room }: { room: Awaited<ReturnType<typeof getUpcomingRooms>>
           <img
             src={room.map_img}
             alt={room.roomName}
-            className="w-full h-full object-cover object-center brightness-90
+            className="w-full h-full object-cover object-top brightness-90
                        group-hover:scale-105 transition-transform duration-700"
           />
         ) : (
@@ -86,12 +99,12 @@ function RoomCard({ room }: { room: Awaited<ReturnType<typeof getUpcomingRooms>>
           </div>
         </div>
 
-        <button className="w-full py-4 rounded-xl font-orbitron font-bold uppercase tracking-wider
-                            border-2 border-crimson text-crimson
+        <Link href={href} className="w-full py-4 rounded-xl font-orbitron font-bold uppercase tracking-wider
+                            border-2 border-crimson text-crimson block text-center
                             hover:bg-crimson hover:text-white hover:shadow-[0_0_20px_rgba(255,46,46,0.4)]
                             active:scale-95 transition-all duration-200">
-          Join Room
-        </button>
+          {isClosed ? "View Room" : "Join Room"}
+        </Link>
       </div>
     </div>
   );
@@ -99,11 +112,36 @@ function RoomCard({ room }: { room: Awaited<ReturnType<typeof getUpcomingRooms>>
 
 export default async function UpcomingRooms() {
   const rooms = await getUpcomingRooms();
+  const cookieStore = await cookies();
+  const token = cookieStore.get("titan_token")?.value;
+  let targetHref = "/v1/auth/login";
+
+  if (token) {
+    try {
+      const SECRET = new TextEncoder().encode(process.env.JWT_SECRET ?? "titan-arena-fallback-secret");
+      const { payload } = await jwtVerify(token, SECRET);
+      const role = payload.role as string;
+      const userId = payload.sub as string;
+      
+      const encryptedId = encryptId(userId);
+      
+      if (role === "admin") {
+        targetHref = `/dashboard/${encryptedId}`;
+      } else {
+        targetHref = `/${encryptedId}/dashboard/home`;
+      }
+    } catch (e) {
+      targetHref = "/v1/auth/login";
+    }
+  }
+
+  // Create an array with 10 copies of rooms to ensure a smooth infinite marquee
+  const duplicatedRooms = Array(10).fill(rooms).flat();
 
   return (
-    <section className="py-12 px-6 max-w-[1440px] mx-auto">
+    <section className="py-12 max-w-[1440px] mx-auto overflow-hidden">
 
-      <div className="flex justify-between items-end mb-12">
+      <div className="flex justify-between items-end mb-12 px-6">
         <div>
           <h2 className="font-orbitron text-3xl md:text-4xl text-on-surface font-bold tracking-tight mb-2">
             Upcoming Rooms
@@ -112,21 +150,25 @@ export default async function UpcomingRooms() {
             Join the next available battlegrounds and claim your glory.
           </p>
         </div>
-        <button className="text-crimson text-xs font-bold tracking-widest uppercase hover:underline">
+        <Link href={targetHref} className="text-crimson text-xs font-bold tracking-widest uppercase hover:underline">
           View All Rooms
-        </button>
+        </Link>
       </div>
 
       {rooms.length === 0 ? (
-        <div className="text-center py-16 glass rounded-2xl">
+        <div className="text-center py-16 glass rounded-2xl mx-6">
           <span className="material-symbols-outlined text-4xl text-white/20 block mb-3">event_busy</span>
           <p className="font-sora text-on-surface-variant">No active rooms right now. Check back soon.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 [perspective:1200px]">
-          {rooms.map((room) => (
-            <RoomCard key={room.id} room={room} />
-          ))}
+        <div className="relative w-full [perspective:1200px] flex">
+          <div className="flex gap-8 w-max animate-marquee hover:[animation-play-state:paused] pr-8 ml-6">
+            {duplicatedRooms.map((room, idx) => (
+              <div key={`${room.id}-${idx}`} className="w-[320px] md:w-[380px] shrink-0">
+                <RoomCard room={room} href={targetHref} />
+              </div>
+            ))}
+          </div>
         </div>
       )}
 

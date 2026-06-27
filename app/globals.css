@@ -79,6 +79,14 @@
 
 /* delay helpers used by static particles */
 .delay-d0  { animation-delay: 0s;    }
+
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-10%); } /* For 10 copies */
+}
+.animate-marquee {
+  animation: marquee 40s linear infinite;
+}
 .delay-d1  { animation-delay: 0.3s;  }
 .delay-d2  { animation-delay: 0.6s;  }
 .delay-d3  { animation-delay: 0.9s;  }
