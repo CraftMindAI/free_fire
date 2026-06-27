@@ -17,8 +17,8 @@ export default async function PaymentHistoryPage({ params }: { params: Promise<{
   if (user.id !== decodedId && user.role.toLowerCase() !== "admin") {
     redirect(`/${encryptId(String(user.id))}/payment-history`);
   }
-
-  const numericUserId = typeof user.id === "string" ? parseInt(user.id, 10) : (user.id as number);
+  
+  const numericUserId = Number(user.id);
 
   const payments = await prisma.payment.findMany({
     where: { userId: numericUserId },

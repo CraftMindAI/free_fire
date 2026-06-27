@@ -316,7 +316,7 @@ function MatchDetailsClientInner({
             roomId: `${r.id}`,
             name: r.roomName,
             map: r.roomName,
-            map_img: r.map_img,
+            map_img: r.map_img || undefined,
             matchType: r.match_type ? `Battle Royale (${r.match_type})` : inferMatchType(r.maxPlayers),
             entryFee: r.entry_fee || 0,
             prizePool: r.total_price || 0,
