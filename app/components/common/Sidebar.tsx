@@ -58,14 +58,14 @@ export default function Sidebar({
         { label: "Dashboard", icon: "dashboard", href: `/dashboard/${userId}`, active: !isMatchDetails && !isDistribution && !isSettings },
         { label: "Match Details", icon: "sports_esports", href: `/${userId}/matches`, active: isMatchDetails },
         { label: "Distribution", icon: "groups", href: `/${userId}/distribution`, active: isDistribution },
-        { label: "Payment History", icon: "account_balance_wallet", href: "#" },
+        { label: "Payment History", icon: "account_balance_wallet", href: `/${userId}/payment-history`, active: pathname.includes("/payment-history") },
         { label: "Settings", icon: "settings", href: `/${userId}/settings`, active: isSettings },
       ]
     : [
         { label: "Dashboard", icon: "dashboard", href: `/${userId}/dashboard/home`, active: pathname.endsWith("/dashboard/home") },
         { label: "Upcoming Matches", icon: "schedule", href: `/${userId}/upcoming-matches`, active: pathname.includes("/upcoming-matches") },
         { label: "My Matches", icon: "sports_esports", href: "#" },
-        { label: "Payment History", icon: "account_balance_wallet", href: "#" },
+        { label: "Payment History", icon: "account_balance_wallet", href: `/${userId}/payment-history`, active: pathname.includes("/payment-history") },
         { label: "Settings", icon: "settings", href: `/${userId}/settings`, active: isSettings },
       ];
 

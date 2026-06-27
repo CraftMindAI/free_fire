@@ -76,11 +76,11 @@ export async function POST(req: NextRequest) {
     });
 
     // Create user stats record
-    await prisma.userStats.create({
-      data: {
-        userId: user.id,
-      },
-    });
+    // await prisma.userStats.create({
+    //   data: {
+    //     userId: user.id,
+    //   },
+    // });
 
     return NextResponse.json(
       { success: true, userId: user.id, encryptedId: encryptId(String(user.id)) },

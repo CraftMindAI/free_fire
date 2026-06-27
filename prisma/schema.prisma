@@ -20,53 +20,24 @@ model User {
   id        Int       @id @default(autoincrement())
   username  String    @unique
   player_id String    @unique
-  name      String
   email     String    @unique
   profile_img String?
   phone     String?
   whatsapp  String?
-   upiId   String?
-  Gpay    String?
   password  String
   role      Role    @default(player)                  
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 
   // Relations
-  stats     UserStats?
-  matches   Match[]
+  // stats     UserStats?
   rooms     Room[]
   bookings  Booking[]
+  payments  Payment[]
 }
 
-// User statistics
-model UserStats {
-  id        Int       @id @default(autoincrement())
-  userId    Int       @unique
-  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  totalMatches Int    @default(0)
-  totalPrice Int      @default(0)
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-}
 
-// Match details
-model Match {
-  id        Int       @id @default(autoincrement())
-  userId    Int
-  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  kills     Int       @default(0)
-  deaths    Int       @default(0)
-  assists   Int       @default(0)
-  damage    Int       @default(0)
-  placement Int?
-  duration  Int?      // in seconds
-  mapName   String?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
 
-  @@index([userId])
-}
 
 // Room/Tournament data
 model Room {
@@ -80,13 +51,15 @@ model Room {
   status    String    @default("waiting") // "waiting", "active", "completed"
   total_price Int  @default(0)
   entry_fee Int    @default(0)
+  total_price_genrated Int  @default(0)
   match_type String
   startTime DateTime?
   endTime   DateTime?
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
-
+  
   bookings Booking[]
+  payments Payment[]
 
   @@index([createdBy])
 }
@@ -94,20 +67,49 @@ model Room {
 // Seat Bookings for Rooms
 model Booking {
   id          Int      @id @default(autoincrement())
-  
-  roomId      Int
-  room        Room     @relation(fields: [roomId], references: [id], onDelete: Cascade)
-  userId      Int
-  user        User     @relation(fields: [userId], references: [id])
-  
-  seatNumber  Int
-  playerId    String   @default("")
-  status      String   @default("confirmed")
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+
+  roomId       Int
+  room         Room     @relation(fields: [roomId], references: [id], onDelete: Cascade)
+
+  userId       Int
+  user         User     @relation(fields: [userId], references: [id])
+
+  seatNumber   Int
+
+  playerId     String
+  playerName   String?
+  email        String?
+
+  phone         String?
+  whatsapp      String?
+  upiId         String?
+  Gpay          String?
+
+  status        String   @default("confirmed")
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
   @@unique([roomId, seatNumber])
-  @@unique([roomId, playerId], name: "roomId_playerId_unique")
+  @@unique([roomId, playerId])
   @@index([roomId])
   @@index([userId])
+}
+
+// Payment history and distribution
+model Payment {
+  id                 Int      @id @default(autoincrement())
+  userId             Int
+  user               User     @relation(fields: [userId], references: [id])
+  roomId             Int
+  room               Room     @relation(fields: [roomId], references: [id])
+  amount             Int
+  prizeAmount        Int      @default(0)
+  status             String   @default("paid")
+  distributionStatus String   @default("pending")
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  @@index([userId])
+  @@index([roomId])
 }
