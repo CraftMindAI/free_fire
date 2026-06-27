@@ -37,7 +37,7 @@ export default async function PlayerDashboardPage(props: {
   const user = await getSessionUser();
 
   if (!user) {
-    redirect("/login");
+    redirect("/v1/auth/login");
   }
 
   const decodedId = decryptId(userId);

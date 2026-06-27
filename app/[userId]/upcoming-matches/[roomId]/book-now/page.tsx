@@ -17,7 +17,7 @@ export default async function BookNowPage({ params }: BookNowPageProps) {
   // Validate session
   const user = await getSessionUser();
   if (!user) {
-    redirect("/login");
+    redirect("/v1/auth/login");
   }
 
   // Decrypt URL parameter to ensure authorization

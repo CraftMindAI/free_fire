@@ -127,19 +127,19 @@ export default function RegisterPage() {
             {/* Form */}
             <RegisterForm
               role="player"
-              onSuccess={() => router.push("/login")}
+              onSuccess={() => router.push("/v1/auth/login")}
             />
 
             {/* Login link */}
-            <p className="font-sora text-sm text-on-surface-variant text-center mt-6">
-              Already have an account?{" "}
+            <div className="text-center mt-6">
+              <span className="text-on-surface-variant text-sm">Already a veteran? </span>
               <Link
-                href="/login"
-                className="text-[#ffb4ab] font-semibold hover:text-[#ffb4ab]/80 transition-colors uppercase tracking-wider"
+                href="/v1/auth/login"
+                className="font-orbitron text-crimson text-sm font-bold tracking-widest uppercase hover:underline"
               >
-                Login
+                Login Here
               </Link>
-            </p>
+            </div>
           </div>
         </div>
       </div>

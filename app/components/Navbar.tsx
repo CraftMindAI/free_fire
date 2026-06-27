@@ -12,7 +12,9 @@ export default function Navbar() {
                       pathname.includes("/distribution") || 
                       pathname.includes("/matches");
                       
-  if (isDashboard) return null;
+  const isAuthPage = pathname === "/v1/auth/login" || pathname === "/v1/auth/register";
+                      
+  if (isDashboard || isAuthPage) return null;
 
   return (
     <header className="fixed top-0 w-full z-50 bg-transparent  backdrop-blur-xs border-b border-white/[0.08]">
@@ -23,14 +25,14 @@ export default function Navbar() {
 
         <div className="flex items-center gap-6">
           <Link
-            href="/login"
+            href="/v1/auth/login"
             className="font-orbitron text-white text-xs font-bold tracking-[0.18em] uppercase
                        hover:text-[#ffb4ab] transition-colors duration-200"
           >
             LOGIN
           </Link>
           <Link
-            href="/register"
+            href="/v1/auth/register"
             className="font-orbitron text-sm font-bold text-white uppercase tracking-wider
                        bg-crimson px-6 py-2 rounded-md
                        hover:bg-crimson/90 active:scale-95 transition-all duration-200"

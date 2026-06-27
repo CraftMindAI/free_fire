@@ -36,7 +36,7 @@ export default async function DistributionPage(props: {
 
   // If no user session, redirect to login
   if (!user) {
-    redirect("/login");
+    redirect("/v1/auth/login");
   }
 
   // Double check authorization: must be Admin

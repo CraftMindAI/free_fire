@@ -64,7 +64,7 @@ export default async function DashboardPage(props: {
 
   // If no user session, redirect to login
   if (!user) {
-    redirect("/login");
+    redirect("/v1/auth/login");
   }
 
   // Handle routing based on route depth/structure
