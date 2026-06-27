@@ -111,7 +111,6 @@ export async function PUT(
         id: updatedUser.id,
         username: updatedUser.username,
         player_id: updatedUser.player_id,
-        name: updatedUser.name,
         email: updatedUser.email,
         phone: updatedUser.phone || "",
         whatsapp: updatedUser.whatsapp || "",
@@ -170,7 +169,7 @@ export async function DELETE(
 
     return NextResponse.json({
       success: true,
-      message: `Administrator "${targetUser.name}" has been removed.`,
+      message: `Administrator "${targetUser.username}" has been removed.`,
     });
   } catch (error) {
     console.error("Delete admin error:", error);

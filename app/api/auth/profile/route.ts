@@ -15,15 +15,15 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json().catch(() => ({}));
-    const name = typeof body.name === "string" ? body.name.trim() : "";
+    const username = typeof body.username === "string" ? body.username.trim() : "";
     const email = typeof body.email === "string" ? body.email.toLowerCase().trim() : "";
     const playerId = typeof body.playerId === "string" ? body.playerId.trim() : "";
     const phone = typeof body.phone === "string" ? body.phone.trim() : "";
     const whatsapp = typeof body.whatsapp === "string" ? body.whatsapp.trim() : "";
 
-    if (!name || !email || !playerId) {
+    if (!username || !email || !playerId) {
       return NextResponse.json(
-        { error: "Name, email, and Player ID are required fields." },
+        { error: "Username, Email, and Player ID are required fields." },
         { status: 400 }
       );
     }
@@ -58,6 +58,7 @@ export async function POST(req: NextRequest) {
     const existingUser = await prisma.user.findFirst({
       where: {
         OR: [
+          { username },
           { email },
           { player_id: playerId },
         ],
@@ -66,6 +67,12 @@ export async function POST(req: NextRequest) {
     });
 
     if (existingUser) {
+      if (existingUser.username === username) {
+        return NextResponse.json(
+          { error: "This username is already taken by another account." },
+          { status: 409 }
+        );
+      }
       if (existingUser.email === email) {
         return NextResponse.json(
           { error: "This email address is already in use by another account." },
@@ -84,7 +91,7 @@ export async function POST(req: NextRequest) {
     const updatedUser = await prisma.user.update({
       where: { id: Number(user.id) },
       data: {
-        name,
+        username,
         email,
         player_id: playerId,
         phone: phone || null,
@@ -95,8 +102,8 @@ export async function POST(req: NextRequest) {
     // Re-generate JWT to keep active session updated
     const token = await new SignJWT({
       sub: String(updatedUser.id),
+      username: updatedUser.username,
       email: updatedUser.email,
-      name: updatedUser.name ?? "",
       role: updatedUser.role ?? "player",
     })
       .setProtectedHeader({ alg: "HS256" })
@@ -108,7 +115,7 @@ export async function POST(req: NextRequest) {
       success: true,
       user: {
         id: updatedUser.id,
-        name: updatedUser.name,
+        username: updatedUser.username,
         email: updatedUser.email,
         role: updatedUser.role ?? "player",
       },

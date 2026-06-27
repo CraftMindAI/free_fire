@@ -13,7 +13,7 @@ async function getPublishedRooms() {
     roomId: String(r.id),
     name: r.roomName,
     map: r.roomName,
-    map_img: r.map_img,
+    map_img: r.map_img || undefined,
     matchType: r.match_type ? `Battle Royale (${r.match_type})` : r.maxPlayers === 48 ? "Battle Royale (Solo)" : r.maxPlayers === 24 ? "Battle Royale (Duo)" : "Battle Royale (Squad)",
     entryFee: r.entry_fee || 0,
     prizePool: r.total_price || 0,

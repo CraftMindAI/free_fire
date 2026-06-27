@@ -35,7 +35,7 @@ export default function UpcomingMatchesClient({
     
     let matchesEntry = true;
     if (entryFilter === "Free") matchesEntry = !room.entryFee || room.entryFee === 0;
-    else if (entryFilter === "Paid") matchesEntry = room.entryFee > 0;
+    else if (entryFilter === "Paid") matchesEntry = (room.entryFee || 0) > 0;
 
     let matchesType = true;
     if (typeFilter === "Solo") matchesType = room.maxPlayers === 48;

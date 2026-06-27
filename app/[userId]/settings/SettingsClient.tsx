@@ -11,7 +11,6 @@ interface User {
   id: string;
   username: string;
   player_id: string;
-  name: string;
   email: string;
   phone: string;
   whatsapp: string;
@@ -24,7 +23,6 @@ interface AdminTeamMember {
   id: string;
   username: string;
   player_id: string;
-  name: string;
   email: string;
   phone?: string;
   whatsapp?: string;
@@ -60,7 +58,7 @@ export default function SettingsClient({
   const [adminToDelete, setAdminToDelete] = useState<AdminTeamMember | null>(null);
 
   // Form States - Profile
-  const [profileName, setProfileName] = useState(user.name);
+  const [profileUsername, setProfileUsername] = useState(user.username);
   const [profileEmail, setProfileEmail] = useState(user.email);
   const [profilePlayerId, setProfilePlayerId] = useState(user.player_id);
   const [profilePhone, setProfilePhone] = useState(user.phone);
@@ -70,7 +68,7 @@ export default function SettingsClient({
   const [profileLoading, setProfileLoading] = useState(false);
 
   const openProfileModal = () => {
-    setProfileName(user.name);
+    setProfileUsername(user.username);
     setProfileEmail(user.email);
     setProfilePlayerId(user.player_id);
     setProfilePhone(user.phone);
@@ -105,8 +103,8 @@ export default function SettingsClient({
     setProfileSuccess("");
     setProfileLoading(true);
 
-    if (!profileName || !profileEmail || !profilePlayerId) {
-      setProfileError("Full Name, Email Address, and Player ID are required.");
+    if (!profileUsername || !profileEmail || !profilePlayerId) {
+      setProfileError("Username, Email Address, and Player ID are required.");
       setProfileLoading(false);
       return;
     }
@@ -139,7 +137,7 @@ export default function SettingsClient({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          name: profileName,
+          username: profileUsername,
           email: profileEmail,
           playerId: profilePlayerId,
           phone: profilePhone,
@@ -154,7 +152,7 @@ export default function SettingsClient({
         setProfileSuccess("Profile updated successfully!");
         setUser((prev) => ({
           ...prev,
-          name: profileName,
+          username: profileUsername,
           email: profileEmail,
           player_id: profilePlayerId,
           phone: profilePhone,
@@ -162,7 +160,6 @@ export default function SettingsClient({
         }));
         setAdmins((prev) => prev.map(adm => adm.id === user.id ? { 
           ...adm, 
-          name: profileName, 
           email: profileEmail,
           player_id: profilePlayerId
         } : adm));
@@ -276,8 +273,7 @@ export default function SettingsClient({
     const newMember: AdminTeamMember = {
       id: String(data.user.id),
       username: data.user.username,
-      player_id: data.user.player_id,
-      name: data.user.name,
+      player_id: data.user.player_id || "",
       email: data.user.email,
       phone: data.user.phone || "",
       whatsapp: data.user.whatsapp || "",
@@ -364,18 +360,8 @@ export default function SettingsClient({
   }, []);
 
   // Map predefined pictures for admin listing
-  const getAvatarForAdmin = (name: string) => {
-    const lowerName = name.toLowerCase();
-    if (lowerName.includes("sarah") || lowerName.includes("jenkins")) {
-      return "https://lh3.googleusercontent.com/aida-public/AB6AXuBCvGNadhkC1CYGed4GzcbSbShrVdpGejG6a1R4kUMr6JMJLx15e5-2wSCxTmA9DztWVYBwmQmG6YrtC0zvNJ-gGli9zclCj7nJFGmSPvh4rgkloGe2HwSQLq6HUz1jXh_yj2vKU-8iFqSnHUEzBZ5Illzlt8hFEIxg2lxxj25xHwql6oIg43vVtfU7hqTMU9O5QxvlA5mBTkNfQH49-bZ79UC3l_JctsrOM5aNcu_XJMv2pqIku_CGONtuxLuUXd8p3jH0CFYGaXk";
-    }
-    if (lowerName.includes("marcus") || lowerName.includes("lee")) {
-      return "https://lh3.googleusercontent.com/aida-public/AB6AXuB9zyOpNgo4-EcYTOrRWdaVxNdEXRo2aIZX-dQ7rIVhAgcAzEN8KtSgnH9FqESXJX3Dxw8g2I_HFAHisuI0WLf8NtQdEKkRaa8Zjc71wO2nDu2C49TscFuDSA5G3qGf3FHr3ndYQsgtq5n5bNmAHihfDNBAx-MsZErCjIA837h7nIgWtALK6wdmCn8xeTCsQaZKZZftzf0lOIHDhV9ysqBE3Hmz1YR6CRCD6EDfCVAB60a8kjofuK34Zl4DjEftyD6E3-W6CGL33SY";
-    }
-    if (lowerName.includes("elena") || lowerName.includes("varga")) {
-      return "https://lh3.googleusercontent.com/aida-public/AB6AXuDxaKkykL_w92mpVaNHFjh4I-e85i4eTxt203q8G83FSEdFRCymR77-CL67_p348Oanwn5LEbtHZDTls2_JpaNnrtxgKXbYFeuyqE5EHKYHBZUS7ox-DURQGVo6Ul1-dikCgM6SmbL0bHtSzYqy3qdJW-8PnB6sXQBKYW2IU86SoWJiYEsJmKx9GWZk5LU21spi4Ow0XEsCPnKjnPRanURQpHtMN24lISF0fG053k1vvkvUr7oMsTYZ-O00zjJkSCo1O90CGA6aDVs";
-    }
-    return "";
+  const getAvatarForAdmin = (username: string) => {
+    return `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(username)}&backgroundColor=ffb4ab,ffcb8d,e9c400`;
   };
 
   return (
@@ -391,7 +377,7 @@ export default function SettingsClient({
       <div className="flex-1 flex flex-col min-h-screen min-w-0">
         {/* Header */}
         <Header
-          username={user.name}
+          username={user.username}
           profileImg={user.profile_img || undefined}
           onToggleSidebar={() => setIsSidebarOpen((prev) => !prev)}
           isSidebarOpen={isSidebarOpen}
@@ -443,12 +429,12 @@ export default function SettingsClient({
                 {/* Avatar area */}
                 <div className="relative group">
                   <div className="w-36 h-36 sm:w-40 sm:h-40 rounded-full border-4 border-[#ffb4ab]/30 p-1 bg-gradient-to-tr from-[#ffb4ab] to-transparent overflow-hidden flex items-center justify-center relative">
-                    {user.profile_img || getAvatarForAdmin(user.name) ? (
+                    {user.profile_img || getAvatarForAdmin(user.username) ? (
                       /* eslint-disable-next-line @next/next/no-img-element */
                       <img
                         className="w-full h-full object-cover rounded-full bg-[#1e1e22]"
-                        src={user.profile_img || getAvatarForAdmin(user.name) || ""}
-                        alt={user.name}
+                        src={user.profile_img || getAvatarForAdmin(user.username) || ""}
+                        alt={user.username}
                         onError={(e) => {
                           // Fallback to initial icon if image fails to load
                           e.currentTarget.style.display = 'none';
@@ -458,7 +444,7 @@ export default function SettingsClient({
                     ) : null}
                     
                     {/* Fallback avatar */}
-                    <div className={`w-full h-full rounded-full bg-[#353534] flex items-center justify-center ${user.profile_img || getAvatarForAdmin(user.name) ? 'hidden' : ''}`}>
+                    <div className={`w-full h-full rounded-full bg-[#353534] flex items-center justify-center ${user.profile_img || getAvatarForAdmin(user.username) ? 'hidden' : ''}`}>
                       <span className="material-symbols-outlined text-4xl text-[#ffb4ab]">
                         person
                       </span>
@@ -478,7 +464,7 @@ export default function SettingsClient({
                 <div className="flex-1 text-center md:text-left space-y-4">
                   <div className="flex flex-col md:flex-row md:items-center gap-3 justify-center md:justify-start">
                     <h2 className="font-orbitron text-2xl sm:text-3xl font-extrabold text-on-surface">
-                      {user.name}
+                      {user.username}
                     </h2>
                     <span className="inline-flex items-center px-3 py-1 rounded-full bg-[#ffb4ab]/10 border border-[#ffb4ab] text-[#ffb4ab] font-jetbrains text-[10px] uppercase tracking-wider w-fit mx-auto md:mx-0 font-semibold">
                       <span className="w-1.5 h-1.5 rounded-full bg-[#ffb4ab] mr-2 animate-ping"></span>
@@ -583,12 +569,12 @@ export default function SettingsClient({
                             <td className="px-6 py-4">
                               <div className="flex items-center gap-3">
                                 <div className="w-10 h-10 rounded-lg overflow-hidden border border-white/10 flex items-center justify-center bg-[#201f1f]">
-                                  {adm.profile_img || getAvatarForAdmin(adm.name) ? (
+                                  {adm.profile_img || getAvatarForAdmin(adm.username) ? (
                                     /* eslint-disable-next-line @next/next/no-img-element */
                                     <img
-                                      className="w-full h-full object-cover"
-                                      src={adm.profile_img || getAvatarForAdmin(adm.name) || ""}
-                                      alt={adm.name}
+                                      className="w-full h-full object-cover bg-[#1e1e22]"
+                                      src={adm.profile_img || getAvatarForAdmin(adm.username) || ""}
+                                      alt={adm.username}
                                       onError={(e) => {
                                         e.currentTarget.style.display = 'none';
                                         e.currentTarget.nextElementSibling?.classList.remove('hidden');
@@ -596,7 +582,7 @@ export default function SettingsClient({
                                     />
                                   ) : null}
                                   
-                                  <div className={`flex items-center justify-center ${adm.profile_img || getAvatarForAdmin(adm.name) ? 'hidden' : ''}`}>
+                                  <div className={`w-full h-full bg-[#353534] flex items-center justify-center ${adm.profile_img || getAvatarForAdmin(adm.username) ? 'hidden' : ''}`}>
                                     <span className="material-symbols-outlined text-xl text-[#ffb4ab]">
                                       person
                                     </span>
@@ -604,7 +590,7 @@ export default function SettingsClient({
                                 </div>
                                 <div>
                                   <div className="font-sora text-sm font-semibold text-on-surface">
-                                    {adm.name}
+                                    {adm.username}
                                   </div>
                                   <div className="font-jetbrains text-[11px] text-[#e8bcb7]/70">
                                     {adm.email}
@@ -811,6 +797,20 @@ export default function SettingsClient({
 
             <div className="space-y-1">
               <label className="block font-jetbrains text-[10px] tracking-[0.15em] text-[#e8bcb7]/70 uppercase">
+                Username
+              </label>
+              <input
+                type="text"
+                value={profileUsername}
+                onChange={(e) => setProfileUsername(e.target.value)}
+                className="w-full bg-[#1c1b1b] border border-white/10 rounded-lg py-2.5 px-3 text-sm focus:border-[#ffb4ab] focus:ring-1 focus:ring-[#ffb4ab] focus:outline-none transition-all placeholder:text-[#e8bcb7]/20"
+                placeholder="Enter your username"
+                required
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className="block font-jetbrains text-[10px] tracking-[0.15em] text-[#e8bcb7]/70 uppercase">
                 Player ID
               </label>
               <input
@@ -823,19 +823,6 @@ export default function SettingsClient({
               />
             </div>
 
-            <div className="space-y-1">
-              <label className="block font-jetbrains text-[10px] tracking-[0.15em] text-[#e8bcb7]/70 uppercase">
-                Full Name
-              </label>
-              <input
-                type="text"
-                value={profileName}
-                onChange={(e) => setProfileName(e.target.value)}
-                className="w-full bg-[#1c1b1b] border border-white/10 rounded-lg py-2.5 px-3 text-sm focus:border-[#ffb4ab] focus:ring-1 focus:ring-[#ffb4ab] focus:outline-none transition-all placeholder:text-[#e8bcb7]/20"
-                placeholder="Enter your name"
-                required
-              />
-            </div>
 
             <div className="space-y-1">
               <label className="block font-jetbrains text-[10px] tracking-[0.15em] text-[#e8bcb7]/70 uppercase">
@@ -1120,11 +1107,9 @@ export default function SettingsClient({
                 warning
               </span>
             </div>
-            <h3 className="font-orbitron font-extrabold text-xl text-[#ffb4ab] uppercase tracking-tight mb-2">
-              Remove Administrator?
-            </h3>
+            <h2 className="text-xl font-bold font-orbitron mb-4 text-[#ffb4ab]">Delete Administrator {adminToDelete?.username}?</h2>
             <p className="font-sora text-sm text-[#e8bcb7]">
-              Are you sure you want to remove <strong className="text-white">{adminToDelete?.name}</strong> from the administrative team? This action cannot be undone.
+              Are you sure you want to remove <strong className="text-white">{adminToDelete?.username}</strong> from the administrative team? This action cannot be undone.
             </p>
           </div>
 

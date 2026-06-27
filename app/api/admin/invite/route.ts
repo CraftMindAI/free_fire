@@ -71,7 +71,6 @@ export async function POST(req: NextRequest) {
       data: {
         username,
         player_id: playerId,
-        name: username, // Default name to username
         email,
         phone: phone || null,
         whatsapp: whatsapp || null,
@@ -95,7 +94,6 @@ export async function POST(req: NextRequest) {
         id: newAdmin.id,
         username: newAdmin.username,
         player_id: newAdmin.player_id,
-        name: newAdmin.name,
         email: newAdmin.email,
         role: newAdmin.role,
         profile_img: newAdmin.profile_img,

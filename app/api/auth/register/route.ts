@@ -65,7 +65,6 @@ export async function POST(req: NextRequest) {
       data: {
         username,
         player_id: playerId,
-        name: username,
         email,
         profile_img: body.profile_img || null,
         phone: phone || null,

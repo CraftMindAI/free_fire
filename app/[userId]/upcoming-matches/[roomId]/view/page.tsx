@@ -43,7 +43,7 @@ export default async function MatchDetailsPage(props: {
     roomId: String(room.id),
     name: room.roomName,
     map: room.roomName,
-    map_img: room.map_img,
+    map_img: room.map_img || undefined,
     matchType: room.match_type ? `Battle Royale (${room.match_type})` : room.maxPlayers === 48 ? "Battle Royale (Solo)" : room.maxPlayers === 24 ? "Battle Royale (Duo)" : "Battle Royale (Squad)",
     entryFee: room.entry_fee || 0,
     prizePool: room.total_price || 0,

@@ -38,9 +38,7 @@ export default async function BookNowPage({ params }: BookNowPageProps) {
     id: userId,
     player_id: fullUser?.player_id || "",
     whatsapp: fullUser?.whatsapp || "",
-    phone: fullUser?.phone || "",
-    Gpay: fullUser?.Gpay || "",
-    upiId: fullUser?.upiId || ""
+    phone: fullUser?.phone || ""
   };
 
   // Decrypt Room ID
@@ -73,7 +71,7 @@ export default async function BookNowPage({ params }: BookNowPageProps) {
     roomId: String(room.id),
     name: room.roomName,
     map: room.roomName, // Usually mapping name to map is fine unless there's a specific map field
-    map_img: room.map_img,
+    map_img: room.map_img || undefined,
     matchType: room.match_type,
     maxPlayers: room.maxPlayers,
     playersCount: room.currentPlayers,
