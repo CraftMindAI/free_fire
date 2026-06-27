@@ -81,12 +81,12 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    // Initialize stats
-    await prisma.userStats.create({
-      data: {
-        userId: newAdmin.id,
-      },
-    });
+    // // Initialize stats
+    // await prisma.userStats.create({
+    //   data: {
+    //     userId: newAdmin.id,
+    //   },
+    // });
 
     return NextResponse.json({
       success: true,

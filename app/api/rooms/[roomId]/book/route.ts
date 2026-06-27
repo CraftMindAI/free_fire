@@ -25,10 +25,18 @@ export async function POST(
     }
 
     const data = await request.json();
-    const { seatNumber, playerId, email, whatsapp, phone, isGpay, gpayNumber, upiId } = data;
+    
+    // Normalize to an array of bookings (support both legacy single object and new bookings array)
+    const bookingsPayload = data.bookings ? data.bookings : [data];
 
-    if (!seatNumber || !upiId || !playerId || !phone) {
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+    if (!Array.isArray(bookingsPayload) || bookingsPayload.length === 0) {
+      return NextResponse.json({ error: "Invalid booking payload" }, { status: 400 });
+    }
+
+    for (const b of bookingsPayload) {
+      if (!b.seatNumber || !b.upiId || !b.playerId || !b.phone) {
+        return NextResponse.json({ error: "Missing required fields in one or more bookings" }, { status: 400 });
+      }
     }
 
     // Check if room exists
@@ -40,33 +48,51 @@ export async function POST(
       return NextResponse.json({ error: "Room not found" }, { status: 404 });
     }
 
-    const numericUserId = typeof user.id === "string" ? parseInt(user.id, 10) : user.id;
+    if (!user.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    const numericUserId = typeof user.id === "string" ? parseInt(user.id, 10) : (user.id as number);
 
-    // Update user with latest contact & payment details
-    await prisma.user.update({
-      where: { id: numericUserId },
+    // Use createMany to insert multiple bookings atomically
+    const bookingsData = bookingsPayload.map(b => ({
+        roomId: numericRoomId,
+        userId: numericUserId,
+        playerId: b.playerId,
+        playerName: user.name || "Unknown",
+        email: b.email,
+        phone: b.phone,
+        whatsapp: b.whatsapp || null,
+        upiId: b.upiId,
+        Gpay: b.isGpay ? b.phone : (b.gpayNumber || null),
+        seatNumber: typeof b.seatNumber === "string" ? parseInt(b.seatNumber, 10) : b.seatNumber,
+        status: "confirmed",
+    }));
+
+    const result = await prisma.booking.createMany({
+      data: bookingsData,
+    });
+
+    const totalAmount = (room.entry_fee || 0) * bookingsData.length;
+
+    await prisma.room.update({
+      where: { id: numericRoomId },
       data: {
-        player_id: playerId,
-        email: email,
-        whatsapp: whatsapp,
-        phone: phone,
-        upiId: upiId,
-        Gpay: isGpay ? "Same as Phone" : (gpayNumber || ""),
+        currentPlayers: { increment: 1 },
+        total_price_genrated: { increment: totalAmount },
       }
     });
 
-    // Create booking
-    const booking = await prisma.booking.create({
+    await prisma.payment.create({
       data: {
-        roomId: numericRoomId,
         userId: numericUserId,
-        playerId: playerId,
-        seatNumber: parseInt(seatNumber, 10),
-        status: "confirmed",
-      },
+        roomId: numericRoomId,
+        amount: totalAmount,
+        status: "paid",
+        distributionStatus: "pending"
+      }
     });
 
-    return NextResponse.json({ success: true, booking });
+    return NextResponse.json({ success: true, count: result.count });
   } catch (error: any) {
     console.error("Booking Error:", error);
     // Handle unique constraint violation (P2002)

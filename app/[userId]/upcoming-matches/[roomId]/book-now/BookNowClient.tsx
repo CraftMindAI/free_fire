@@ -30,22 +30,42 @@ export default function BookNowClient({ user, room, bookedSeats: initialBookedSe
   const params = useParams();
   const encryptedUserId = params.userId as string;
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [selectedSeat, setSelectedSeat] = useState<number | null>(null);
+  const [selectedSeats, setSelectedSeats] = useState<number[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   
+  const isDuo = room.matchType?.toLowerCase() === "duo";
+  const isSquad = room.matchType?.toLowerCase() === "squad";
+
   // Local state for booked seats (mocked persistence)
   const [bookedSeats, setBookedSeats] = useState<number[]>(initialBookedSeats);
   
   // Form State
-  const [playerId, setPlayerId] = useState(user.player_id || "");
-  const [email, setEmail] = useState(user.email || "");
-  const [whatsappNumber, setWhatsappNumber] = useState(user.whatsapp || "");
-  const [phoneNumber, setPhoneNumber] = useState(user.phone || "");
-  const [upiId, setUpiId] = useState(user.upiId || "");
-  const [isGpayNumber, setIsGpayNumber] = useState(true);
-  const [gpayNumber, setGpayNumber] = useState(user.Gpay && user.Gpay !== "Same as Phone" ? user.Gpay : "");
+  const defaultPlayer = {
+    playerId: "", email: "", whatsapp: "", phone: "", upiId: "", isGpayNumber: true, gpayNumber: ""
+  };
+  const [players, setPlayers] = useState([
+    {
+      playerId: user.player_id || "",
+      email: user.email || "",
+      whatsapp: user.whatsapp || "",
+      phone: user.phone || "",
+      upiId: user.upiId || "",
+      isGpayNumber: true,
+      gpayNumber: user.Gpay && user.Gpay !== user.phone ? user.Gpay : ""
+    },
+    { ...defaultPlayer },
+    { ...defaultPlayer },
+    { ...defaultPlayer }
+  ]);
+  const [activeTab, setActiveTab] = useState<number>(0);
   const [agreeRules, setAgreeRules] = useState(false);
+
+  const updatePlayer = (field: string, value: any) => {
+    const newPlayers = [...players];
+    newPlayers[activeTab] = { ...newPlayers[activeTab], [field]: value };
+    setPlayers(newPlayers);
+  };
 
   // Countdown State
   const [countdown, setCountdown] = useState("00:00:00");
@@ -77,16 +97,37 @@ export default function BookNowClient({ user, room, bookedSeats: initialBookedSe
   }, [room.matchDateIso]);
 
   const handleSeatClick = (seatNumber: number) => {
-    if (bookedSeats.includes(seatNumber)) return;
-    if (selectedSeat === seatNumber) {
-      setSelectedSeat(null);
+    if (isSquad) {
+      const groupStart = Math.floor((seatNumber - 1) / 4) * 4 + 1;
+      const group = [groupStart, groupStart + 1, groupStart + 2, groupStart + 3];
+      if (group.some(s => bookedSeats.includes(s))) return;
+      
+      if (selectedSeats.includes(seatNumber)) {
+        setSelectedSeats([]);
+      } else {
+        setSelectedSeats(group);
+      }
+    } else if (isDuo) {
+      const pairSeat = seatNumber % 2 !== 0 ? seatNumber + 1 : seatNumber - 1;
+      if (bookedSeats.includes(seatNumber) || bookedSeats.includes(pairSeat)) return;
+      
+      if (selectedSeats.includes(seatNumber)) {
+        setSelectedSeats([]);
+      } else {
+        setSelectedSeats([seatNumber, pairSeat].sort((a,b) => a-b));
+      }
     } else {
-      setSelectedSeat(seatNumber);
+      if (bookedSeats.includes(seatNumber)) return;
+      if (selectedSeats.includes(seatNumber)) {
+        setSelectedSeats([]);
+      } else {
+        setSelectedSeats([seatNumber]);
+      }
     }
   };
 
   const handleReserveClick = () => {
-    if (selectedSeat) {
+    if (selectedSeats.length > 0) {
       setIsModalOpen(true);
     }
   };
@@ -97,44 +138,92 @@ export default function BookNowClient({ user, room, bookedSeats: initialBookedSe
       alert("Please agree to the tournament rules.");
       return;
     }
+    
+    const p1 = players[0];
+    if (!p1.playerId || !p1.whatsapp || !p1.phone || !p1.upiId) {
+      alert("Please fill all required fields for Player 1 before confirming.");
+      setActiveTab(0);
+      return;
+    }
+
+    const neededPlayers = isSquad ? 4 : (isDuo ? 2 : 1);
+    
+    const missingPlayers: number[] = [];
+    for (let i = 1; i < neededPlayers; i++) {
+      if (selectedSeats.length > i) {
+        const p = players[i];
+        const isFilled = Boolean(p.playerId && p.whatsapp && p.phone && p.upiId);
+        if (!isFilled) {
+          missingPlayers.push(i + 1);
+        }
+      }
+    }
+
+    if (missingPlayers.length > 0) {
+      const missingList = missingPlayers.map(n => `Player ${n}`).join(", ");
+      const confirm = window.confirm(`You didn't add details for ${missingList}. Are you OK with that?`);
+      if (!confirm) return;
+    }
 
     setIsProcessing(true);
+    
+    const bookingsPayload = [];
+    for (let i = 0; i < selectedSeats.length; i++) {
+      const p = players[i];
+      const isFilled = Boolean(p.playerId && p.whatsapp && p.phone && p.upiId);
+      
+      bookingsPayload.push({
+        seatNumber: selectedSeats[i],
+        playerId: isFilled ? p.playerId : (i === 0 ? p.playerId : `${p1.playerId}_P${i+1}`),
+        email: isFilled ? p.email : p1.email,
+        whatsapp: isFilled ? p.whatsapp : p1.whatsapp,
+        phone: isFilled ? p.phone : p1.phone,
+        upiId: isFilled ? p.upiId : p1.upiId,
+        isGpay: isFilled ? p.isGpayNumber : p1.isGpayNumber,
+        gpayNumber: isFilled ? (p.isGpayNumber ? null : p.gpayNumber) : (p1.isGpayNumber ? null : p1.gpayNumber)
+      });
+    }
     
     try {
       const response = await fetch(`/api/rooms/${room.encryptedRoomId || room.roomId}/book`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          seatNumber: selectedSeat,
-          playerId,
-          email,
-          whatsapp: whatsappNumber,
-          phone: phoneNumber,
-          upiId,
-          isGpay: isGpayNumber,
-          gpayNumber: isGpayNumber ? null : gpayNumber
-        })
+        body: JSON.stringify({ bookings: bookingsPayload })
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || "Failed to book slot");
+        throw new Error(data.error || "Failed to book slot(s)");
       }
 
       setIsProcessing(false);
       setIsModalOpen(false);
       
-      if (selectedSeat) {
-        setBookedSeats(prev => [...prev, selectedSeat]);
-        setSelectedSeat(null);
+      if (selectedSeats.length > 0) {
+        setBookedSeats(prev => [...prev, ...selectedSeats]);
+        setSelectedSeats([]);
       }
       
       // Reset form
-      setUpiId("");
       setAgreeRules(false);
-      
-      alert("Slot successfully booked!");
+      setPlayers([
+        {
+          playerId: user.player_id || "",
+          email: user.email || "",
+          whatsapp: user.whatsapp || "",
+          phone: user.phone || "",
+          upiId: user.upiId || "",
+          isGpayNumber: true,
+          gpayNumber: user.Gpay && user.Gpay !== user.phone ? user.Gpay : ""
+        },
+        { ...defaultPlayer },
+        { ...defaultPlayer },
+        { ...defaultPlayer }
+      ]);
+      setActiveTab(0);
+
+      alert("Slot(s) successfully booked!");
     } catch (err: any) {
       setIsProcessing(false);
       alert(err.message);
@@ -286,26 +375,82 @@ export default function BookNowClient({ user, room, bookedSeats: initialBookedSe
                 </div>
 
                 {/* Seat Grid */}
-                <div className="grid grid-cols-8 gap-3 p-6 sm:p-8 bg-black/40 rounded-lg border border-white/5 relative mx-auto overflow-x-auto">
-                  {Array.from({ length: 48 }, (_, i) => i + 1).map((seat) => {
-                    const isBooked = bookedSeats.includes(seat);
-                    const isSelected = selectedSeat === seat;
-                    
-                    let bgClass = "bg-[#4ade80] cursor-pointer hover:scale-110 hover:shadow-[0_0_15px_#4ade80]"; // Available
-                    if (isBooked) bgClass = "bg-[#ef4444] opacity-80 cursor-not-allowed";
-                    if (isSelected) bgClass = "bg-[#facc15] scale-110 shadow-[0_0_20px_#facc15]";
+                {isSquad ? (
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-4 p-6 sm:p-8 bg-black/40 rounded-lg border border-white/5 relative mx-auto overflow-x-auto min-w-[400px]">
+                    {Array.from({ length: 12 }, (_, i) => i * 4 + 1).map((firstSeat) => {
+                      const squad = [firstSeat, firstSeat + 1, firstSeat + 2, firstSeat + 3];
+                      return (
+                        <div key={`squad-${firstSeat}`} className="flex flex-wrap sm:flex-nowrap gap-1 p-1.5 bg-white/5 rounded-md border border-white/10 hover:border-white/20 transition-colors">
+                          {squad.map(seat => {
+                            if (seat > 48) return null;
+                            const isBooked = bookedSeats.includes(seat);
+                            const isSelected = selectedSeats.includes(seat);
+                            let bgClass = "bg-[#4ade80] cursor-pointer hover:opacity-90";
+                            if (isBooked) bgClass = "bg-[#ef4444] opacity-80 cursor-not-allowed";
+                            if (isSelected) bgClass = "bg-[#facc15] shadow-[0_0_10px_#facc15]";
+                            return (
+                              <div 
+                                key={seat}
+                                onClick={() => handleSeatClick(seat)}
+                                className={`flex-1 aspect-square min-w-[24px] rounded flex items-center justify-center text-[10px] sm:text-xs font-jetbrains font-bold text-[#131313] transition-all duration-300 ${bgClass}`}
+                              >
+                                {seat < 10 ? `0${seat}` : seat}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : isDuo ? (
+                  <div className="grid grid-cols-3 sm:grid-cols-4 gap-x-6 gap-y-4 p-6 sm:p-8 bg-black/40 rounded-lg border border-white/5 relative mx-auto overflow-x-auto min-w-[400px]">
+                    {Array.from({ length: 24 }, (_, i) => i * 2 + 1).map((firstSeatInPair) => {
+                      const pair = [firstSeatInPair, firstSeatInPair + 1];
+                      return (
+                        <div key={`pair-${firstSeatInPair}`} className="flex gap-1 p-1.5 bg-white/5 rounded-md border border-white/10 hover:border-white/20 transition-colors">
+                          {pair.map(seat => {
+                            if (seat > 48) return null;
+                            const isBooked = bookedSeats.includes(seat);
+                            const isSelected = selectedSeats.includes(seat);
+                            let bgClass = "bg-[#4ade80] cursor-pointer hover:opacity-90";
+                            if (isBooked) bgClass = "bg-[#ef4444] opacity-80 cursor-not-allowed";
+                            if (isSelected) bgClass = "bg-[#facc15] shadow-[0_0_10px_#facc15]";
+                            return (
+                              <div 
+                                key={seat}
+                                onClick={() => handleSeatClick(seat)}
+                                className={`flex-1 aspect-square min-w-[24px] rounded flex items-center justify-center text-[10px] sm:text-xs font-jetbrains font-bold text-[#131313] transition-all duration-300 ${bgClass}`}
+                              >
+                                {seat < 10 ? `0${seat}` : seat}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-8 gap-3 p-6 sm:p-8 bg-black/40 rounded-lg border border-white/5 relative mx-auto overflow-x-auto min-w-[300px]">
+                    {Array.from({ length: 48 }, (_, i) => i + 1).map((seat) => {
+                      const isBooked = bookedSeats.includes(seat);
+                      const isSelected = selectedSeats.includes(seat);
+                      
+                      let bgClass = "bg-[#4ade80] cursor-pointer hover:scale-110 hover:shadow-[0_0_15px_#4ade80]"; // Available
+                      if (isBooked) bgClass = "bg-[#ef4444] opacity-80 cursor-not-allowed";
+                      if (isSelected) bgClass = "bg-[#facc15] scale-110 shadow-[0_0_20px_#facc15]";
 
-                    return (
-                      <div 
-                        key={seat}
-                        onClick={() => handleSeatClick(seat)}
-                        className={`w-full aspect-square min-w-[30px] rounded-md flex items-center justify-center text-[10px] sm:text-xs font-jetbrains font-bold text-[#131313] transition-all duration-300 ${bgClass}`}
-                      >
-                        {seat < 10 ? `0${seat}` : seat}
-                      </div>
-                    );
-                  })}
-                </div>
+                      return (
+                        <div 
+                          key={seat}
+                          onClick={() => handleSeatClick(seat)}
+                          className={`w-full aspect-square min-w-[30px] rounded-md flex items-center justify-center text-[10px] sm:text-xs font-jetbrains font-bold text-[#131313] transition-all duration-300 ${bgClass}`}
+                        >
+                          {seat < 10 ? `0${seat}` : seat}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </section>
             </div>
 
@@ -339,14 +484,14 @@ export default function BookNowClient({ user, room, bookedSeats: initialBookedSe
               <section className="bg-white/[0.03] backdrop-blur-[12px] border border-white/10 p-8 rounded-xl border-t-2 border-t-[#ffb4ab]">
                 <div className="space-y-6">
                   <div>
-                    <div className="text-xs font-jetbrains tracking-widest font-semibold text-[#e8bcb7] mb-2">SELECTED SEAT</div>
+                    <div className="text-xs font-jetbrains tracking-widest font-semibold text-[#e8bcb7] mb-2">SELECTED SEATS</div>
                     <div className="font-sora text-[24px] font-bold text-[#ffb4ab]">
-                      {selectedSeat ? `Seat #${selectedSeat < 10 ? '0'+selectedSeat : selectedSeat}` : "None"}
+                      {selectedSeats.length > 0 ? `Seats: ${selectedSeats.map(s => '#' + (s < 10 ? '0'+s : s)).join(', ')}` : "None"}
                     </div>
                   </div>
                   <button 
                     onClick={handleReserveClick}
-                    disabled={!selectedSeat}
+                    disabled={selectedSeats.length === 0}
                     className="w-full py-4 bg-[#ffb4ab] text-[#690005] font-sora font-extrabold text-[18px] rounded-lg shadow-[0_0_15px_rgba(255,46,46,0.4)] hover:shadow-[0_0_25px_rgba(255,180,171,0.5)] disabled:opacity-50 disabled:grayscale disabled:cursor-not-allowed transition-all uppercase"
                   >
                     Reserve Slot
@@ -371,9 +516,6 @@ export default function BookNowClient({ user, room, bookedSeats: initialBookedSe
                   <span className="material-symbols-outlined text-[#ffb4ab]" style={{ fontVariationSettings: "'FILL' 1" }}>confirmation_number</span>
                   RESERVE YOUR SLOT
                 </h2>
-                <p className="font-jetbrains text-[12px] tracking-widest font-semibold text-[#e8bcb7] mt-1">
-                  ROOM_ID: {room.roomId}
-                </p>
               </div>
               <button 
                 onClick={() => setIsModalOpen(false)}
@@ -389,8 +531,8 @@ export default function BookNowClient({ user, room, bookedSeats: initialBookedSe
               {/* Summary Row */}
               <div className="grid grid-cols-2 md:grid-cols-3 gap-6 bg-white/5 p-4 rounded-lg border border-white/5">
                 <div className="space-y-1">
-                  <span className="font-jetbrains text-[12px] tracking-widest font-semibold text-[#e8bcb7] block">SELECTED SEAT</span>
-                  <span className="font-sora text-[20px] font-bold text-[#ffb4ab]">#{selectedSeat}</span>
+                  <span className="font-jetbrains text-[12px] tracking-widest font-semibold text-[#e8bcb7] block">SELECTED SEATS</span>
+                  <span className="font-sora text-[20px] font-bold text-[#ffb4ab]">{selectedSeats.map(s => '#' + s).join(', ')}</span>
                 </div>
                 <div className="space-y-1 border-l border-white/10 pl-4">
                   <span className="font-jetbrains text-[12px] tracking-widest font-semibold text-[#e8bcb7] block">MAP</span>
@@ -399,117 +541,141 @@ export default function BookNowClient({ user, room, bookedSeats: initialBookedSe
                 <div className="space-y-1 border-l border-white/10 pl-4">
                   <span className="font-jetbrains text-[12px] tracking-widest font-semibold text-[#e8bcb7] block">ENTRY FEE</span>
                   <span className="font-sora text-[20px] font-bold text-[#ffcb8d]">
-                    {room.entryFee === 0 ? "FREE" : `₹${room.entryFee}`}
+                    {room.entryFee === 0 ? "FREE" : `₹${(room.entryFee ?? 0) * selectedSeats.length}`}
                   </span>
                 </div>
               </div>
 
               {/* Form Fields */}
-              <form id="reserve-form" onSubmit={handleConfirmBooking} className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-6">
+              <div className="flex flex-col gap-4">
+                {(isDuo || isSquad) && selectedSeats.length > 1 && (
+                  <div className="flex border-b border-white/10 gap-4 mb-2 overflow-x-auto scrollbar-hide">
+                    {Array.from({ length: selectedSeats.length }).map((_, idx) => {
+                      const p = players[idx];
+                      const isFilled = Boolean(p.playerId && p.phone && p.whatsapp && p.upiId);
+                      const hasError = idx > 0 && !isFilled;
+                      return (
+                        <button 
+                          key={idx}
+                          onClick={() => setActiveTab(idx)} 
+                          className={`pb-2 px-2 font-jetbrains font-bold tracking-widest text-sm transition-all rounded-t-md whitespace-nowrap 
+                            ${activeTab === idx ? "text-[#ffb4ab] border-b-2 border-[#ffb4ab]" : "text-white/50 hover:text-white"} 
+                            ${hasError ? "bg-red-500/10 shadow-[0_0_15px_rgba(255,0,0,0.5)] animate-[pulse_2s_ease-in-out_infinite] border-b-2 border-red-500 text-red-400" : ""}`}
+                        >
+                          PLAYER {idx + 1}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
                 
-                {/* Editable Details */}
-                <div className="space-y-2">
-                  <label className="font-jetbrains text-[12px] tracking-widest font-semibold text-[#ffb4ab]">PLAYER ID (UID)</label>
-                  <input 
-                    type="text" 
-                    value={playerId}
-                    onChange={(e) => setPlayerId(e.target.value)}
-                    required
-                    placeholder="e.g. 523910234" 
-                    className="w-full bg-transparent border-b-2 border-[#5e3f3b] focus:border-[#ffb4ab] text-white font-sora py-2 px-0 transition-all outline-none"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="font-jetbrains text-[12px] tracking-widest font-semibold text-[#ffb4ab]">WHATSAPP NUMBER</label>
-                  <input 
-                    type="tel" 
-                    value={whatsappNumber}
-                    onChange={(e) => setWhatsappNumber(e.target.value)}
-                    required
-                    placeholder="+91 9876543210" 
-                    className="w-full bg-transparent border-b-2 border-[#5e3f3b] focus:border-[#ffb4ab] text-white font-sora py-2 px-0 transition-all outline-none"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="font-jetbrains text-[12px] tracking-widest font-semibold text-[#ffb4ab]">PHONE NUMBER</label>
-                  <input 
-                    type="tel" 
-                    value={phoneNumber}
-                    onChange={(e) => setPhoneNumber(e.target.value)}
-                    required
-                    placeholder="+91 9876543210" 
-                    className="w-full bg-transparent border-b-2 border-[#5e3f3b] focus:border-[#ffb4ab] text-white font-sora py-2 px-0 transition-all outline-none"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="font-jetbrains text-[12px] tracking-widest font-semibold text-[#ffb4ab]">EMAIL</label>
-                  <input 
-                    type="email" 
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                    placeholder="player@example.com" 
-                    className="w-full bg-transparent border-b-2 border-[#5e3f3b] focus:border-[#ffb4ab] text-white font-sora py-2 px-0 transition-all outline-none"
-                  />
-                </div>
-
-                {/* Separator */}
-                <div className="md:col-span-2 border-t border-white/10 my-2 pt-4">
-                  <p className="text-[#ffb4ab] font-jetbrains text-xs tracking-widest font-bold mb-4">PAYMENT DETAILS</p>
-                </div>
-
-                <div className="space-y-2 md:col-span-2">
-                  <label className="font-jetbrains text-[12px] tracking-widest font-semibold text-[#ffb4ab]">UPI ID</label>
-                  <input 
-                    type="text" 
-                    value={upiId}
-                    onChange={(e) => setUpiId(e.target.value)}
-                    required
-                    placeholder="e.g. username@okhdfcbank" 
-                    className="w-full bg-transparent border-b-2 border-[#5e3f3b] focus:border-[#ffb4ab] text-white font-sora py-2 px-0 transition-all outline-none"
-                  />
-                </div>
-
-                <div className="space-y-2 flex flex-col justify-end md:col-span-2">
-                  <label className="flex items-center gap-3 cursor-pointer py-2">
+                <form id="reserve-form" onSubmit={(e) => e.preventDefault()} className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-6">
+                  
+                  {/* Editable Details */}
+                  <div className="space-y-2">
+                    <label className="font-jetbrains text-[12px] tracking-widest font-semibold text-[#ffb4ab]">PLAYER ID (UID)</label>
                     <input 
-                      type="checkbox" 
-                      checked={isGpayNumber}
-                      onChange={(e) => setIsGpayNumber(e.target.checked)}
-                      className="rounded border-[#5e3f3b] bg-white/5 text-[#ffb4ab] focus:ring-[#ffb4ab] h-5 w-5"
-                    />
-                    <span className="text-[#e8bcb7] font-sora text-[16px]">Is your GPay number the same as your Phone number?</span>
-                  </label>
-                </div>
-
-                {!isGpayNumber && (
-                  <div className="space-y-2 md:col-span-2">
-                    <label className="font-jetbrains text-[12px] tracking-widest font-semibold text-[#ffb4ab]">GPAY NUMBER</label>
-                    <input 
-                      type="tel" 
-                      value={gpayNumber}
-                      onChange={(e) => setGpayNumber(e.target.value)}
+                      type="text" 
+                      value={players[activeTab].playerId}
+                      onChange={(e) => updatePlayer('playerId', e.target.value)}
                       required
-                      placeholder="Enter your GPay linked number" 
+                      placeholder="e.g. 523910234" 
                       className="w-full bg-transparent border-b-2 border-[#5e3f3b] focus:border-[#ffb4ab] text-white font-sora py-2 px-0 transition-all outline-none"
                     />
                   </div>
-                )}
+                  <div className="space-y-2">
+                    <label className="font-jetbrains text-[12px] tracking-widest font-semibold text-[#ffb4ab]">WHATSAPP NUMBER</label>
+                    <input 
+                      type="tel" 
+                      value={players[activeTab].whatsapp}
+                      onChange={(e) => updatePlayer('whatsapp', e.target.value)}
+                      required
+                      placeholder="+91 9876543210" 
+                      className="w-full bg-transparent border-b-2 border-[#5e3f3b] focus:border-[#ffb4ab] text-white font-sora py-2 px-0 transition-all outline-none"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="font-jetbrains text-[12px] tracking-widest font-semibold text-[#ffb4ab]">PHONE NUMBER</label>
+                    <input 
+                      type="tel" 
+                      value={players[activeTab].phone}
+                      onChange={(e) => updatePlayer('phone', e.target.value)}
+                      required
+                      placeholder="+91 9876543210" 
+                      className="w-full bg-transparent border-b-2 border-[#5e3f3b] focus:border-[#ffb4ab] text-white font-sora py-2 px-0 transition-all outline-none"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="font-jetbrains text-[12px] tracking-widest font-semibold text-[#ffb4ab]">EMAIL (OPTIONAL)</label>
+                    <input 
+                      type="email" 
+                      value={players[activeTab].email}
+                      onChange={(e) => updatePlayer('email', e.target.value)}
+                      placeholder="player@example.com" 
+                      className="w-full bg-transparent border-b-2 border-[#5e3f3b] focus:border-[#ffb4ab] text-white font-sora py-2 px-0 transition-all outline-none"
+                    />
+                  </div>
 
-                <div className="md:col-span-2 flex items-center gap-3 pt-4">
-                  <input 
-                    type="checkbox" 
-                    id="rules-agree" 
-                    checked={agreeRules}
-                    onChange={(e) => setAgreeRules(e.target.checked)}
-                    required 
-                    className="rounded border-[#5e3f3b] bg-white/5 text-[#ffb4ab] focus:ring-[#ffb4ab] h-5 w-5"
-                  />
-                  <label htmlFor="rules-agree" className="font-sora text-[16px] text-[#e8bcb7]">
-                    I agree to the <span className="text-[#ffb4ab] hover:underline cursor-pointer">Tournament Rules</span>.
-                  </label>
-                </div>
-              </form>
+                  {/* Separator */}
+                  <div className="md:col-span-2 border-t border-white/10 my-2 pt-4 flex justify-between items-center">
+                    <p className="text-[#ffb4ab] font-jetbrains text-xs tracking-widest font-bold mb-4">PAYMENT DETAILS</p>
+                  </div>
+
+                  <div className="space-y-2 md:col-span-2">
+                    <label className="font-jetbrains text-[12px] tracking-widest font-semibold text-[#ffb4ab]">UPI ID</label>
+                    <input 
+                      type="text" 
+                      value={players[activeTab].upiId}
+                      onChange={(e) => updatePlayer('upiId', e.target.value)}
+                      required
+                      placeholder="e.g. username@okhdfcbank" 
+                      className="w-full bg-transparent border-b-2 border-[#5e3f3b] focus:border-[#ffb4ab] text-white font-sora py-2 px-0 transition-all outline-none"
+                    />
+                  </div>
+
+                  <div className="space-y-2 flex flex-col justify-end md:col-span-2">
+                    <label className="flex items-center gap-3 cursor-pointer py-2">
+                      <input 
+                        type="checkbox" 
+                        checked={players[activeTab].isGpayNumber}
+                        onChange={(e) => updatePlayer('isGpayNumber', e.target.checked)}
+                        className="rounded border-[#5e3f3b] bg-white/5 text-[#ffb4ab] focus:ring-[#ffb4ab] h-5 w-5"
+                      />
+                      <span className="text-[#e8bcb7] font-sora text-[16px]">Is your GPay number the same as your Phone number?</span>
+                    </label>
+                  </div>
+
+                  {!players[activeTab].isGpayNumber && (
+                    <div className="space-y-2 md:col-span-2">
+                      <label className="font-jetbrains text-[12px] tracking-widest font-semibold text-[#ffb4ab]">GPAY NUMBER</label>
+                      <input 
+                        type="tel" 
+                        value={players[activeTab].gpayNumber}
+                        onChange={(e) => updatePlayer('gpayNumber', e.target.value)}
+                        required
+                        placeholder="Enter your GPay linked number" 
+                        className="w-full bg-transparent border-b-2 border-[#5e3f3b] focus:border-[#ffb4ab] text-white font-sora py-2 px-0 transition-all outline-none"
+                      />
+                    </div>
+                  )}
+
+                  {/* Save button removed as per requirements */}
+
+                  <div className="md:col-span-2 flex items-center gap-3 pt-4">
+                    <input 
+                      type="checkbox" 
+                      id="rules-agree" 
+                      checked={agreeRules}
+                      onChange={(e) => setAgreeRules(e.target.checked)}
+                      required 
+                      className="rounded border-[#5e3f3b] bg-white/5 text-[#ffb4ab] focus:ring-[#ffb4ab] h-5 w-5"
+                    />
+                    <label htmlFor="rules-agree" className="font-sora text-[16px] text-[#e8bcb7]">
+                      I agree to the <span className="text-[#ffb4ab] hover:underline cursor-pointer">Tournament Rules</span>.
+                    </label>
+                  </div>
+                </form>
+              </div>
             </div>
 
             {/* Footer Actions */}
@@ -521,12 +687,11 @@ export default function BookNowClient({ user, room, bookedSeats: initialBookedSe
                 CANCEL
               </button>
               <button 
-                form="reserve-form"
-                type="submit"
+                onClick={handleConfirmBooking}
                 disabled={isProcessing}
                 className="px-10 py-3 bg-[#ffb4ab] text-[#690005] font-sora text-[14px] font-bold tracking-widest rounded transition-all active:scale-95 shadow-lg hover:shadow-[0_0_25px_rgba(255,180,171,0.5)] disabled:opacity-50 flex justify-center items-center gap-2 uppercase"
               >
-                {isProcessing ? "Processing..." : `PAY ${room.entryFee > 0 ? '₹' + room.entryFee : 'FREE'}`}
+                {isProcessing ? "Processing..." : `PAY ${(room.entryFee ?? 0) > 0 ? '₹' + ((room.entryFee ?? 0) * selectedSeats.length) : 'FREE'}`}
               </button>
             </div>
 

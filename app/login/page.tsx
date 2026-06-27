@@ -29,6 +29,7 @@ export default function LoginPage() {
         setError(data.error ?? "Login failed.");
       } else {
         // Convert user name to binary and use as route
+        console.log(data.user);
         const name = data.user?.name as string;
         const role = data.user?.role as string;
 
