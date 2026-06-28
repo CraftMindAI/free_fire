@@ -8,11 +8,11 @@ const SECRET = new TextEncoder().encode(
 
 export async function POST(req: NextRequest) {
   try {
-    const { username, email, phone } = await req.json();
+    const { username, PalyerId, phone } = await req.json();
 
-    if (!username || !email || !phone) {
+    if (!username || !PalyerId || !phone) {
       return NextResponse.json(
-        { error: "Username, email, and phone are required." },
+        { error: "Username, PalyerId, and phone are required." },
         { status: 400 }
       );
     }
@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
     const user = await prisma.user.findFirst({
       where: {
         username: { equals: username, mode: "insensitive" },
-        email: { equals: email, mode: "insensitive" },
+        player_id: { equals: PalyerId, mode: "insensitive" },
         phone: phone,
       },
     });

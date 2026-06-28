@@ -13,7 +13,7 @@ export default function ForgotAccessModal({ onClose }: ForgotAccessModalProps) {
 
   // Step 1 data
   const [username, setUsername] = useState("");
-  const [email, setEmail] = useState("");
+  const [PalyerId, setPlayerId] = useState("");
   const [phone, setPhone] = useState("");
 
   // Step 2 data
@@ -30,7 +30,7 @@ export default function ForgotAccessModal({ onClose }: ForgotAccessModalProps) {
       const res = await fetch("/api/auth/reset-password/verify", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, email, phone }),
+        body: JSON.stringify({ username, PalyerId, phone }),
       });
       const data = await res.json();
 
@@ -55,7 +55,7 @@ export default function ForgotAccessModal({ onClose }: ForgotAccessModalProps) {
       setError("Passwords do not match.");
       return;
     }
-    
+
     if (newPassword.length < 6) {
       setError("Password must be at least 6 characters.");
       return;
@@ -91,7 +91,16 @@ export default function ForgotAccessModal({ onClose }: ForgotAccessModalProps) {
           onClick={onClose}
           className="absolute top-4 right-4 text-white/50 hover:text-white transition-colors"
         >
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
             <line x1="18" y1="6" x2="6" y2="18"></line>
             <line x1="6" y1="6" x2="18" y2="18"></line>
           </svg>
@@ -101,7 +110,7 @@ export default function ForgotAccessModal({ onClose }: ForgotAccessModalProps) {
           {step === 1 ? "Verify Identity" : "Reset Password"}
         </h2>
         <p className="font-sora text-sm text-on-surface-variant mb-6">
-          {step === 1 
+          {step === 1
             ? "Enter your account details to recover access."
             : "Create a new password for your account."}
         </p>
@@ -129,15 +138,15 @@ export default function ForgotAccessModal({ onClose }: ForgotAccessModalProps) {
             </div>
             <div>
               <label className="font-jetbrains text-[10px] tracking-widest text-on-surface-variant uppercase mb-1 block">
-                Email
+                Player Id
               </label>
               <input
-                type="email"
+                type="text"
                 required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                value={PalyerId}
+                onChange={(e) => setPlayerId(e.target.value)}
                 className="w-full bg-[#131313] border border-white/10 rounded-lg px-4 py-3 text-sm focus:border-crimson focus:outline-none transition-colors"
-                placeholder="Enter your email"
+                placeholder="Enter your PalyerId"
               />
             </div>
             <div>
