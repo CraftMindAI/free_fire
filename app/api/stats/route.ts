@@ -54,7 +54,7 @@ export async function GET() {
     return NextResponse.json({
       success: true,
       stats: {
-        activeRooms: activeRoomsCount || 1, 
+        activeRooms: activeRoomsCount || 1,
         draftRooms: draftRoomsCount || 2,
         closedRooms: closedRoomsCount,
         playerCount: playerUsersCount,

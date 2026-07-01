@@ -4,11 +4,11 @@ import prisma from "@/app/lib/prisma";
 export async function GET() {
   try {
     const now = new Date();
-    // Auto-close rooms whose endTime is in the past
+    // Auto-close only published (active) rooms whose endTime is in the past
     await prisma.room.updateMany({
       where: {
         endTime: { lt: now },
-        status: { not: "closed" },
+        status: "active",
       },
       data: { status: "closed" },
     });
@@ -54,7 +54,8 @@ export async function POST(req: NextRequest) {
       const existing = await prisma.room.findFirst({
         where: {
           roomName: map,
-          status: { in: ["waiting", "active"] },
+          match_type: matchType || "Solo",
+          status: { notIn: ["closed", "completed"] },
           ...(startTime ? { startTime } : {}),
         },
       });
@@ -62,7 +63,7 @@ export async function POST(req: NextRequest) {
       if (existing) {
         return NextResponse.json(
           {
-            error: `A "${map}" room at the same time already exists and is ${existing.status === "active" ? "active" : "in draft"}. Please choose a different time or map.`,
+            error: `A "${map}" - ${matchType || "Solo"} match at the same time already exists. Please choose a different time or match type.`,
           },
           { status: 409 }
         );
@@ -70,9 +71,6 @@ export async function POST(req: NextRequest) {
       // ─────────────────────────────────────────────────────────────
 
       let initialStatus = "Draft";
-      if (startTime && startTime <= new Date()) {
-        initialStatus = "closed";
-      }
 
       const newRoom = await prisma.room.create({
         data: {
@@ -122,6 +120,34 @@ export async function POST(req: NextRequest) {
           updateData.endTime = new Date(`${matchDate}T${providedEndTime}:00`);
         } else {
           updateData.endTime = new Date(updateData.startTime.getTime() + 1 * 60 * 60 * 1000); // add 1 hour
+        }
+      }
+
+      const existingRoom = await prisma.room.findUnique({
+        where: { id: Number(roomId) },
+      });
+
+      if (existingRoom) {
+        const duplicateMatch = await prisma.room.findFirst({
+          where: {
+            id: { not: Number(roomId) },
+            roomName: updateData.roomName || existingRoom.roomName,
+            match_type: updateData.match_type || existingRoom.match_type,
+            status: { notIn: ["closed", "completed"] },
+            startTime: updateData.startTime || existingRoom.startTime,
+          },
+        });
+
+        if (duplicateMatch) {
+          return NextResponse.json(
+            { error: `Another "${updateData.roomName || existingRoom.roomName}" - ${updateData.match_type || existingRoom.match_type} match at this time already exists.` },
+            { status: 409 }
+          );
+        }
+
+        const newEndTime = updateData.endTime || existingRoom.endTime;
+        if (newEndTime && newEndTime > new Date() && existingRoom.status === "closed") {
+          updateData.status = "Draft";
         }
       }
 

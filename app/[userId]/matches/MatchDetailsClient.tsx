@@ -267,18 +267,6 @@ function MatchDetailsClientInner({
 
   const handleStartTimeChange = (val: string) => {
     setStartTime(val);
-    if (val) {
-      const [hh, mm] = val.split(":");
-      const date = new Date();
-      date.setHours(Number(hh));
-      date.setMinutes(Number(mm));
-      date.setHours(date.getHours() + 1); // add 1 hour
-      const endH = String(date.getHours()).padStart(2, '0');
-      const endM = String(date.getMinutes()).padStart(2, '0');
-      setEndTime(`${endH}:${endM}`);
-    } else {
-      setEndTime("");
-    }
   };
 
   const [loading, setLoading] = useState(false);
@@ -301,8 +289,10 @@ function MatchDetailsClientInner({
 
   const fetchUpdatedData = async () => {
     try {
-      const statsRes = await fetch("/api/stats", { cache: 'no-store' });
-      const roomsRes = await fetch("/api/rooms", { cache: 'no-store' });
+      const [statsRes, roomsRes] = await Promise.all([
+        fetch("/api/stats", { cache: 'no-store' }),
+        fetch("/api/rooms", { cache: 'no-store' })
+      ]);
 
       if (statsRes.ok && roomsRes.ok) {
         const statsData = await statsRes.json();
@@ -602,6 +592,8 @@ function MatchDetailsClientInner({
                   <tbody className="divide-y divide-white/5 font-sora">
                     {rooms.map((room) => {
                       const isPublished = room.isPublished || room.status === "Published";
+                      const isClosed = room.status === "closed" || room.status === "completed";
+                      const isActionDisabled = isPublished || isClosed;
                       return (
                         <tr
                           key={room.roomId}
@@ -653,7 +645,7 @@ function MatchDetailsClientInner({
                             </div>
                           </td>
                           <td className="p-6">
-                            {room.status === "closed" || room.status === "completed" ? (
+                            {isClosed ? (
                               <span className="bg-[#690005]/50 border border-[#ffb4ab]/30 text-[#ffb4ab] px-3 py-1 rounded-full text-[10px] font-bold uppercase inline-flex items-center gap-1 opacity-80">
                                 Closed
                               </span>
@@ -670,42 +662,55 @@ function MatchDetailsClientInner({
                           </td>
                           <td className="p-6">
                             <div className="flex items-center justify-center gap-2">
-                              <button
-                                onClick={() => handleOpenEditModal(room)}
-                                disabled={isPublished}
-                                className={`p-2 rounded-lg transition-all ${isPublished
-                                  ? "opacity-20 cursor-not-allowed text-on-surface-variant"
-                                  : "bg-white/5 text-on-surface-variant hover:text-[#ffb4ab] hover:bg-white/10 cursor-pointer"
-                                  }`}
-                              >
-                                <span className="material-symbols-outlined text-[18px]">
-                                  edit
-                                </span>
-                              </button>
-                              <button
-                                onClick={() => handleDeleteMatch(room.roomId)}
-                                disabled={isPublished}
-                                className={`p-2 rounded-lg transition-all ${isPublished
-                                  ? "opacity-20 cursor-not-allowed text-on-surface-variant"
-                                  : "bg-white/5 text-on-surface-variant hover:text-[#ff2e2e] hover:bg-[#ff2e2e]/10 cursor-pointer"
-                                  }`}
-                              >
-                                <span className="material-symbols-outlined text-[18px]">
-                                  delete
-                                </span>
-                              </button>
-                              <button
-                                onClick={() => handlePublishMatch(room.roomId)}
-                                disabled={isPublished}
-                                className={`p-2 rounded-lg transition-all ${isPublished
-                                  ? "opacity-20 cursor-not-allowed text-on-surface-variant"
-                                  : "bg-[#ffb4ab]/20 text-[#ffb4ab] hover:bg-[#ffb4ab] hover:text-[#690005] animate-pulse-live cursor-pointer"
-                                  }`}
-                              >
-                                <span className="material-symbols-outlined text-[18px]">
-                                  publish
-                                </span>
-                              </button>
+                              {isClosed ? (
+                                <button
+                                  onClick={() => window.open(`/api/rooms/${room.roomId}/export`, '_blank')}
+                                  className="p-2 rounded-lg transition-all bg-[#ffb4ab]/20 text-[#ffb4ab] hover:bg-[#ffb4ab] hover:text-[#690005] cursor-pointer font-bold flex items-center gap-1 text-[10px]"
+                                  title="Export room bookings to CSV"
+                                >
+                                  <span className="material-symbols-outlined text-[16px]">download</span>
+                                  EXPORT
+                                </button>
+                              ) : (
+                                <>
+                                  <button
+                                    onClick={() => handleOpenEditModal(room)}
+                                    disabled={isActionDisabled}
+                                    className={`p-2 rounded-lg transition-all ${isActionDisabled
+                                      ? "opacity-20 cursor-not-allowed text-on-surface-variant"
+                                      : "bg-white/5 text-on-surface-variant hover:text-[#ffb4ab] hover:bg-white/10 cursor-pointer"
+                                      }`}
+                                  >
+                                    <span className="material-symbols-outlined text-[18px]">
+                                      edit
+                                    </span>
+                                  </button>
+                                  <button
+                                    onClick={() => handleDeleteMatch(room.roomId)}
+                                    disabled={isActionDisabled}
+                                    className={`p-2 rounded-lg transition-all ${isActionDisabled
+                                      ? "opacity-20 cursor-not-allowed text-on-surface-variant"
+                                      : "bg-white/5 text-on-surface-variant hover:text-[#ff2e2e] hover:bg-[#ff2e2e]/10 cursor-pointer"
+                                      }`}
+                                  >
+                                    <span className="material-symbols-outlined text-[18px]">
+                                      delete
+                                    </span>
+                                  </button>
+                                  <button
+                                    onClick={() => handlePublishMatch(room.roomId)}
+                                    disabled={isActionDisabled}
+                                    className={`p-2 rounded-lg transition-all ${isActionDisabled
+                                      ? "opacity-20 cursor-not-allowed text-on-surface-variant"
+                                      : "bg-[#ffb4ab]/20 text-[#ffb4ab] hover:bg-[#ffb4ab] hover:text-[#690005] animate-pulse-live cursor-pointer"
+                                      }`}
+                                  >
+                                    <span className="material-symbols-outlined text-[18px]">
+                                      publish
+                                    </span>
+                                  </button>
+                                </>
+                              )}
                             </div>
                           </td>
                         </tr>

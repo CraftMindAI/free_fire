@@ -8,7 +8,7 @@ export async function GET() {
     await prisma.room.updateMany({
       where: {
         endTime: { lt: now },
-        status: { not: "closed" },
+        status: "active",
       },
       data: { status: "closed" },
     });

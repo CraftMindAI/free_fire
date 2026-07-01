@@ -36,8 +36,10 @@ export default function DashboardClient({
 
   const fetchUpdatedData = async () => {
     try {
-      const statsRes = await fetch("/api/stats");
-      const roomsRes = await fetch("/api/rooms");
+      const [statsRes, roomsRes] = await Promise.all([
+        fetch("/api/stats"),
+        fetch("/api/rooms")
+      ]);
 
       if (statsRes.ok && roomsRes.ok) {
         const statsData = await statsRes.json();
