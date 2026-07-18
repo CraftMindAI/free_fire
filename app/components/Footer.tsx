@@ -1,7 +1,10 @@
 "use client";
 import { usePathname } from "next/navigation";
 
-const LINKS = ["Privacy Policy", "Terms of Service", "Support", "Discord"];
+const LINKS = ["About Us", "Privacy Policy", "Terms of Service", "Support", "Discord"];
+const LINK_HREFS: Record<string, string> = {
+  "About Us": "/about",
+};
 
 export default function Footer() {
   const pathname = usePathname();
@@ -25,7 +28,7 @@ export default function Footer() {
 
         <nav className="flex flex-wrap justify-center gap-8">
           {LINKS.map((link) => (
-            <a key={link} href="#"
+            <a key={link} href={LINK_HREFS[link] ?? "#"}
               className="text-on-surface-variant text-xs font-bold tracking-widest uppercase
                           hover:text-crimson transition-colors duration-200">
               {link}
