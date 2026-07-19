@@ -32,6 +32,13 @@ export default function Navbar() {
             ABOUT
           </Link>
           <Link
+            href="/contact"
+            className="font-orbitron text-white text-xs font-bold tracking-[0.18em] uppercase
+                       hover:text-[#ffb4ab] transition-colors duration-200"
+          >
+            CONTACT
+          </Link>
+          <Link
             href="/v1/auth/login"
             className="font-orbitron text-white text-xs font-bold tracking-[0.18em] uppercase
                        hover:text-[#ffb4ab] transition-colors duration-200"

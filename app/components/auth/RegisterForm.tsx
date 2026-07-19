@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { PROFILE_IMAGES } from "@/app/data/profile";
+import TermsModal from "../common/TermsModal";
+import PrivacyModal from "../common/PrivacyModal";
 interface FormState {
   username: string;
   playerId: string;
@@ -44,6 +46,8 @@ export default function RegisterForm({ role, mode = "create", initialData, admin
   const [showConfirm, setShowConfirm] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [isTermsOpen, setIsTermsOpen] = useState(false);
+  const [isPrivacyOpen, setIsPrivacyOpen] = useState(false);
 
   function set(key: keyof FormState, value: string | boolean) {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -271,9 +275,21 @@ export default function RegisterForm({ role, mode = "create", initialData, admin
           </button>
           <span className="font-sora text-sm text-on-surface-variant leading-relaxed">
             I agree to the{" "}
-            <a href="#" className="text-[#ffb4ab] hover:underline">Terms of Service</a>
+            <button 
+              type="button" 
+              onClick={() => setIsTermsOpen(true)} 
+              className="text-[#ffb4ab] hover:underline"
+            >
+              Terms of Service
+            </button>
             {" "}and{" "}
-            <a href="#" className="text-[#ffb4ab] hover:underline">Privacy Policy</a>
+            <button 
+              type="button" 
+              onClick={() => setIsPrivacyOpen(true)} 
+              className="text-[#ffb4ab] hover:underline"
+            >
+              Privacy Policy
+            </button>
             {" "}of Titan Arena.
           </span>
         </label>
@@ -309,6 +325,10 @@ export default function RegisterForm({ role, mode = "create", initialData, admin
           </>
         )}
       </button>
+
+      {/* Modals */}
+      <TermsModal isOpen={isTermsOpen} onClose={() => setIsTermsOpen(false)} />
+      <PrivacyModal isOpen={isPrivacyOpen} onClose={() => setIsPrivacyOpen(false)} />
     </form>
   );
 }

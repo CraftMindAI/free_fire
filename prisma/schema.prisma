@@ -113,3 +113,13 @@ model Payment {
   @@index([userId])
   @@index([roomId])
 }
+
+// Contact Messages
+model ContactMessage {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String
+  mobile    String
+  message   String
+  createdAt DateTime @default(now())
+}
