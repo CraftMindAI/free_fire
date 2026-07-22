@@ -6,6 +6,8 @@ import Header from "@/app/components/common/Header";
 import Sidebar from "@/app/components/common/Sidebar";
 import { RoomData } from "@/app/components/admin/ActiveRooms";
 import { ToastProvider, useToast } from "@/app/components/common/Toast";
+import ParticleCanvas from "@/app/components/ParticleCanvas";
+import { encryptId } from "@/app/lib/encryption";
 
 const MAP_OPTIONS = [
   { value: "Bermuda", label: "BERMUDA", src: "/assets/map/Bermuda.png" },
@@ -322,6 +324,7 @@ function MatchDetailsClientInner({
             endTimeIso: r.endTime ? new Date(r.endTime).toISOString() : "",
             status: r.status,
             isPublished: r.status === "active",
+            encryptedRoomId: encryptId(String(r.id)),
             tier: "Legendary",
             icon: "sports_esports",
           })
@@ -410,6 +413,18 @@ function MatchDetailsClientInner({
 
     console.log("Client payload matchType:", payload.matchType);
 
+    // Enforce: when initializing (creating) a match, the start datetime must be in the future
+    if (!editingRoom) {
+      const scheduled = new Date(`${startDate}T${startTime}:00`);
+      if (isNaN(scheduled.getTime()) || scheduled.getTime() <= Date.now()) {
+        const msg = "Start time must be in the future to deploy a match.";
+        setError(msg);
+        toast.error("Invalid Start Time", msg);
+        setLoading(false);
+        return;
+      }
+    }
+
     let statusCode = 200;
     try {
       const res = await fetch("/api/rooms", {
@@ -489,7 +504,7 @@ function MatchDetailsClientInner({
   };
 
   return (
-    <div className="flex bg-[#131313] text-on-surface min-h-screen font-sora overflow-hidden">
+    <div className="flex bg-transparent text-on-surface min-h-screen font-sora overflow-hidden relative">
       {/* Sidebar */}
       <Sidebar
         role={user.role}
@@ -531,43 +546,36 @@ function MatchDetailsClientInner({
 
             {/* Stats Overview */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="glass-panel p-6 rounded-2xl border border-[#ffb4ab]/20 shadow-[0_0_15px_rgba(255,46,46,0.1)]">
-                <p className="font-jetbrains text-on-surface-variant text-xs tracking-widest uppercase mb-2">
-                  CLOSED ROOMS
-                </p>
-                <div className="flex items-end justify-between">
-                  <span className="font-sora text-4xl text-[#ffb4ab] font-extrabold">
-                    {stats.closedRooms}
-                  </span>
-                  <span className="material-symbols-outlined text-[#ffb4ab] opacity-60">
-                    cancel
-                  </span>
+              {/* Closed Rooms */}
+              <div className="p-8 rounded-xl relative overflow-hidden group hover:border-[#ffb4ab]/50 hover:-translate-y-1 transition-all duration-300 bg-white/[0.03] backdrop-blur-md border border-white/10">
+                <div className="absolute -right-4 -bottom-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                  <span className="material-symbols-outlined text-[120px]">cancel</span>
+                </div>
+                <p className="font-jetbrains text-[10px] text-[#e8bcb7] mb-2 tracking-wider">CLOSED ROOMS</p>
+                <div className="flex items-center gap-4">
+                  <span className="font-sora text-4xl font-bold text-[#ffb4ab] glow-crimson counter">{stats.closedRooms}</span>
                 </div>
               </div>
-              <div className="glass-panel p-6 rounded-2xl border border-[#ffcb8d]/20 shadow-[0_0_15px_rgba(255,203,141,0.1)]">
-                <p className="font-jetbrains text-on-surface-variant text-xs tracking-widest uppercase mb-2">
-                  ACTIVE ROOMS
-                </p>
-                <div className="flex items-end justify-between">
-                  <span className="font-sora text-4xl text-[#ffcb8d] font-extrabold">
-                    {stats.activeRooms}
-                  </span>
-                  <span className="material-symbols-outlined text-[#ffcb8d] opacity-60">
-                    sensors
-                  </span>
+
+              {/* Active Rooms */}
+              <div className="p-8 rounded-xl relative overflow-hidden group hover:border-[#ffcb8d]/50 hover:-translate-y-1 transition-all duration-300 bg-white/[0.03] backdrop-blur-md border border-white/10">
+                <div className="absolute -right-4 -bottom-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                  <span className="material-symbols-outlined text-[120px]">sensors</span>
+                </div>
+                <p className="font-jetbrains text-[10px] text-[#e8bcb7] mb-2 tracking-wider">ACTIVE ROOMS</p>
+                <div className="flex items-center gap-4">
+                  <span className="font-sora text-4xl font-bold text-[#ffcb8d] counter">{stats.activeRooms}</span>
                 </div>
               </div>
-              <div className="glass-panel p-6 rounded-2xl border border-white/10 shadow-[0_0_15px_rgba(255,255,255,0.05)]">
-                <p className="font-jetbrains text-on-surface-variant text-xs tracking-widest uppercase mb-2">
-                  DRAFT ROOMS
-                </p>
-                <div className="flex items-end justify-between">
-                  <span className="font-sora text-4xl text-on-surface font-extrabold">
-                    {stats.draftRooms}
-                  </span>
-                  <span className="material-symbols-outlined text-on-surface-variant opacity-60">
-                    draft
-                  </span>
+
+              {/* Draft Rooms */}
+              <div className="p-8 rounded-xl relative overflow-hidden group hover:border-white/30 hover:-translate-y-1 transition-all duration-300 bg-white/[0.03] backdrop-blur-md border border-white/10">
+                <div className="absolute -right-4 -bottom-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                  <span className="material-symbols-outlined text-[120px]">draft</span>
+                </div>
+                <p className="font-jetbrains text-[10px] text-[#e8bcb7] mb-2 tracking-wider">DRAFT ROOMS</p>
+                <div className="flex items-center gap-4">
+                  <span className="font-sora text-4xl font-bold text-on-surface counter">{stats.draftRooms}</span>
                 </div>
               </div>
             </div>
@@ -591,16 +599,13 @@ function MatchDetailsClientInner({
                   </thead>
                   <tbody className="divide-y divide-white/5 font-sora">
                     {rooms.map((room) => {
-                      const isPublished = room.isPublished || room.status === "Published";
-                      const isClosed = room.status === "closed" || room.status === "completed";
-                      const isActionDisabled = isPublished || isClosed;
+                      const normalizedStatus = (room.status || "").toLowerCase();
+                      const isPublished = room.isPublished || normalizedStatus === "active" || normalizedStatus === "published" || normalizedStatus === "live";
+                      const isClosed = normalizedStatus === "closed" || normalizedStatus === "completed" || normalizedStatus === "finished";
                       return (
                         <tr
                           key={room.roomId}
-                          className={`transition-colors ${isPublished
-                            ? "published-row group"
-                            : "hover:bg-white/[0.02]"
-                            }`}
+                          className="hover:bg-white/[0.02] transition-colors"
                         >
                           <td className="p-6 font-semibold text-on-surface">
                             {room.roomId}
@@ -649,7 +654,7 @@ function MatchDetailsClientInner({
                               <span className="bg-[#690005]/50 border border-[#ffb4ab]/30 text-[#ffb4ab] px-3 py-1 rounded-full text-[10px] font-bold uppercase inline-flex items-center gap-1 opacity-80">
                                 Closed
                               </span>
-                            ) : room.status === "active" ? (
+                            ) : normalizedStatus === "active" ? (
                               <span className="published-badge px-3 py-1 rounded-full text-[10px] font-bold uppercase inline-flex items-center gap-1">
                                 <span className="w-1.5 h-1.5 rounded-full bg-current animate-pulse"></span>
                                 Published
@@ -662,54 +667,63 @@ function MatchDetailsClientInner({
                           </td>
                           <td className="p-6">
                             <div className="flex items-center justify-center gap-2">
-                              {isClosed ? (
-                                <button
-                                  onClick={() => window.open(`/api/rooms/${room.roomId}/export`, '_blank')}
-                                  className="p-2 rounded-lg transition-all bg-[#ffb4ab]/20 text-[#ffb4ab] hover:bg-[#ffb4ab] hover:text-[#690005] cursor-pointer font-bold flex items-center gap-1 text-[10px]"
-                                  title="Export room bookings to CSV"
-                                >
-                                  <span className="material-symbols-outlined text-[16px]">download</span>
-                                  EXPORT
-                                </button>
-                              ) : (
+                              {/* UPDATE (Edit) and DELETE (Draft rooms only) */}
+                              {!isPublished && !isClosed && (
                                 <>
                                   <button
                                     onClick={() => handleOpenEditModal(room)}
-                                    disabled={isActionDisabled}
-                                    className={`p-2 rounded-lg transition-all ${isActionDisabled
-                                      ? "opacity-20 cursor-not-allowed text-on-surface-variant"
-                                      : "bg-white/5 text-on-surface-variant hover:text-[#ffb4ab] hover:bg-white/10 cursor-pointer"
-                                      }`}
+                                    className="p-2 rounded-lg transition-all bg-white/5 text-on-surface-variant hover:text-[#ffb4ab] hover:bg-white/10 cursor-pointer"
+                                    title="Update Match"
                                   >
-                                    <span className="material-symbols-outlined text-[18px]">
-                                      edit
-                                    </span>
+                                    <span className="material-symbols-outlined text-[18px]">edit</span>
                                   </button>
                                   <button
                                     onClick={() => handleDeleteMatch(room.roomId)}
-                                    disabled={isActionDisabled}
-                                    className={`p-2 rounded-lg transition-all ${isActionDisabled
-                                      ? "opacity-20 cursor-not-allowed text-on-surface-variant"
-                                      : "bg-white/5 text-on-surface-variant hover:text-[#ff2e2e] hover:bg-[#ff2e2e]/10 cursor-pointer"
-                                      }`}
+                                    className="p-2 rounded-lg transition-all bg-white/5 text-on-surface-variant hover:text-[#ff2e2e] hover:bg-[#ff2e2e]/10 cursor-pointer"
+                                    title="Delete Match"
                                   >
-                                    <span className="material-symbols-outlined text-[18px]">
-                                      delete
-                                    </span>
-                                  </button>
-                                  <button
-                                    onClick={() => handlePublishMatch(room.roomId)}
-                                    disabled={isActionDisabled}
-                                    className={`p-2 rounded-lg transition-all ${isActionDisabled
-                                      ? "opacity-20 cursor-not-allowed text-on-surface-variant"
-                                      : "bg-[#ffb4ab]/20 text-[#ffb4ab] hover:bg-[#ffb4ab] hover:text-[#690005] animate-pulse-live cursor-pointer"
-                                      }`}
-                                  >
-                                    <span className="material-symbols-outlined text-[18px]">
-                                      publish
-                                    </span>
+                                    <span className="material-symbols-outlined text-[18px]">delete</span>
                                   </button>
                                 </>
+                              )}
+
+                              {/* VIEW (Only if Published or Closed) */}
+                              {(isPublished || isClosed) && (
+                                <a
+                                  href={`/${user.id}/matches/${room.encryptedRoomId}/view-details`}
+                                  className="p-2 rounded-lg transition-all bg-white/5 text-on-surface-variant hover:text-[#ffb4ab] hover:bg-white/10 cursor-pointer"
+                                  title="View match details"
+                                >
+                                  <span className="material-symbols-outlined text-[18px]">visibility</span>
+                                </a>
+                              )}
+
+                              {/* EXPORT (Only if Published or Closed) */}
+                              {(isPublished || isClosed) && (
+                                <button
+                                  onClick={() => {
+                                    const exportUrl = `/api/rooms/${encodeURIComponent(room.roomId)}/export`;
+                                    const popup = window.open(exportUrl, '_blank', 'noopener,noreferrer');
+                                    if (!popup) {
+                                      window.location.href = exportUrl;
+                                    }
+                                  }}
+                                  className="p-2 rounded-lg transition-all bg-[#ffb4ab]/20 text-[#ffb4ab] hover:bg-[#ffb4ab] hover:text-[#690005] cursor-pointer font-bold flex items-center gap-1 text-[10px]"
+                                  title="Export room bookings to CSV"
+                                >
+                                  <span className="material-symbols-outlined text-[18px]">download</span>
+                                </button>
+                              )}
+
+                              {/* PUBLISH (Draft rooms only) */}
+                              {!isPublished && !isClosed && (
+                                <button
+                                  onClick={() => handlePublishMatch(room.roomId)}
+                                  className="p-2 rounded-lg transition-all bg-[#ffb4ab]/20 text-[#ffb4ab] hover:bg-[#ffb4ab] hover:text-[#690005] animate-pulse-live cursor-pointer"
+                                  title="Publish Match"
+                                >
+                                  <span className="material-symbols-outlined text-[18px]">rocket_launch</span>
+                                </button>
                               )}
                             </div>
                           </td>
@@ -873,6 +887,16 @@ function MatchDetailsClientInner({
           </div>
         </div>
       )}
+
+      <div className="fixed inset-0 pointer-events-none z-[-1] overflow-hidden bg-[#131313]">
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#131313]/80 to-[#131313]"></div>
+        <img
+          className="w-full h-full object-cover"
+          alt="Cinematic Background"
+          src="https://lh3.googleusercontent.com/aida-public/AB6AXuCuMWIu9K9ojjXGGV5slkQjRyrZeZFeO_j89XI8miWv0JRrI7n4TVvrh68knezlnDp_i-st0zcrVduGJoBo1dikufmZ56jtWqwReXUplnd_yzrlSKeTzaTUa85ouME3ZDn0Qw20JaWBngiymQJzghy4pypFj3c1WYgEvJFw24A78YN1agjBtc_NeOpkGOhfCLG8dakRZ_UYHEMqAm3vuDWPT4JwYvJzbePYotshdpc5yU7_9bmVLuWukU_HJn4WUg2dk2OwxI5ZLp0"
+        />
+      </div>
+      <ParticleCanvas count={90} />
     </div>
   );
 }

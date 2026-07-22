@@ -32,8 +32,16 @@ async function getStats(roomsCount: number) {
     where: { role: "player" },
   });
 
-  const rawReceivedAmount = 482500;
-  const rawPrizePaid = 430100;
+  // Aggregate real payment totals from the payments table
+  const paymentSums = await prisma.payment.aggregate({
+    _sum: {
+      amount: true,
+      prizeAmount: true,
+    },
+  });
+
+  const rawReceivedAmount = paymentSums._sum.amount || 0;
+  const rawPrizePaid = paymentSums._sum.prizeAmount || 0;
 
   const formattedReceived = new Intl.NumberFormat("en-IN", {
     style: "currency",

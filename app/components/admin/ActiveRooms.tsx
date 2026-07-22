@@ -57,12 +57,13 @@ export default function ActiveRooms({ rooms }: ActiveRoomsProps) {
   };
 
   return (
-    <div className="xl:col-span-2 glass-card rounded-xl overflow-hidden">
-      <div className="px-6 py-4 border-b border-white/5 flex justify-between items-center bg-[#1c1b1b]/50">
-        <h2 className="font-orbitron text-headline-md text-on-surface">
-          ACTIVE ROOMS
+    <div className="xl:col-span-2 bg-white/[0.03] backdrop-blur-md border border-white/10 rounded-xl p-6 overflow-hidden">
+      <div className="flex justify-between items-center mb-6 pb-4 border-b border-white/5">
+        <h2 className="font-sora text-xl font-bold text-[#e5e2e1] flex items-center gap-3">
+          <span className="w-2 h-8 bg-[#ffb4ab] rounded-full"></span>
+          Active Rooms
         </h2>
-        <button className="text-[#ffb4ab] text-sm font-jetbrains hover:underline uppercase tracking-wider">
+        <button className="text-[#ffb4ab] text-xs font-jetbrains hover:underline uppercase tracking-wider">
           VIEW ALL
         </button>
       </div>
