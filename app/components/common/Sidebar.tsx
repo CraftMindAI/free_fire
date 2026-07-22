@@ -78,14 +78,19 @@ export default function Sidebar({
      */
     <aside
       className={`
-        relative flex-shrink-0 overflow-hidden mt-[73px] h-[calc(100vh-73px)] z-40
+        relative flex-shrink-0 z-40
         transition-[width] duration-300 ease-in-out
         ${isOpen ? "w-[80vw] md:w-[360px]" : "w-0"}
       `}
       aria-hidden={!isOpen}
     >
-      {/* Inner panel — fixed visual width so content does not squish during animation */}
-      <div className="w-[80vw] md:w-[360px] h-full bg-[#1c1b1b]/95 border-r border-white/5 flex flex-col shadow-[10px_0_30px_rgba(0,0,0,0.5)]">
+      {/* Inner panel — fixed to viewport so it doesn't scroll away, slides in via transform */}
+      <div className={`
+        fixed top-[73px] left-0 h-[calc(100vh-73px)] w-[80vw] md:w-[360px] 
+        bg-black/20 backdrop-blur-2xl border-r border-white/5 flex flex-col shadow-[10px_0_30px_rgba(0,0,0,0.5)]
+        transition-transform duration-300 ease-in-out
+        ${isOpen ? "translate-x-0" : "-translate-x-full"}
+      `}>
         {/* Inner Scrollable Container */}
         <div className="flex-1 flex flex-col h-full overflow-y-auto py-10 px-6">
 

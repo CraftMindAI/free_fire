@@ -47,14 +47,33 @@ export default async function PlayerDashboardPage(props: {
     redirect(`/${encryptId(String(user.id))}/dashboard/home`);
   }
 
+  const numericId = parseInt(decodedId, 10);
+
   const clientUser = { ...user, id: userId };
 
   const activeRooms = await getPublishedRooms();
+
+  // Matches played
+  const matchesPlayedData = await prisma.booking.findMany({
+    where: { userId: numericId },
+    distinct: ['roomId'],
+    select: { roomId: true },
+  });
+  const totalMatchesPlayed = matchesPlayedData.length;
+
+  // Prize won
+  const prizeWonData = await prisma.payment.aggregate({
+    where: { userId: numericId, distributionStatus: "received" },
+    _sum: { prizeAmount: true },
+  });
+  const totalPrizeWon = prizeWonData._sum.prizeAmount || 0;
 
   return (
     <PlayerDashboardClient
       user={clientUser}
       initialRooms={activeRooms}
+      totalMatchesPlayed={totalMatchesPlayed}
+      totalPrizeWon={totalPrizeWon}
     />
   );
 }

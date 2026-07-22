@@ -24,7 +24,21 @@ export default function MatchDetailsClient({ user, room }: MatchDetailsClientPro
   const encryptedUserId = params.userId as string;
   const encryptedRoomId = params.roomId as string;
   
-  const filledPercentage = room.maxPlayers > 0 ? (room.playersCount / room.maxPlayers) * 100 : 0;
+  let playersPerTeam = 1;
+  let label = "Seats Filled";
+  if (room.maxPlayers === 24) {
+    playersPerTeam = 2;
+    label = "Duos Filled";
+  } else if (room.maxPlayers === 12) {
+    playersPerTeam = 4;
+    label = "Squads Filled";
+  } else if (room.maxPlayers === 48) {
+    playersPerTeam = 1;
+    label = "Solos Filled";
+  }
+
+  const displayCount = Math.floor(room.playersCount / playersPerTeam);
+  const filledPercentage = room.maxPlayers > 0 ? (displayCount / room.maxPlayers) * 100 : 0;
   const matchTag = room.maxPlayers === 48 ? "SOLO" : room.maxPlayers === 24 ? "DUO" : room.maxPlayers === 12 ? "SQUAD" : "CUSTOM";
 
   return (
@@ -144,14 +158,14 @@ export default function MatchDetailsClient({ user, room }: MatchDetailsClientPro
                   <div className="flex justify-between items-center mb-4">
                     <h3 className="font-sora text-lg font-bold text-white">Available Slots</h3>
                     <span className="font-jetbrains text-sm font-bold text-[#ffb4ab] bg-[#ffb4ab]/10 px-3 py-1 rounded-lg">
-                      {room.maxPlayers - room.playersCount} Left
+                      {room.maxPlayers - displayCount} Left
                     </span>
                   </div>
                   
                   <div className="mb-2">
                     <div className="flex justify-between text-xs font-jetbrains text-[#e8bcb7] mb-2 uppercase">
-                      <span>Seats Filled</span>
-                      <span>{room.playersCount} / {room.maxPlayers}</span>
+                      <span>{label}</span>
+                      <span>{displayCount} / {room.maxPlayers}</span>
                     </div>
                     <div className="h-3 w-full bg-black/50 border border-white/10 rounded-full overflow-hidden relative">
                       <div className="absolute top-0 left-0 bottom-0 bg-gradient-to-r from-[#ff544a] to-[#ffb4ab] transition-all duration-1000" style={{ width: `${filledPercentage}%`, boxShadow: "0 0 10px rgba(255,180,171,0.5)" }}></div>
