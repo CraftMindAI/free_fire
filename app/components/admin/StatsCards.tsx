@@ -15,84 +15,47 @@ export default function StatsCards({ stats }: StatsCardsProps) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
       {/* Active Rooms */}
-      <div className="bg-transparent border border-white/10 p-6 rounded-xl relative group transition-all hover:-translate-y-1">
-        <div className="flex justify-between items-start mb-4">
-          <div className="p-3 rounded-lg bg-[#ffb4ab]/10 border border-[#ffb4ab]/20">
-            <span className="material-symbols-outlined text-[#ffb4ab]">
-              meeting_room
-            </span>
-          </div>
-          <span className="text-xs font-jetbrains text-on-surface-variant animate-pulse flex items-center gap-1">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#ff2e2e]"></span>
-            LIVE
-          </span>
+      <div className="p-8 rounded-xl relative overflow-hidden group hover:border-[#ffb4ab]/50 hover:-translate-y-1 transition-all duration-300 bg-white/[0.03] backdrop-blur-md border border-white/10">
+        <div className="absolute -right-4 -bottom-4 opacity-10 group-hover:opacity-20 transition-opacity">
+          <span className="material-symbols-outlined text-[120px]">meeting_room</span>
         </div>
-        <p className="font-jetbrains text-on-surface-variant text-[10px] tracking-wider uppercase mb-1">
-          Active Rooms
-        </p>
-        <h3 className="font-sora text-headline-lg text-on-surface">
-          {stats.activeRooms}
-        </h3>
+        <p className="font-jetbrains text-[10px] text-[#e8bcb7] mb-2 tracking-wider">ACTIVE ROOMS</p>
+        <div className="flex items-center gap-4">
+          <span className="font-sora text-4xl font-bold text-[#ffb4ab] glow-crimson counter">{stats.activeRooms}</span>
+        </div>
       </div>
 
-      {/* Total Players */}
-      <div className="bg-transparent border border-white/10 p-6 rounded-xl relative group transition-all hover:-translate-y-1">
-        <div className="flex justify-between items-start mb-4">
-          <div className="p-3 rounded-lg bg-[#ffb4ab]/10 border border-[#ffb4ab]/20">
-            <span className="material-symbols-outlined text-[#ffb4ab]">
-              groups
-            </span>
-          </div>
-          <span className="text-xs font-jetbrains text-on-surface-variant">
-            ROLE: PLAYER
-          </span>
+      {/* Total Player Count */}
+      <div className="p-8 rounded-xl relative overflow-hidden group hover:border-[#ffb4ab]/50 hover:-translate-y-1 transition-all duration-300 bg-white/[0.03] backdrop-blur-md border border-white/10">
+        <div className="absolute -right-4 -bottom-4 opacity-10 group-hover:opacity-20 transition-opacity">
+          <span className="material-symbols-outlined text-[120px]">groups</span>
         </div>
-        <p className="font-jetbrains text-on-surface-variant text-[10px] tracking-wider uppercase mb-1">
-          Total Player Count
-        </p>
-        <h3 className="font-sora text-headline-lg text-on-surface">
-          {stats.playerCount}
-        </h3>
+        <p className="font-jetbrains text-[10px] text-[#e8bcb7] mb-2 tracking-wider">TOTAL PLAYER COUNT</p>
+        <div className="flex items-center gap-4">
+          <span className="font-sora text-4xl font-bold text-[#ffb4ab] counter">{stats.playerCount}</span>
+        </div>
       </div>
 
       {/* Total Received Amount */}
-      <div className="bg-transparent border border-white/10 p-6 rounded-xl relative group transition-all hover:-translate-y-1">
-        <div className="flex justify-between items-start mb-4">
-          <div className="p-3 rounded-lg bg-[#e9c400]/10 border border-[#e9c400]/20">
-            <span className="material-symbols-outlined text-[#e9c400]">
-              payments
-            </span>
-          </div>
-          <span className="text-xs font-jetbrains text-[#e9c400]/70 uppercase">
-            INR
-          </span>
+      <div className="p-8 rounded-xl relative overflow-hidden group hover:border-[#e9c400]/50 hover:-translate-y-1 transition-all duration-300 bg-white/[0.03] backdrop-blur-md border border-white/10">
+        <div className="absolute -right-4 -bottom-4 opacity-10 group-hover:opacity-20 transition-opacity">
+          <span className="material-symbols-outlined text-[120px]">payments</span>
         </div>
-        <p className="font-jetbrains text-on-surface-variant text-[10px] tracking-wider uppercase mb-1">
-          Total Received Amount
-        </p>
-        <h3 className="font-sora text-headline-lg text-[#e9c400]">
-          {stats.totalReceived}
-        </h3>
+        <p className="font-jetbrains text-[10px] text-[#e8bcb7] mb-2 tracking-wider">TOTAL RECEIVED AMOUNT</p>
+        <div className="flex items-center gap-4">
+          <span className="font-sora text-4xl font-bold text-[#e9c400] counter">{stats.totalReceived}</span>
+        </div>
       </div>
 
       {/* Total Price Paid */}
-      <div className="bg-transparent border border-white/10 p-6 rounded-xl relative group transition-all hover:-translate-y-1">
-        <div className="flex justify-between items-start mb-4">
-          <div className="p-3 rounded-lg bg-[#e9c400]/10 border border-[#e9c400]/20">
-            <span className="material-symbols-outlined text-[#e9c400]">
-              trophy
-            </span>
-          </div>
-          <span className="text-xs font-jetbrains text-[#e9c400]/70">
-            PAYOUT
-          </span>
+      <div className="p-8 rounded-xl relative overflow-hidden group hover:border-[#e9c400]/50 hover:-translate-y-1 transition-all duration-300 bg-white/[0.03] backdrop-blur-md border border-white/10">
+        <div className="absolute -right-4 -bottom-4 opacity-10 group-hover:opacity-20 transition-opacity">
+          <span className="material-symbols-outlined text-[120px]">trophy</span>
         </div>
-        <p className="font-jetbrains text-on-surface-variant text-[10px] tracking-wider uppercase mb-1">
-          Total Price Paid
-        </p>
-        <h3 className="font-sora text-headline-lg text-on-surface">
-          {stats.totalPrizePaid}
-        </h3>
+        <p className="font-jetbrains text-[10px] text-[#e8bcb7] mb-2 tracking-wider">TOTAL PRICE PAID</p>
+        <div className="flex items-center gap-4">
+          <span className="font-sora text-4xl font-bold text-[#e9c400] counter">{stats.totalPrizePaid}</span>
+        </div>
       </div>
     </div>
   );

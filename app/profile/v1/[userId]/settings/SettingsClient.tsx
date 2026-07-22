@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Header from "@/app/components/common/Header";
 import Sidebar from "@/app/components/common/Sidebar";
 import RegisterForm from "@/app/components/auth/RegisterForm";
+import ParticleCanvas from "@/app/components/ParticleCanvas";
 
 import { PROFILE_IMAGES as AVAILABLE_AVATARS } from "@/app/data/profile";
 interface User {
@@ -365,7 +366,7 @@ export default function SettingsClient({
   };
 
   return (
-    <div className="flex bg-[#090909] text-[#e5e2e1] min-h-screen font-sora overflow-x-hidden">
+    <div className="flex bg-transparent text-[#e5e2e1] min-h-screen font-sora overflow-x-hidden relative">
       {/* Sidebar */}
       <Sidebar
         role={user.role}
@@ -1129,6 +1130,16 @@ export default function SettingsClient({
           </div>
         </div>
       </div>
+
+      <div className="fixed inset-0 pointer-events-none z-[-1] overflow-hidden bg-[#131313]">
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#131313]/80 to-[#131313]"></div>
+        <img
+          className="w-full h-full object-cover"
+          alt="Cinematic Background"
+          src="https://lh3.googleusercontent.com/aida-public/AB6AXuCuMWIu9K9ojjXGGV5slkQjRyrZeZFeO_j89XI8miWv0JRrI7n4TVvrh68knezlnDp_i-st0zcrVduGJoBo1dikufmZ56jtWqwReXUplnd_yzrlSKeTzaTUa85ouME3ZDn0Qw20JaWBngiymQJzghy4pypFj3c1WYgEvJFw24A78YN1agjBtc_NeOpkGOhfCLG8dakRZ_UYHEMqAm3vuDWPT4JwYvJzbePYotshdpc5yU7_9bmVLuWukU_HJn4WUg2dk2OwxI5ZLp0"
+        />
+      </div>
+      <ParticleCanvas count={90} />
     </div>
   );
 }

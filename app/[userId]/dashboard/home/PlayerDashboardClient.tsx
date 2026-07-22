@@ -5,6 +5,7 @@ import Link from "next/link";
 import Header from "@/app/components/common/Header";
 import Sidebar from "@/app/components/common/Sidebar";
 import { RoomData } from "@/app/components/admin/ActiveRooms";
+import ParticleCanvas from "@/app/components/ParticleCanvas";
 
 interface PlayerDashboardClientProps {
   user: {
@@ -291,6 +292,7 @@ export default function PlayerDashboardClient({
           src="https://lh3.googleusercontent.com/aida-public/AB6AXuCuMWIu9K9ojjXGGV5slkQjRyrZeZFeO_j89XI8miWv0JRrI7n4TVvrh68knezlnDp_i-st0zcrVduGJoBo1dikufmZ56jtWqwReXUplnd_yzrlSKeTzaTUa85ouME3ZDn0Qw20JaWBngiymQJzghy4pypFj3c1WYgEvJFw24A78YN1agjBtc_NeOpkGOhfCLG8dakRZ_UYHEMqAm3vuDWPT4JwYvJzbePYotshdpc5yU7_9bmVLuWukU_HJn4WUg2dk2OwxI5ZLp0"
         />
       </div>
+      <ParticleCanvas count={90} />
     </div>
   );
 }

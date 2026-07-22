@@ -14,8 +14,8 @@ export default function RoomControl({ rooms, onPublish, onDelete }: RoomControlP
   const [feedbackRoomIds, setFeedbackRoomIds] = useState<string[]>([]);
   const [processingIds, setProcessingIds] = useState<string[]>([]);
 
-  // Get draft rooms or recently published rooms that are displayed in control panel
-  const controlRooms = rooms.filter((r) => !r.isPublished || r.status === "LIVE");
+  // Get draft rooms only
+  const controlRooms = rooms.filter((r) => !r.isPublished);
 
   const handlePublishClick = async (roomId: string) => {
     if (processingIds.includes(roomId)) return;
@@ -47,24 +47,20 @@ export default function RoomControl({ rooms, onPublish, onDelete }: RoomControlP
 
   return (
     <div className="space-y-6">
-      <h2 className="font-orbitron text-headline-md text-on-surface orbitron-header">
-        ROOM CONTROL
+      <h2 className="font-sora text-xl font-bold text-[#e5e2e1] flex items-center gap-3">
+        <span className="w-2 h-8 bg-[#ffb4ab] rounded-full"></span>
+        Room Control
       </h2>
       <div className="space-y-4">
         {controlRooms.map((room) => {
-          const isLive = room.isPublished || room.status === "LIVE";
+          const isLive = room.isPublished || room.status === "LIVE" ;
           const isFeedbackActive = feedbackRoomIds.includes(room.roomId);
           const isProcessing = processingIds.includes(room.roomId);
 
           return (
             <div
               key={room.roomId}
-              className={`glass-card p-5 rounded-xl border-l-4 flex flex-col gap-4 relative overflow-hidden group transition-all duration-300 ${
-                isLive
-                  ? "published-state border-l-green-400 opacity-80 pointer-events-none"
-                  : "border-l-[#ffb4ab]"
-              }`}
-              style={isLive ? { borderLeftColor: "#4ade80" } : undefined}
+              className="bg-white/[0.03] backdrop-blur-md border border-white/10 p-5 rounded-xl flex flex-col gap-4 relative overflow-hidden group hover:border-[#ffb4ab]/50 transition-all duration-300"
             >
               {/* Floating icon watermark */}
               <div className="absolute -right-4 -top-4 opacity-10 group-hover:opacity-20 transition-opacity">
@@ -138,7 +134,7 @@ export default function RoomControl({ rooms, onPublish, onDelete }: RoomControlP
           );
         })}
         {controlRooms.length === 0 && (
-          <div className="glass-card p-6 rounded-xl text-center text-on-surface-variant font-sora text-sm">
+          <div className="bg-white/[0.03] backdrop-blur-md border border-white/10 p-6 rounded-xl text-center text-on-surface-variant font-sora text-sm">
             No draft matches found.
           </div>
         )}

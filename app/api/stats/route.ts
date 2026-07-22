@@ -18,9 +18,11 @@ export async function GET() {
       where: { status: "active" },
     });
 
-    // Count rooms with draft status
+    // Count rooms with draft-like statuses (cover different casings/legacy values)
     const draftRoomsCount = await prisma.room.count({
-      where: { status: "waiting" },
+      where: {
+       status: "Draft" 
+      },
     });
 
     // Count rooms with closed or completed status
@@ -60,8 +62,8 @@ export async function GET() {
     return NextResponse.json({
       success: true,
       stats: {
-        activeRooms: activeRoomsCount || 1,
-        draftRooms: draftRoomsCount || 2,
+        activeRooms: activeRoomsCount,
+        draftRooms: draftRoomsCount,
         closedRooms: closedRoomsCount,
         playerCount: playerUsersCount,
         totalReceived: formattedReceived,

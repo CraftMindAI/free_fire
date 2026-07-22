@@ -6,6 +6,7 @@ import Header from "@/app/components/common/Header";
 import Sidebar from "@/app/components/common/Sidebar";
 import { RoomData } from "@/app/components/admin/ActiveRooms";
 import { ToastProvider, useToast } from "@/app/components/common/Toast";
+import ParticleCanvas from "@/app/components/ParticleCanvas";
 
 const MAP_OPTIONS = [
   { value: "Bermuda", label: "BERMUDA", src: "/assets/map/Bermuda.png" },
@@ -410,6 +411,18 @@ function MatchDetailsClientInner({
 
     console.log("Client payload matchType:", payload.matchType);
 
+    // Enforce: when initializing (creating) a match, the start datetime must be in the future
+    if (!editingRoom) {
+      const scheduled = new Date(`${startDate}T${startTime}:00`);
+      if (isNaN(scheduled.getTime()) || scheduled.getTime() <= Date.now()) {
+        const msg = "Start time must be in the future to deploy a match.";
+        setError(msg);
+        toast.error("Invalid Start Time", msg);
+        setLoading(false);
+        return;
+      }
+    }
+
     let statusCode = 200;
     try {
       const res = await fetch("/api/rooms", {
@@ -489,7 +502,7 @@ function MatchDetailsClientInner({
   };
 
   return (
-    <div className="flex bg-[#131313] text-on-surface min-h-screen font-sora overflow-hidden">
+    <div className="flex bg-transparent text-on-surface min-h-screen font-sora overflow-hidden relative">
       {/* Sidebar */}
       <Sidebar
         role={user.role}
@@ -662,7 +675,7 @@ function MatchDetailsClientInner({
                           </td>
                           <td className="p-6">
                             <div className="flex items-center justify-center gap-2">
-                              {isClosed ? (
+                              {(isClosed || isPublished) ? (
                                 <button
                                   onClick={() => window.open(`/api/rooms/${room.roomId}/export`, '_blank')}
                                   className="p-2 rounded-lg transition-all bg-[#ffb4ab]/20 text-[#ffb4ab] hover:bg-[#ffb4ab] hover:text-[#690005] cursor-pointer font-bold flex items-center gap-1 text-[10px]"
@@ -873,6 +886,16 @@ function MatchDetailsClientInner({
           </div>
         </div>
       )}
+
+      <div className="fixed inset-0 pointer-events-none z-[-1] overflow-hidden bg-[#131313]">
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#131313]/80 to-[#131313]"></div>
+        <img
+          className="w-full h-full object-cover"
+          alt="Cinematic Background"
+          src="https://lh3.googleusercontent.com/aida-public/AB6AXuCuMWIu9K9ojjXGGV5slkQjRyrZeZFeO_j89XI8miWv0JRrI7n4TVvrh68knezlnDp_i-st0zcrVduGJoBo1dikufmZ56jtWqwReXUplnd_yzrlSKeTzaTUa85ouME3ZDn0Qw20JaWBngiymQJzghy4pypFj3c1WYgEvJFw24A78YN1agjBtc_NeOpkGOhfCLG8dakRZ_UYHEMqAm3vuDWPT4JwYvJzbePYotshdpc5yU7_9bmVLuWukU_HJn4WUg2dk2OwxI5ZLp0"
+        />
+      </div>
+      <ParticleCanvas count={90} />
     </div>
   );
 }
