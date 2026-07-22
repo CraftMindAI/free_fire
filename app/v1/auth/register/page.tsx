@@ -107,7 +107,7 @@ export default function RegisterPage() {
       {/* ── RIGHT: form panel ────────────────────────────── */}
       <div className="flex-1 flex flex-col items-center justify-center px-6 py-10 overflow-y-auto relative">
         <ParticleCanvas count={60} />
-        <div className="w-full max-w-[500px]">
+        <div className="w-full max-w-[500px] mt-16">
           {/* Card */}
           <div
             className="bg-white/[0.03] backdrop-blur-[20px] border border-crimson/30 rounded-2xl p-8 xl:p-10

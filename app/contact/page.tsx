@@ -42,7 +42,7 @@ export default function ContactPage() {
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#131313]/80 to-[#131313]" />
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          className="w-full h-full object-cover"
+          className="w-full h-full object-cover object-[center_15%]"
           alt=""
           aria-hidden="true"
           src="/login.png"

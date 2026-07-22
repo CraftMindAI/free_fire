@@ -95,7 +95,7 @@ export default function LoginPage() {
       <div className="flex-1 flex flex-col items-center justify-center px-6 py-12 relative">
         <ParticleCanvas count={60} />
         {/* Centered card */}
-        <div className="w-full max-w-[420px]">
+        <div className="w-full max-w-[420px] mt-16">
           {/* Card */}
           <div
             className="bg-white/[0.03] backdrop-blur-[20px] border border-crimson/30 rounded-2xl p-8 xl:p-10
