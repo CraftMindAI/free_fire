@@ -1,5 +1,7 @@
 "use client";
 
+import { createPortal } from "react-dom";
+
 interface TermsModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -8,7 +10,7 @@ interface TermsModalProps {
 export default function TermsModal({ isOpen, onClose }: TermsModalProps) {
   if (!isOpen) return null;
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
       <div className="relative w-full max-w-2xl bg-[#131313] border border-white/10 rounded-2xl p-6 md:p-8 max-h-[85vh] overflow-y-auto shadow-2xl">
         <button 
@@ -60,6 +62,7 @@ export default function TermsModal({ isOpen, onClose }: TermsModalProps) {
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
