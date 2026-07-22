@@ -3,12 +3,31 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import Header from "@/app/components/common/Header";
-import { toast } from 'react-toastify';
 import Sidebar from "@/app/components/common/Sidebar";
 import ShaderBackground from "@/app/components/ShaderBackground";
 import TermsModal from "@/app/components/common/TermsModal";
 import { RoomData } from "@/app/components/admin/ActiveRooms";
 import { useRouter, useParams } from "next/navigation";
+import { ToastContainer, toast, Slide } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
+const CustomCloseButton = ({ closeToast }: any) => (
+  <button 
+    onClick={closeToast} 
+    className="absolute top-[18px] right-[18px] text-white opacity-60 hover:opacity-100 transition-opacity"
+  >
+    <span className="text-2xl leading-none font-bold">&times;</span>
+  </button>
+);
+
+const ValidationToast = ({ message }: { message: string }) => (
+  <div className="flex items-start gap-4 pr-6">
+    <span className="material-symbols-outlined text-[#ff2e2e] text-3xl drop-shadow-[0_0_8px_rgba(255,46,46,0.8)]">warning</span>
+    <div className="flex-1 mt-1">
+      <p className="font-bold text-white text-[15px] leading-snug">{message}</p>
+    </div>
+  </div>
+);
 
 interface BookNowClientProps {
   user: {
@@ -132,54 +151,16 @@ export default function BookNowClient({ user, room, bookedSeats: initialBookedSe
 
   const handleReserveClick = () => {
     if (selectedSeats.length === 0) {
-      toast.warning("Please select at least one seat before proceeding to payment.");
+      toast(<ValidationToast message="Please select at least one seat before proceeding to payment." />, { icon: false });
       return;
     }
     setIsModalOpen(true);
   };
 
-  const handleConfirmBooking = async (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
-    if (!agreeRules) {
-      toast.warning("Please agree to the tournament rules.");
-      return;
-    }
-    
-    const p1 = players[0];
-    const missingP1Fields = [];
-    if (!p1.playerId) missingP1Fields.push("Player ID");
-    if (!p1.whatsapp) missingP1Fields.push("WhatsApp Number");
-    if (!p1.phone) missingP1Fields.push("Phone Number");
-    if (!p1.upiId) missingP1Fields.push("UPI ID");
-    if (!p1.isGpayNumber && !p1.gpayNumber) missingP1Fields.push("GPay Number");
-
-    if (missingP1Fields.length > 0) {
-      toast.error(`Please fill all required fields for Player 1 before confirming: ${missingP1Fields.join(", ")}.`);
-      setActiveTab(0);
-      return;
-    }
-
-    const neededPlayers = isSquad ? 4 : (isDuo ? 2 : 1);
-    
-    const missingPlayers: number[] = [];
-    for (let i = 1; i < neededPlayers; i++) {
-      if (selectedSeats.length > i) {
-        const p = players[i];
-        const isFilled = Boolean(p.playerId && p.whatsapp && p.phone && p.upiId);
-        if (!isFilled) {
-          missingPlayers.push(i + 1);
-        }
-      }
-    }
-
-    if (missingPlayers.length > 0) {
-      const missingList = missingPlayers.map(n => `Player ${n}`).join(", ");
-      const confirm = window.confirm(`You didn't add details for ${missingList}. Are you OK with that?`);
-      if (!confirm) return;
-    }
-
+  const processBooking = async () => {
     setIsProcessing(true);
     
+    const p1 = players[0];
     const bookingsPayload = [];
     for (let i = 0; i < selectedSeats.length; i++) {
       const p = players[i];
@@ -236,15 +217,125 @@ export default function BookNowClient({ user, room, bookedSeats: initialBookedSe
       ]);
       setActiveTab(0);
 
-      toast.success("Slot(s) successfully booked!");
+      toast(
+        <div className="flex items-start gap-4 pr-6">
+          <span className="material-symbols-outlined text-[#4ade80] text-3xl drop-shadow-[0_0_8px_rgba(74,222,128,0.8)]">check_circle</span>
+          <div className="flex-1 mt-1">
+            <p className="font-bold text-white text-[15px] leading-snug">Slot(s) successfully booked!</p>
+          </div>
+        </div>,
+        { icon: false }
+      );
     } catch (err: any) {
       setIsProcessing(false);
-      toast.error(err.message);
+      toast(<ValidationToast message={err.message} />, { icon: false });
     }
+  };
+
+  const ConfirmToast = ({ closeToast, missingList, onConfirm }: any) => (
+    <div className="flex flex-col gap-5 pr-4">
+      <div className="flex items-start gap-4">
+        <span className="material-symbols-outlined text-[#ff2e2e] text-3xl drop-shadow-[0_0_8px_rgba(255,46,46,0.8)]">warning</span>
+        <div className="flex-1 mt-1">
+          <p className="font-bold text-white text-[15px] leading-snug">
+            You didn't add details for {missingList}. Are you OK with that?
+          </p>
+        </div>
+      </div>
+      <div className="flex gap-3 ml-[3.25rem]">
+        <button 
+          onClick={() => {
+            if (closeToast) closeToast();
+            onConfirm();
+          }}
+          className="bg-[#ff2e2e] text-white px-5 py-2 rounded-lg font-bold text-sm shadow-[0_0_10px_rgba(255,46,46,0.5)] hover:bg-red-600 hover:shadow-[0_0_15px_rgba(255,46,46,0.7)] transition-all"
+        >
+          YES, PROCEED
+        </button>
+        <button 
+          onClick={closeToast}
+          className="bg-[#1a1a1a] text-white px-5 py-2 rounded-lg font-bold text-sm border border-gray-600 hover:bg-[#2a2a2a] transition-all"
+        >
+          CANCEL
+        </button>
+      </div>
+    </div>
+  );
+
+  const handleConfirmBooking = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!agreeRules) {
+      toast(<ValidationToast message="Please agree to the tournament rules." />, { icon: false });
+      return;
+    }
+    
+    const p1 = players[0];
+    const missingP1Fields = [];
+    if (!p1.playerId) missingP1Fields.push("Player ID");
+    if (!p1.whatsapp) missingP1Fields.push("WhatsApp Number");
+    if (!p1.phone) missingP1Fields.push("Phone Number");
+    if (!p1.upiId) missingP1Fields.push("UPI ID");
+    if (!p1.isGpayNumber && !p1.gpayNumber) missingP1Fields.push("GPay Number");
+
+    if (missingP1Fields.length > 0) {
+      toast(<ValidationToast message={`Please fill all required fields for Player 1 before confirming: ${missingP1Fields.join(", ")}.`} />, { icon: false });
+      setActiveTab(0);
+      return;
+    }
+
+    const neededPlayers = isSquad ? 4 : (isDuo ? 2 : 1);
+    
+    const missingPlayers: number[] = [];
+    for (let i = 1; i < neededPlayers; i++) {
+      if (selectedSeats.length > i) {
+        const p = players[i];
+        const isFilled = Boolean(p.playerId && p.whatsapp && p.phone && p.upiId);
+        if (!isFilled) {
+          missingPlayers.push(i + 1);
+        }
+      }
+    }
+
+    if (missingPlayers.length > 0) {
+      const missingList = missingPlayers.map(n => `Player ${n}`).join(", ");
+      toast(
+        <ConfirmToast 
+          missingList={missingList} 
+          onConfirm={processBooking} 
+        />, 
+        { autoClose: false, closeOnClick: false, icon: false }
+      );
+      return;
+    }
+
+    processBooking();
   };
 
   return (
     <div className="flex bg-[#000] text-[#e5e2e1] min-h-screen font-sora overflow-hidden relative">
+      <ToastContainer
+        position="top-right"
+        autoClose={5000}
+        hideProgressBar={true}
+        newestOnTop={false}
+        closeOnClick={false}
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        transition={Slide}
+        closeButton={CustomCloseButton}
+        toastStyle={{
+          backgroundColor: '#121212',
+          border: '1px solid rgba(255, 46, 46, 0.6)',
+          boxShadow: '0 0 20px rgba(255, 46, 46, 0.3)',
+          borderRadius: '20px',
+          width: '420px',
+          padding: '22px',
+          color: '#ffffff',
+          fontFamily: '"Sora", sans-serif'
+        }}
+      />
       {/* Background Shader Animation */}
       <div className="fixed inset-0 pointer-events-none z-0 bg-[#000]">
         <ShaderBackground />
