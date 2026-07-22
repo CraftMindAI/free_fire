@@ -12,16 +12,6 @@ function inferMatchType(maxPlayers: number): string {
 }
 
 async function getRooms() {
-  const now = new Date();
-  // Auto-close rooms whose endTime is in the past
-  await prisma.room.updateMany({
-    where: {
-      endTime: { lt: now },
-      status: { not: { in: ["closed", "completed"] } },
-    },
-    data: { status: "closed" },
-  });
-
   const rooms = await prisma.room.findMany();
 
   return rooms.map((r) => ({
