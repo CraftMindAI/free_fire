@@ -12,6 +12,15 @@ function inferMatchType(maxPlayers: number): string {
 }
 
 async function getRooms() {
+  const now = new Date();
+  await prisma.room.updateMany({
+    where: {
+      status: "active",
+      endTime: { lt: now },
+    },
+    data: { status: "closed" },
+  });
+
   const rooms = await prisma.room.findMany();
 
   return rooms.map((r) => ({

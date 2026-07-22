@@ -594,11 +594,13 @@ function MatchDetailsClientInner({
                       <th className="p-6 text-center">SEATS</th>
                       <th className="p-6">SCHEDULE</th>
                       <th className="p-6">STATUS</th>
+                      <th className="p-6 text-center">ACTIONS</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-white/5 font-sora">
                     {rooms.map((room) => {
                       const normalizedStatus = (room.status || "").toLowerCase();
+                      const isPublished = room.isPublished || normalizedStatus === "active" || normalizedStatus === "published" || normalizedStatus === "live";
                       const isClosed = normalizedStatus === "closed" || normalizedStatus === "completed" || normalizedStatus === "finished";
                       return (
                         <tr
@@ -662,6 +664,68 @@ function MatchDetailsClientInner({
                                 Draft
                               </span>
                             )}
+                          </td>
+                          <td className="p-6">
+                            <div className="flex items-center justify-center gap-2">
+                              {/* UPDATE (Edit) and DELETE (Draft rooms only) */}
+                              {!isPublished && !isClosed && (
+                                <>
+                                  <button
+                                    onClick={() => handleOpenEditModal(room)}
+                                    className="p-2 rounded-lg transition-all bg-white/5 text-on-surface-variant hover:text-[#ffb4ab] hover:bg-white/10 cursor-pointer"
+                                    title="Update Match"
+                                  >
+                                    <span className="material-symbols-outlined text-[18px]">edit</span>
+                                  </button>
+                                  <button
+                                    onClick={() => handleDeleteMatch(room.roomId)}
+                                    className="p-2 rounded-lg transition-all bg-white/5 text-on-surface-variant hover:text-[#ff2e2e] hover:bg-[#ff2e2e]/10 cursor-pointer"
+                                    title="Delete Match"
+                                  >
+                                    <span className="material-symbols-outlined text-[18px]">delete</span>
+                                  </button>
+                                </>
+                              )}
+
+                              {/* VIEW (Only if Published or Closed) */}
+                              {(isPublished || isClosed) && (
+                                <a
+                                  href={`/${user.id}/matches/${room.encryptedRoomId}/view-details`}
+                                  className="p-2 rounded-lg transition-all bg-white/5 text-on-surface-variant hover:text-[#ffb4ab] hover:bg-white/10 cursor-pointer"
+                                  title="View match details"
+                                >
+                                  <span className="material-symbols-outlined text-[18px]">visibility</span>
+                                </a>
+                              )}
+
+                              {/* EXPORT (Only if Published or Closed) */}
+                              {(isPublished || isClosed) && (
+                                <button
+                                  onClick={() => {
+                                    const exportUrl = `/api/rooms/${encodeURIComponent(room.roomId)}/export`;
+                                    const popup = window.open(exportUrl, '_blank', 'noopener,noreferrer');
+                                    if (!popup) {
+                                      window.location.href = exportUrl;
+                                    }
+                                  }}
+                                  className="p-2 rounded-lg transition-all bg-[#ffb4ab]/20 text-[#ffb4ab] hover:bg-[#ffb4ab] hover:text-[#690005] cursor-pointer font-bold flex items-center gap-1 text-[10px]"
+                                  title="Export room bookings to CSV"
+                                >
+                                  <span className="material-symbols-outlined text-[18px]">download</span>
+                                </button>
+                              )}
+
+                              {/* PUBLISH (Draft rooms only) */}
+                              {!isPublished && !isClosed && (
+                                <button
+                                  onClick={() => handlePublishMatch(room.roomId)}
+                                  className="p-2 rounded-lg transition-all bg-[#ffb4ab]/20 text-[#ffb4ab] hover:bg-[#ffb4ab] hover:text-[#690005] animate-pulse-live cursor-pointer"
+                                  title="Publish Match"
+                                >
+                                  <span className="material-symbols-outlined text-[18px]">rocket_launch</span>
+                                </button>
+                              )}
+                            </div>
                           </td>
                         </tr>
                       );
