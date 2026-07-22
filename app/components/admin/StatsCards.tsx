@@ -15,7 +15,7 @@ export default function StatsCards({ stats }: StatsCardsProps) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
       {/* Active Rooms */}
-      <div className="glass-card neon-red-glow p-6 rounded-xl relative group transition-all hover:-translate-y-1">
+      <div className="bg-transparent border border-white/10 p-6 rounded-xl relative group transition-all hover:-translate-y-1">
         <div className="flex justify-between items-start mb-4">
           <div className="p-3 rounded-lg bg-[#ffb4ab]/10 border border-[#ffb4ab]/20">
             <span className="material-symbols-outlined text-[#ffb4ab]">
@@ -36,7 +36,7 @@ export default function StatsCards({ stats }: StatsCardsProps) {
       </div>
 
       {/* Total Players */}
-      <div className="glass-card neon-red-glow p-6 rounded-xl relative group transition-all hover:-translate-y-1">
+      <div className="bg-transparent border border-white/10 p-6 rounded-xl relative group transition-all hover:-translate-y-1">
         <div className="flex justify-between items-start mb-4">
           <div className="p-3 rounded-lg bg-[#ffb4ab]/10 border border-[#ffb4ab]/20">
             <span className="material-symbols-outlined text-[#ffb4ab]">
@@ -56,7 +56,7 @@ export default function StatsCards({ stats }: StatsCardsProps) {
       </div>
 
       {/* Total Received Amount */}
-      <div className="glass-card neon-gold-glow p-6 rounded-xl relative group transition-all hover:-translate-y-1">
+      <div className="bg-transparent border border-white/10 p-6 rounded-xl relative group transition-all hover:-translate-y-1">
         <div className="flex justify-between items-start mb-4">
           <div className="p-3 rounded-lg bg-[#e9c400]/10 border border-[#e9c400]/20">
             <span className="material-symbols-outlined text-[#e9c400]">
@@ -76,7 +76,7 @@ export default function StatsCards({ stats }: StatsCardsProps) {
       </div>
 
       {/* Total Price Paid */}
-      <div className="glass-card neon-gold-glow p-6 rounded-xl relative group transition-all hover:-translate-y-1">
+      <div className="bg-transparent border border-white/10 p-6 rounded-xl relative group transition-all hover:-translate-y-1">
         <div className="flex justify-between items-start mb-4">
           <div className="p-3 rounded-lg bg-[#e9c400]/10 border border-[#e9c400]/20">
             <span className="material-symbols-outlined text-[#e9c400]">

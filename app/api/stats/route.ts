@@ -33,18 +33,24 @@ export async function GET() {
       where: { role: "player" },
     });
 
-    // Mock constants for premium financials
-    const rawReceivedAmount = 482500; // 482.5K
-    const rawPrizePaid = 430100; // 430.1K
+    // Aggregate payments from the payments table
+    const paymentSums = await prisma.payment.aggregate({
+      _sum: {
+        amount: true,
+        prizeAmount: true,
+      },
+    });
 
-    // Format Received Amount in IND FORMAT (e.g. ₹4,82,500)
+    const rawReceivedAmount = paymentSums._sum.amount || 0;
+    const rawPrizePaid = paymentSums._sum.prizeAmount || 0;
+
+    // Format amounts in Indian currency format (e.g. ₹4,82,500)
     const formattedReceived = new Intl.NumberFormat("en-IN", {
       style: "currency",
       currency: "INR",
       maximumFractionDigits: 0,
     }).format(rawReceivedAmount);
 
-    // Format Prize Paid
     const formattedPrize = new Intl.NumberFormat("en-IN", {
       style: "currency",
       currency: "INR",

@@ -148,13 +148,12 @@ export default function DashboardClient({
         </main>
       </div>
 
-      <div className="fixed inset-0 pointer-events-none z-[-1] opacity-[0.02] mix-blend-screen overflow-hidden">
-        <div
-          className="w-full h-full bg-cover bg-center"
-          style={{
-            backgroundImage: `url('https://lh3.googleusercontent.com/aida-public/AB6AXuD1kAd1DAydejLi9dWJ4pVlEa1iib-4lGbGw0xTOCFWmWGisk3zfXVWxCBeyoiNP7dFCRMsZwX2m8jupngdTBZk1Qa_lwTW4KdWHu3U-OQ4PrAly7y88CzcjU3Bq5uAq-tbJ6NJDHR5yLUIwLUczg1u9IRRL4NyeyeHvg8h_f1OpieE-KyIr0wC2Shjl4lQhX0iCDrCwpL_jEHj8LL_RTwDeAcS8vQ4_NCJxVLTJPSMP8y-pw-aHRqpiodolCzP0ZCI6_kyp_filjI')`,
-          }}
-        ></div>
+      <div className="fixed inset-0 pointer-events-none z-[-1] opacity-[0.08] mix-blend-screen overflow-hidden">
+        <img
+          className="w-full h-full object-cover"
+          alt="Cinematic Background"
+          src="https://lh3.googleusercontent.com/aida-public/AB6AXuCuMWIu9K9ojjXGGV5slkQjRyrZeZFeO_j89XI8miWv0JRrI7n4TVvrh68knezlnDp_i-st0zcrVduGJoBo1dikufmZ56jtWqwReXUplnd_yzrlSKeTzaTUa85ouME3ZDn0Qw20JaWBngiymQJzghy4pypFj3c1WYgEvJFw24A78YN1agjBtc_NeOpkGOhfCLG8dakRZ_UYHEMqAm3vuDWPT4JwYvJzbePYotshdpc5yU7_9bmVLuWukU_HJn4WUg2dk2OwxI5ZLp0"
+        />
       </div>
     </div>
   );
