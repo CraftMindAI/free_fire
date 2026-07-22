@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { toast } from 'react-toastify';
 
 interface ForgotAccessModalProps {
   onClose: () => void;
@@ -9,7 +10,6 @@ interface ForgotAccessModalProps {
 export default function ForgotAccessModal({ onClose }: ForgotAccessModalProps) {
   const [step, setStep] = useState<1 | 2>(1);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
 
   // Step 1 data
   const [username, setUsername] = useState("");
@@ -23,7 +23,6 @@ export default function ForgotAccessModal({ onClose }: ForgotAccessModalProps) {
 
   async function handleVerify(e: React.FormEvent) {
     e.preventDefault();
-    setError("");
     setLoading(true);
 
     try {
@@ -35,13 +34,13 @@ export default function ForgotAccessModal({ onClose }: ForgotAccessModalProps) {
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error || "Verification failed.");
+        toast.error(data.error || "Verification failed.");
       } else {
         setResetToken(data.token);
         setStep(2);
       }
     } catch (err) {
-      setError("Network error. Please try again.");
+      toast.error("Network error. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -49,15 +48,14 @@ export default function ForgotAccessModal({ onClose }: ForgotAccessModalProps) {
 
   async function handleReset(e: React.FormEvent) {
     e.preventDefault();
-    setError("");
 
     if (newPassword !== confirmPassword) {
-      setError("Passwords do not match.");
+      toast.error("Passwords do not match.");
       return;
     }
 
     if (newPassword.length < 6) {
-      setError("Password must be at least 6 characters.");
+      toast.error("Password must be at least 6 characters.");
       return;
     }
 
@@ -72,13 +70,13 @@ export default function ForgotAccessModal({ onClose }: ForgotAccessModalProps) {
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error || "Failed to update password.");
+        toast.error(data.error || "Failed to update password.");
       } else {
-        alert("Password updated successfully. You can now login.");
+        toast.success("Password updated successfully. You can now login.");
         onClose();
       }
     } catch (err) {
-      setError("Network error. Please try again.");
+      toast.error("Network error. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -114,12 +112,6 @@ export default function ForgotAccessModal({ onClose }: ForgotAccessModalProps) {
             ? "Enter your account details to recover access."
             : "Create a new password for your account."}
         </p>
-
-        {error && (
-          <div className="mb-4 p-3 bg-crimson/10 border border-crimson/30 rounded text-crimson text-sm font-jetbrains text-center">
-            {error}
-          </div>
-        )}
 
         {step === 1 ? (
           <form onSubmit={handleVerify} className="flex flex-col gap-4">

@@ -5,19 +5,18 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import ParticleCanvas from "@/app/components/ParticleCanvas";
 import ForgotAccessModal from "@/app/components/auth/ForgotAccessModal";
+import { toast } from 'react-toastify';
 
 export default function LoginPage() {
   const router = useRouter();
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [remember, setRemember] = useState(false);
-  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [isForgotModalOpen, setIsForgotModalOpen] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setError("");
     setLoading(true);
     try {
       const res = await fetch("/api/auth/login", {
@@ -27,7 +26,7 @@ export default function LoginPage() {
       });
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error ?? "Login failed.");
+        toast.error(data.error ?? "Login failed.");
       } else {
         // Convert user name to binary and use as route
         console.log(data.user);
@@ -35,11 +34,12 @@ export default function LoginPage() {
         const role = data.user?.role as string;
 
         if (!name || !role) {
-          setError("User data is incomplete.");
+          toast.error("User data is incomplete.");
           setLoading(false);
           return;
         }
 
+        toast.success("Login successful");
         if (role.toLowerCase() === "admin") {
           router.push(`/dashboard/${data.user.encryptedId}`);
         } else {
@@ -47,7 +47,7 @@ export default function LoginPage() {
         }
       }
     } catch {
-      setError("Network error. Please try again.");
+      toast.error("Network error. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -227,16 +227,6 @@ export default function LoginPage() {
                   Forgot Access?
                 </button>
               </div>
-
-              {/* Error message */}
-              {error && (
-                <p
-                  className="font-jetbrains text-[11px] tracking-widest text-crimson uppercase
-                              text-center border border-crimson/30 rounded-lg px-4 py-2.5 bg-crimson/5"
-                >
-                  {error}
-                </p>
-              )}
 
               {/* Login button */}
               <button
