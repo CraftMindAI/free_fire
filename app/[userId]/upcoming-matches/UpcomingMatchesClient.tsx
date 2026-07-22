@@ -130,7 +130,21 @@ export default function UpcomingMatchesClient({
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredRooms.map((room) => {
-                  const filledPercentage = room.maxPlayers > 0 ? (room.playersCount / room.maxPlayers) * 100 : 0;
+                  let playersPerTeam = 1;
+                  let label = "Seats Filled";
+                  if (room.maxPlayers === 24) {
+                    playersPerTeam = 2;
+                    label = "Duos Filled";
+                  } else if (room.maxPlayers === 12) {
+                    playersPerTeam = 4;
+                    label = "Squads Filled";
+                  } else if (room.maxPlayers === 48) {
+                    playersPerTeam = 1;
+                    label = "Solos Filled";
+                  }
+
+                  const displayCount = Math.floor(room.playersCount / playersPerTeam);
+                  const filledPercentage = room.maxPlayers > 0 ? (displayCount / room.maxPlayers) * 100 : 0;
                   const matchTag = room.maxPlayers === 48 ? "SOLO" : room.maxPlayers === 24 ? "DUO" : room.maxPlayers === 12 ? "SQUAD" : "CUSTOM";
 
                   return (
@@ -190,8 +204,8 @@ export default function UpcomingMatchesClient({
 
                         <div className="mb-6 mt-auto">
                           <div className="flex justify-between text-[10px] font-jetbrains text-[#e8bcb7] mb-1 uppercase">
-                            <span>Seats Filled</span>
-                            <span>{room.playersCount}/{room.maxPlayers}</span>
+                            <span>{label}</span>
+                            <span>{displayCount}/{room.maxPlayers}</span>
                           </div>
                           <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
                             <div className="h-full bg-[#ffb4ab] transition-all duration-500" style={{ width: `${filledPercentage}%` }}></div>

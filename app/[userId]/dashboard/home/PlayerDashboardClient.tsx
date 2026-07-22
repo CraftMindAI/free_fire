@@ -15,11 +15,16 @@ interface PlayerDashboardClientProps {
     profile_img?: string | null;
   };
   initialRooms: RoomData[];
+  totalMatchesPlayed?: number;
+  totalPrizeWon?: number;
 }
+
 
 export default function PlayerDashboardClient({
   user,
   initialRooms,
+  totalMatchesPlayed = 0,
+  totalPrizeWon = 0,
 }: PlayerDashboardClientProps) {
   const [rooms] = useState<RoomData[]>(initialRooms);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -88,7 +93,7 @@ export default function PlayerDashboardClient({
                 </div>
                 <p className="font-jetbrains text-[10px] text-[#e8bcb7] mb-2 tracking-wider">TOTAL MATCHES PLAYED</p>
                 <div className="flex items-center gap-4">
-                  <span className="font-sora text-4xl font-bold text-[#ffb4ab] glow-crimson counter">1,458</span>
+                  <span className="font-sora text-4xl font-bold text-[#ffb4ab] glow-crimson counter">{totalMatchesPlayed.toLocaleString()}</span>
                   <span className="material-symbols-outlined text-[#ffb4ab]">trending_up</span>
                 </div>
               </div>
@@ -108,8 +113,8 @@ export default function PlayerDashboardClient({
                 </div>
                 <p className="font-jetbrains text-[10px] text-[#e8bcb7] mb-2 tracking-wider">TOTAL PRIZE WON</p>
                 <div className="flex items-center gap-4">
-                  <span className="text-3xl font-sora font-bold text-[#e9c400]">$</span>
-                  <span className="font-sora text-4xl font-bold text-[#e9c400] counter">25,400</span>
+                  <span className="text-3xl font-sora font-bold text-[#e9c400]">₹</span>
+                  <span className="font-sora text-4xl font-bold text-[#e9c400] counter">{totalPrizeWon.toLocaleString()}</span>
                 </div>
               </div>
             </section>
@@ -170,7 +175,21 @@ export default function PlayerDashboardClient({
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {filteredRooms.slice(0, 3).map((room, idx) => {
-                    const filledPercentage = room.maxPlayers > 0 ? (room.playersCount / room.maxPlayers) * 100 : 0;
+                    let playersPerTeam = 1;
+                    let label = "SEATS FILLED";
+                    if (room.maxPlayers === 24) {
+                      playersPerTeam = 2;
+                      label = "DUOS FILLED";
+                    } else if (room.maxPlayers === 12) {
+                      playersPerTeam = 4;
+                      label = "SQUADS FILLED";
+                    } else if (room.maxPlayers === 48) {
+                      playersPerTeam = 1;
+                      label = "SOLOS FILLED";
+                    }
+
+                    const displayCount = Math.floor(room.playersCount / playersPerTeam);
+                    const filledPercentage = room.maxPlayers > 0 ? (displayCount / room.maxPlayers) * 100 : 0;
                     const matchTag = room.maxPlayers === 48 ? "Solo" : room.maxPlayers === 24 ? "Duo" : room.maxPlayers === 12 ? "Squad" : "CUSTOM";
                     
 
@@ -217,8 +236,8 @@ export default function PlayerDashboardClient({
                           </div>
                           <div className="mb-6 mt-auto">
                             <div className="flex justify-between text-xs font-jetbrains text-[#e8bcb7] mb-2">
-                              <span>SEATS FILLED</span>
-                              <span className="text-[#ffb4ab]">{room.playersCount} / {room.maxPlayers}</span>
+                              <span>{label}</span>
+                              <span className="text-[#ffb4ab]">{displayCount} / {room.maxPlayers}</span>
                             </div>
                             <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
                               <div className="h-full bg-[#ffb4ab] rounded-full transition-all duration-500" style={{ width: `${filledPercentage}%` }}></div>

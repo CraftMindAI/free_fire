@@ -5,6 +5,7 @@ import Link from "next/link";
 import Header from "@/app/components/common/Header";
 import Sidebar from "@/app/components/common/Sidebar";
 import ShaderBackground from "@/app/components/ShaderBackground";
+import TermsModal from "@/app/components/common/TermsModal";
 import { RoomData } from "@/app/components/admin/ActiveRooms";
 import { useRouter, useParams } from "next/navigation";
 
@@ -60,6 +61,8 @@ export default function BookNowClient({ user, room, bookedSeats: initialBookedSe
   ]);
   const [activeTab, setActiveTab] = useState<number>(0);
   const [agreeRules, setAgreeRules] = useState(false);
+  const [isTermsOpen, setIsTermsOpen] = useState(false);
+  const [hasViewedTerms, setHasViewedTerms] = useState(false);
 
   const updatePlayer = (field: string, value: any) => {
     const newPlayers = [...players];
@@ -127,21 +130,30 @@ export default function BookNowClient({ user, room, bookedSeats: initialBookedSe
   };
 
   const handleReserveClick = () => {
-    if (selectedSeats.length > 0) {
-      setIsModalOpen(true);
+    if (selectedSeats.length === 0) {
+      alert("Please select at least one seat before proceeding to payment.");
+      return;
     }
+    setIsModalOpen(true);
   };
 
-  const handleConfirmBooking = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleConfirmBooking = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     if (!agreeRules) {
       alert("Please agree to the tournament rules.");
       return;
     }
     
     const p1 = players[0];
-    if (!p1.playerId || !p1.whatsapp || !p1.phone || !p1.upiId) {
-      alert("Please fill all required fields for Player 1 before confirming.");
+    const missingP1Fields = [];
+    if (!p1.playerId) missingP1Fields.push("Player ID");
+    if (!p1.whatsapp) missingP1Fields.push("WhatsApp Number");
+    if (!p1.phone) missingP1Fields.push("Phone Number");
+    if (!p1.upiId) missingP1Fields.push("UPI ID");
+    if (!p1.isGpayNumber && !p1.gpayNumber) missingP1Fields.push("GPay Number");
+
+    if (missingP1Fields.length > 0) {
+      alert(`Please fill all required fields for Player 1 before confirming: ${missingP1Fields.join(", ")}.`);
       setActiveTab(0);
       return;
     }
@@ -490,11 +502,11 @@ export default function BookNowClient({ user, room, bookedSeats: initialBookedSe
                     </div>
                   </div>
                   <button 
+                    type="button"
                     onClick={handleReserveClick}
-                    disabled={selectedSeats.length === 0}
-                    className="w-full py-4 bg-[#ffb4ab] text-[#690005] font-sora font-extrabold text-[18px] rounded-lg shadow-[0_0_15px_rgba(255,46,46,0.4)] hover:shadow-[0_0_25px_rgba(255,180,171,0.5)] disabled:opacity-50 disabled:grayscale disabled:cursor-not-allowed transition-all uppercase"
+                    className="w-full py-4 bg-[#ffb4ab] text-[#690005] font-sora font-extrabold text-[18px] rounded-lg shadow-[0_0_15px_rgba(255,46,46,0.4)] hover:shadow-[0_0_25px_rgba(255,180,171,0.5)] transition-all uppercase"
                   >
-                    Reserve Slot
+                    PAY
                   </button>
                 </div>
               </section>
@@ -507,7 +519,7 @@ export default function BookNowClient({ user, room, bookedSeats: initialBookedSe
       {/* Booking Modal Overlay */}
       {isModalOpen && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-lg animate-[fadeIn_0.3s_ease-out_forwards]">
-          <div className="w-full max-w-2xl bg-black/40 backdrop-blur-[24px] border border-white/10 shadow-[0_0_20px_rgba(255,180,171,0.1),inset_0_0_10px_rgba(255,255,255,0.05)] rounded-xl overflow-hidden relative scale-95 animate-[scaleUp_0.3s_ease-out_forwards]">
+          <div className="w-full max-w-xl bg-black/40 backdrop-blur-[24px] border border-white/10 shadow-[0_0_20px_rgba(255,180,171,0.1),inset_0_0_10px_rgba(255,255,255,0.05)] rounded-xl overflow-hidden relative scale-95 animate-[scaleUp_0.3s_ease-out_forwards] max-h-[85vh]">
             
             {/* Header */}
             <div className="px-8 py-6 border-b border-white/10 flex justify-between items-center bg-white/5">
@@ -526,10 +538,10 @@ export default function BookNowClient({ user, room, bookedSeats: initialBookedSe
             </div>
 
             {/* Content Area */}
-            <div className="p-8 space-y-6">
+            <div className="p-6 space-y-4 max-h-[75vh] overflow-y-auto">
               
               {/* Summary Row */}
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-6 bg-white/5 p-4 rounded-lg border border-white/5">
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 bg-white/5 p-3 rounded-lg border border-white/5">
                 <div className="space-y-1">
                   <span className="font-jetbrains text-[12px] tracking-widest font-semibold text-[#e8bcb7] block">SELECTED SEATS</span>
                   <span className="font-sora text-[20px] font-bold text-[#ffb4ab]">{selectedSeats.map(s => '#' + s).join(', ')}</span>
@@ -569,11 +581,11 @@ export default function BookNowClient({ user, room, bookedSeats: initialBookedSe
                   </div>
                 )}
                 
-                <form id="reserve-form" onSubmit={(e) => e.preventDefault()} className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-6">
+                <form id="reserve-form" onSubmit={(e) => e.preventDefault()} className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-4">
                   
                   {/* Editable Details */}
                   <div className="space-y-2">
-                    <label className="font-jetbrains text-[12px] tracking-widest font-semibold text-[#ffb4ab]">PLAYER ID (UID)</label>
+                    <label className="font-jetbrains text-[12px] tracking-widest font-semibold text-[#ffb4ab]">PLAYER ID</label>
                     <input 
                       type="text" 
                       value={players[activeTab].playerId}
@@ -617,88 +629,116 @@ export default function BookNowClient({ user, room, bookedSeats: initialBookedSe
                   </div>
 
                   {/* Separator */}
-                  <div className="md:col-span-2 border-t border-white/10 my-2 pt-4 flex justify-between items-center">
-                    <p className="text-[#ffb4ab] font-jetbrains text-xs tracking-widest font-bold mb-4">PAYMENT DETAILS</p>
-                  </div>
+                  {activeTab === 0 && (
+                    <>
+                      <div className="md:col-span-2 border-t border-white/10 my-2 pt-4 flex justify-between items-center">
+                        <p className="text-[#ffb4ab] font-jetbrains text-xs tracking-widest font-bold mb-4">PAYMENT DETAILS</p>
+                      </div>
 
-                  <div className="space-y-2 md:col-span-2">
-                    <label className="font-jetbrains text-[12px] tracking-widest font-semibold text-[#ffb4ab]">UPI ID</label>
-                    <input 
-                      type="text" 
-                      value={players[activeTab].upiId}
-                      onChange={(e) => updatePlayer('upiId', e.target.value)}
-                      required
-                      placeholder="e.g. username@okhdfcbank" 
-                      className="w-full bg-transparent border-b-2 border-[#5e3f3b] focus:border-[#ffb4ab] text-white font-sora py-2 px-0 transition-all outline-none"
-                    />
-                  </div>
+                      <div className="space-y-2 md:col-span-2">
+                        <label className="font-jetbrains text-[12px] tracking-widest font-semibold text-[#ffb4ab]">UPI ID</label>
+                        <input 
+                          type="text" 
+                          value={players[0].upiId}
+                          onChange={(e) => updatePlayer('upiId', e.target.value)}
+                          required
+                          placeholder="e.g. username@okhdfcbank" 
+                          className="w-full bg-transparent border-b-2 border-[#5e3f3b] focus:border-[#ffb4ab] text-white font-sora py-2 px-0 transition-all outline-none"
+                        />
+                      </div>
 
-                  <div className="space-y-2 flex flex-col justify-end md:col-span-2">
-                    <label className="flex items-center gap-3 cursor-pointer py-2">
-                      <input 
-                        type="checkbox" 
-                        checked={players[activeTab].isGpayNumber}
-                        onChange={(e) => updatePlayer('isGpayNumber', e.target.checked)}
-                        className="rounded border-[#5e3f3b] bg-white/5 text-[#ffb4ab] focus:ring-[#ffb4ab] h-5 w-5"
-                      />
-                      <span className="text-[#e8bcb7] font-sora text-[16px]">Is your GPay number the same as your Phone number?</span>
-                    </label>
-                  </div>
+                      <div className="space-y-2 flex flex-col justify-end md:col-span-2">
+                        <label className="flex items-center gap-3 cursor-pointer py-2">
+                          <input 
+                            type="checkbox" 
+                            checked={players[0].isGpayNumber}
+                            onChange={(e) => updatePlayer('isGpayNumber', e.target.checked)}
+                            className="rounded border-[#5e3f3b] bg-white/5 text-[#ffb4ab] focus:ring-[#ffb4ab] h-5 w-5"
+                          />
+                          <span className="text-[#e8bcb7] font-sora text-[16px]">Is your GPay number the same as your Phone number?</span>
+                        </label>
+                      </div>
 
-                  {!players[activeTab].isGpayNumber && (
-                    <div className="space-y-2 md:col-span-2">
-                      <label className="font-jetbrains text-[12px] tracking-widest font-semibold text-[#ffb4ab]">GPAY NUMBER</label>
-                      <input 
-                        type="tel" 
-                        value={players[activeTab].gpayNumber}
-                        onChange={(e) => updatePlayer('gpayNumber', e.target.value)}
-                        required
-                        placeholder="Enter your GPay linked number" 
-                        className="w-full bg-transparent border-b-2 border-[#5e3f3b] focus:border-[#ffb4ab] text-white font-sora py-2 px-0 transition-all outline-none"
-                      />
-                    </div>
+                      {!players[0].isGpayNumber && (
+                        <div className="space-y-2 md:col-span-2">
+                          <label className="font-jetbrains text-[12px] tracking-widest font-semibold text-[#ffb4ab]">GPAY NUMBER</label>
+                          <input 
+                            type="tel" 
+                            value={players[0].gpayNumber}
+                            onChange={(e) => updatePlayer('gpayNumber', e.target.value)}
+                            required
+                            placeholder="Enter your GPay linked number" 
+                            className="w-full bg-transparent border-b-2 border-[#5e3f3b] focus:border-[#ffb4ab] text-white font-sora py-2 px-0 transition-all outline-none"
+                          />
+                        </div>
+                      )}
+                    </>
                   )}
 
                   {/* Save button removed as per requirements */}
 
-                  <div className="md:col-span-2 flex items-center gap-3 pt-4">
-                    <input 
-                      type="checkbox" 
-                      id="rules-agree" 
-                      checked={agreeRules}
-                      onChange={(e) => setAgreeRules(e.target.checked)}
-                      required 
-                      className="rounded border-[#5e3f3b] bg-white/5 text-[#ffb4ab] focus:ring-[#ffb4ab] h-5 w-5"
-                    />
-                    <label htmlFor="rules-agree" className="font-sora text-[16px] text-[#e8bcb7]">
-                      I agree to the <span className="text-[#ffb4ab] hover:underline cursor-pointer">Tournament Rules</span>.
-                    </label>
+                  <div className="md:col-span-2 flex flex-col gap-4 pt-4">
+                    <div className="flex items-start gap-3">
+                      <input 
+                        type="checkbox" 
+                        checked={agreeRules}
+                        onChange={(e) => {
+                          if (e.target.checked && !hasViewedTerms) {
+                            setIsTermsOpen(true);
+                            return;
+                          }
+                          setAgreeRules(e.target.checked);
+                          if (!e.target.checked) {
+                            setHasViewedTerms(false);
+                          }
+                        }}
+                        className="rounded border-[#5e3f3b] bg-white/5 text-[#ffb4ab] h-5 w-5"
+                      />
+                      <div className="font-sora text-[16px] text-[#e8bcb7]">
+                        I agree to the{' '}
+                        <button
+                          type="button"
+                          onClick={() => setIsTermsOpen(true)}
+                          className="text-[#ffb4ab] hover:underline"
+                        >
+                          Terms of Service
+                        </button>
+                      </div>
+                    </div>
+                    <div className="flex flex-col sm:flex-row gap-3 accordion justify-end items-stretch sm:items-center">
+                      <button
+                        type="button"
+                        onClick={() => setIsModalOpen(false)}
+                        className="w-full sm:w-auto px-8 py-3 font-jetbrains text-[12px] font-semibold tracking-widest text-[#e8bcb7] hover:text-white bg-white/5 border border-white/10 rounded-lg transition-all"
+                      >
+                        CANCEL
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleConfirmBooking}
+                        disabled={isProcessing}
+                        className="w-full sm:w-auto px-10 py-3 bg-[#ffb4ab] text-[#690005] font-sora text-[14px] font-bold tracking-widest rounded-lg transition-all active:scale-95 shadow-lg hover:shadow-[0_0_25px_rgba(255,180,171,0.5)] disabled:opacity-50 flex justify-center items-center gap-2 uppercase"
+                      >
+                        {isProcessing ? "Processing..." : `PAY ${(room.entryFee ?? 0) > 0 ? '₹' + ((room.entryFee ?? 0) * selectedSeats.length) : 'FREE'}`}
+                      </button>
+                    </div>
                   </div>
                 </form>
               </div>
-            </div>
-
-            {/* Footer Actions */}
-            <div className="px-8 py-6 bg-white/5 flex flex-col-reverse md:flex-row justify-end gap-4 border-t border-white/10">
-              <button 
-                onClick={() => setIsModalOpen(false)}
-                className="px-8 py-3 font-jetbrains text-[12px] font-semibold tracking-widest text-[#e8bcb7] hover:text-white transition-all"
-              >
-                CANCEL
-              </button>
-              <button 
-                onClick={handleConfirmBooking}
-                disabled={isProcessing}
-                className="px-10 py-3 bg-[#ffb4ab] text-[#690005] font-sora text-[14px] font-bold tracking-widest rounded transition-all active:scale-95 shadow-lg hover:shadow-[0_0_25px_rgba(255,180,171,0.5)] disabled:opacity-50 flex justify-center items-center gap-2 uppercase"
-              >
-                {isProcessing ? "Processing..." : `PAY ${(room.entryFee ?? 0) > 0 ? '₹' + ((room.entryFee ?? 0) * selectedSeats.length) : 'FREE'}`}
-              </button>
             </div>
 
           </div>
         </div>
       )}
 
+      <TermsModal
+        isOpen={isTermsOpen}
+        onClose={() => {
+          setIsTermsOpen(false);
+          setHasViewedTerms(true);
+          setAgreeRules(true);
+        }}
+      />
       <style dangerouslySetInnerHTML={{__html: `
         @keyframes fadeIn {
           from { opacity: 0; }
@@ -712,3 +752,5 @@ export default function BookNowClient({ user, room, bookedSeats: initialBookedSe
     </div>
   );
 }
+
+

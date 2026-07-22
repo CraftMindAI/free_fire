@@ -77,7 +77,7 @@ export async function POST(
     await prisma.room.update({
       where: { id: numericRoomId },
       data: {
-        currentPlayers: { increment: 1 },
+        currentPlayers: { increment: bookingsData.length },
         total_price_genrated: { increment: totalAmount },
       }
     });
