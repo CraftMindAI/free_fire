@@ -42,8 +42,6 @@ export default function RegisterForm({ role, mode = "create", initialData, admin
     }
     return EMPTY;
   });
-  const [showPass, setShowPass] = useState(false);
-  const [showConfirm, setShowConfirm] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [isTermsOpen, setIsTermsOpen] = useState(false);
@@ -212,42 +210,26 @@ export default function RegisterForm({ role, mode = "create", initialData, admin
         <>
           <div>
             <label className={labelClass}>Password</label>
-            <div className="relative">
-              <input
-                type={showPass ? "text" : "password"}
-                placeholder="••••••••••"
-                value={form.password}
-                onChange={(e) => set("password", e.target.value)}
-                required
-                className={inputClass + " pr-16"}
-              />
-              <button type="button" onClick={() => setShowPass((v) => !v)}
-                className="absolute right-4 top-1/2 -translate-y-1/2
-                           font-jetbrains text-[9px] tracking-widest text-white/30
-                           hover:text-white/60 uppercase transition-colors cursor-pointer">
-                {showPass ? "Hide" : "Show"}
-              </button>
-            </div>
+            <input
+              type="password"
+              placeholder="••••••••••"
+              value={form.password}
+              onChange={(e) => set("password", e.target.value)}
+              required
+              className={inputClass}
+            />
           </div>
 
           <div>
             <label className={labelClass}>Confirm Password</label>
-            <div className="relative">
-              <input
-                type={showConfirm ? "text" : "password"}
-                placeholder="••••••••••"
-                value={form.confirmPassword}
-                onChange={(e) => set("confirmPassword", e.target.value)}
-                required
-                className={inputClass + " pr-16"}
-              />
-              <button type="button" onClick={() => setShowConfirm((v) => !v)}
-                className="absolute right-4 top-1/2 -translate-y-1/2
-                           font-jetbrains text-[9px] tracking-widest text-white/30
-                           hover:text-white/60 uppercase transition-colors cursor-pointer">
-                {showConfirm ? "Hide" : "Show"}
-              </button>
-            </div>
+            <input
+              type="password"
+              placeholder="••••••••••"
+              value={form.confirmPassword}
+              onChange={(e) => set("confirmPassword", e.target.value)}
+              required
+              className={inputClass}
+            />
           </div>
         </>
       )}

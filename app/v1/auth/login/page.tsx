@@ -10,7 +10,6 @@ export default function LoginPage() {
   const router = useRouter();
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
   const [remember, setRemember] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -172,26 +171,17 @@ export default function LoginPage() {
                     </svg>
                   </span>
                   <input
-                    type={showPassword ? "text" : "password"}
+                    type="password"
                     placeholder="••••••••"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
                     className="w-full bg-[#1e1e22] border border-white/[0.06] border-b-2 border-b-crimson/50 rounded-lg
-                               pl-11 pr-16 py-3.5
+                               pl-11 pr-4 py-3.5
                                text-on-surface placeholder:text-white/25 font-sora text-sm
                                focus:outline-none focus:border-white/[0.06] focus:border-b-2 focus:border-b-crimson
                                focus:shadow-[0_0_0_3px_rgba(255,46,46,0.08)] transition-all duration-200"
                   />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword((v) => !v)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2
-                               font-jetbrains text-[9px] tracking-widest text-white/30
-                               hover:text-white/60 transition-colors uppercase"
-                  >
-                    {showPassword ? "Hide" : "Show"}
-                  </button>
                 </div>
               </div>
 

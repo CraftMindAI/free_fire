@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import ParticleCanvas from "@/app/components/ParticleCanvas";
 
 export default function ContactPage() {
   const [form, setForm] = useState({ name: "", email: "", mobile: "", message: "" });
@@ -35,7 +36,20 @@ export default function ContactPage() {
   };
 
   return (
-    <main className="relative flex flex-col min-h-screen bg-[#131313] text-[#e5e2e1] overflow-x-hidden">
+    <main className="relative flex flex-col min-h-screen bg-transparent text-[#e5e2e1] overflow-x-hidden">
+      {/* Cinematic background */}
+      <div className="fixed inset-0 pointer-events-none z-[-1] overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#131313]/80 to-[#131313]" />
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          className="w-full h-full object-cover"
+          alt=""
+          aria-hidden="true"
+          src="/login.png"
+        />
+        <ParticleCanvas count={60} />
+      </div>
+
       {/* Hero */}
       <section className="pt-36 pb-16 px-6 max-w-[1440px] w-full mx-auto text-center">
         <span className="font-orbitron text-[#ffb4ab] text-xs font-bold tracking-[0.3em] uppercase">

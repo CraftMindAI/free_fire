@@ -4,24 +4,26 @@ import { usePathname } from "next/navigation";
 
 export default function Navbar() {
   const pathname = usePathname();
-  
-  // Hide navbar on authenticated routes (dashboard, upcoming matches, etc.)
-  const isDashboard = pathname.includes("/dashboard") || 
-                      pathname.includes("/upcoming-matches") || 
-                      pathname.includes("/settings") || 
-                      pathname.includes("/distribution") || 
-                      pathname.includes("/matches");
-                      
-  const isAuthPage = pathname === "/v1/auth/login" || pathname === "/v1/auth/register";
-                      
-  if (isDashboard || isAuthPage) return null;
+
+  // Only show navbar on public marketing pages; hide on every authenticated route
+  const isPublicPage =
+    pathname === "/" ||
+    pathname === "/about" ||
+    pathname === "/contact" ||
+    pathname === "/v1/auth/login" ||
+    pathname === "/v1/auth/register";
+
+  if (!isPublicPage) return null;
 
   return (
     <header className="fixed top-0 w-full z-50 bg-transparent  backdrop-blur-xs border-b border-white/[0.08]">
       <div className="flex justify-between items-center px-6 py-4 max-w-[1440px] mx-auto">
-        <span className="font-orbitron text-[#ffb4ab] text-xl font-black uppercase tracking-widest">
+        <Link
+          href="/"
+          className="font-orbitron text-[#ffb4ab] text-xl font-black uppercase tracking-widest"
+        >
           TITAN ARENA
-        </span>
+        </Link>
 
         <div className="flex items-center gap-6">
           <Link
