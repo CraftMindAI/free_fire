@@ -52,9 +52,12 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const encryptedId = encryptId(String(user.id));
+
     // Generate JWT token
     const token = await new SignJWT({
       sub: String(user.id),
+      encryptedId,
       email: user.email,
       name: user.username ?? "",
       role: user.role ?? "player",
