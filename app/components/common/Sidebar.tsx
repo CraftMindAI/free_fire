@@ -22,9 +22,7 @@ export default function Sidebar({
   const pathname = usePathname();
   const [loggingOut, setLoggingOut] = useState(false);
 
-  const slug = params?.slug as string[] | undefined;
-  const pathUserId = params?.userId as string | undefined;
-  const userId = pathUserId || (slug && slug.length > 1 ? slug[1] : slug?.[0]) || "";
+  const userId = (params?.userId as string | undefined) || "";
   const isMatchDetails = pathname.endsWith("/matches");
   const isDistribution = pathname.endsWith("/distribution");
   const isSettings = pathname.endsWith("/settings");
@@ -34,10 +32,15 @@ export default function Sidebar({
   const handleLogout = async () => {
     setLoggingOut(true);
     try {
-      const res = await fetch("/api/auth/logout", { method: "POST" });
-      if (res.ok) router.push("/v1/auth/login");
+      if (typeof window !== "undefined") {
+        localStorage.clear();
+        sessionStorage.clear();
+      }
+      await fetch("/v1/auth/logout", { method: "POST" });
+      window.location.href = "/";
     } catch (err) {
       console.error("Logout failed:", err);
+      window.location.href = "/";
     } finally {
       setLoggingOut(false);
     }
@@ -55,17 +58,17 @@ export default function Sidebar({
   // Define navigation items based on the user's role
   const navItems = isAdmin
     ? [
-        { label: "Dashboard", icon: "dashboard", href: `/dashboard/${userId}`, active: !isMatchDetails && !isDistribution && !isSettings },
-        { label: "Match Details", icon: "sports_esports", href: `/${userId}/matches`, active: isMatchDetails },
-        { label: "Distribution", icon: "groups", href: `/${userId}/distribution`, active: isDistribution },
-        { label: "Payment History", icon: "account_balance_wallet", href: `/${userId}/payment-history`, active: pathname.includes("/payment-history") },
-        { label: "Settings", icon: "settings", href: `/profile/v1/${userId}/settings`, active: isSettings },
+        { label: "Dashboard", icon: "dashboard", href: `/profile/v2/dashboard/${userId}/home`, active: !isMatchDetails && !isDistribution && !isSettings },
+        { label: "Match Details", icon: "sports_esports", href: `/profile/v2/${userId}/matches`, active: isMatchDetails },
+        { label: "Distribution", icon: "groups", href: `/profile/v2/${userId}/distribution`, active: isDistribution },
+        { label: "Payment History", icon: "account_balance_wallet", href: `/profile/v2/${userId}/payment-history`, active: pathname.includes("/payment-history") },
+        { label: "Settings", icon: "settings", href: `/profile/v2/${userId}/settings`, active: isSettings },
       ]
     : [
-        { label: "Dashboard", icon: "dashboard", href: `/${userId}/dashboard/home`, active: pathname.endsWith("/dashboard/home") },
-        { label: "Upcoming Matches", icon: "schedule", href: `/${userId}/upcoming-matches`, active: pathname.includes("/upcoming-matches") },
+        { label: "Dashboard", icon: "dashboard", href: `/profile/v1/${userId}/dashboard/home`, active: pathname.includes("/dashboard/home") },
+        { label: "Upcoming Matches", icon: "schedule", href: `/profile/v1/${userId}/upcoming-matches`, active: pathname.includes("/upcoming-matches") },
         { label: "My Matches", icon: "sports_esports", href: `/profile/v1/${userId}/my-matches`, active: pathname.includes("/my-matches") },
-        { label: "Payment History", icon: "account_balance_wallet", href: `/${userId}/payment-history`, active: pathname.includes("/payment-history") },
+        { label: "Payment History", icon: "account_balance_wallet", href: `/profile/v1/${userId}/payment-history`, active: pathname.includes("/payment-history") },
         { label: "Settings", icon: "settings", href: `/profile/v1/${userId}/settings`, active: isSettings },
       ];
 

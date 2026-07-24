@@ -181,5 +181,51 @@ body { background: #131313; color: #e5e2e1; overflow-x: hidden; }
   to   { transform: translateX(0)    scale(1);    opacity: 1; }
 }
 
+/* ── React Toastify Theme Overrides ─────────────────── */
+.Toastify__toast-container {
+  padding: 12px;
+}
 
+.Toastify__toast {
+  background: rgba(19, 19, 19, 0.95) !important;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  border-radius: 12px !important;
+  color: #e5e2e1 !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8), 0 0 20px rgba(255, 46, 46, 0.2) !important;
+  font-family: inherit;
+  padding: 14px 18px !important;
+}
 
+.Toastify__toast--success,
+.Toastify__toast--error {
+  border-left: 4px solid #ff2e2e !important;
+}
+
+.Toastify__toast--warning,
+.Toastify__toast--info {
+  border-left: 4px solid #ffb4ab !important;
+}
+
+.Toastify__toast-icon svg {
+  fill: #ffb4ab !important;
+}
+
+.Toastify__toast--success .Toastify__toast-icon svg {
+  fill: #ffb4ab !important;
+}
+
+.Toastify__progress-bar {
+  background: linear-gradient(90deg, #ff2e2e, #ffb4ab) !important;
+  height: 3px !important;
+}
+
+.Toastify__close-button {
+  color: #e5e2e1 !important;
+  opacity: 0.6;
+}
+
+.Toastify__close-button:hover {
+  opacity: 1;
+}

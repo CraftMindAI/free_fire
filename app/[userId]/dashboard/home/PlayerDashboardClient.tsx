@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import Header from "@/app/components/common/Header";
 import Sidebar from "@/app/components/common/Sidebar";
 import { RoomData } from "@/app/components/admin/ActiveRooms";
@@ -86,36 +87,95 @@ export default function PlayerDashboardClient({
 
         <main className="flex-1 px-4 sm:px-8 pt-24 sm:pt-28 pb-12 relative z-10 overflow-x-hidden">
           <div className="max-w-[1440px] mx-auto relative z-10">
-            {/* Hero Stats Grid */}
+            {/* Hero Stats Grid with Scoped Fire Animation & Hover Profile Overlay */}
             <section className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-              <div className="p-8 rounded-xl relative overflow-hidden group hover:border-[#ffb4ab]/50 hover:-translate-y-1 transition-all duration-300 bg-white/[0.03] backdrop-blur-md border border-white/10">
-                <div className="absolute -right-4 -bottom-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                  <span className="material-symbols-outlined text-[120px]">videogame_asset</span>
+              {/* Total Matches Played Card */}
+              <div className="p-8 rounded-2xl relative overflow-hidden group hover:-translate-y-1 transition-all duration-300 bg-white/[0.03] backdrop-blur-md border border-[#ff2e2e]/30 hover:border-[#ffb4ab]/60 shadow-[0_0_40px_rgba(255,46,46,0.08)] hover:shadow-[0_0_50px_rgba(255,46,46,0.2)]">
+                {/* Scoped Fire Particle Animation */}
+                <div className="absolute left-0 top-0 bottom-0 w-3/5 overflow-hidden pointer-events-none z-0 filter blur-[1.5px]">
+                  <ParticleCanvas count={30} />
                 </div>
-                <p className="font-jetbrains text-[10px] text-[#e8bcb7] mb-2 tracking-wider">TOTAL MATCHES PLAYED</p>
-                <div className="flex items-center gap-4">
-                  <span className="font-sora text-4xl font-bold text-[#ffb4ab] glow-crimson counter">{totalMatchesPlayed.toLocaleString()}</span>
-                  <span className="material-symbols-outlined text-[#ffb4ab]">trending_up</span>
+
+                {/* Profile Image Overlay: Medium (opacity-50) -> Full (opacity-100) */}
+                <div className="absolute right-0 top-0 bottom-0 w-1/4 max-w-[160px] opacity-50 group-hover:opacity-100 transition-all duration-300 pointer-events-none z-10">
+                  <Image
+                    src="/assets/profiles/Pic1.png"
+                    alt="Total Matches Played"
+                    fill
+                    className="object-cover object-top"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-l from-transparent via-[#131313]/30 to-[#131313]" />
+                </div>
+
+                {/* Ambient Fire Glow Overlay */}
+                <div className="absolute -bottom-12 -left-12 w-48 h-48 bg-gradient-to-tr from-[#ff2e2e]/20 via-[#ff544a]/10 to-transparent rounded-full blur-3xl pointer-events-none animate-pulse-glow z-0"></div>
+
+                <div className="relative z-20">
+                  <p className="font-jetbrains text-[10px] text-[#e8bcb7] mb-4 tracking-wider uppercase font-bold">TOTAL MATCHES PLAYED</p>
+                  <div className="flex items-center gap-4">
+                    <span className="font-sora text-4xl font-extrabold text-[#ffb4ab] neon-red counter">{totalMatchesPlayed.toLocaleString()}</span>
+                    <span className="material-symbols-outlined text-[#ffb4ab]">trending_up</span>
+                  </div>
                 </div>
               </div>
-              <div className="p-8 rounded-xl relative overflow-hidden group hover:border-[#ffcb8d]/50 hover:-translate-y-1 transition-all duration-300 bg-white/[0.03] backdrop-blur-md border border-white/10">
-                <div className="absolute -right-4 -bottom-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                  <span className="material-symbols-outlined text-[120px]">schedule</span>
+
+              {/* Upcoming Matches Card */}
+              <div className="p-8 rounded-2xl relative overflow-hidden group hover:-translate-y-1 transition-all duration-300 bg-white/[0.03] backdrop-blur-md border border-[#ff2e2e]/30 hover:border-[#ffcb8d]/60 shadow-[0_0_40px_rgba(255,46,46,0.08)] hover:shadow-[0_0_50px_rgba(255,46,46,0.2)]">
+                {/* Scoped Fire Particle Animation */}
+                <div className="absolute left-0 top-0 bottom-0 w-3/5 overflow-hidden pointer-events-none z-0 filter blur-[1.5px]">
+                  <ParticleCanvas count={30} />
                 </div>
-                <p className="font-jetbrains text-[10px] text-[#e8bcb7] mb-2 tracking-wider">UPCOMING MATCHES</p>
-                <div className="flex items-center gap-4">
-                  <span className="font-sora text-4xl font-bold text-[#ffcb8d] counter">{rooms.length}</span>
-                  <span className="material-symbols-outlined text-[#ffcb8d]">notifications_active</span>
+
+                {/* Profile Image Overlay: Medium (opacity-50) -> Full (opacity-100) */}
+                <div className="absolute right-0 top-0 bottom-0 w-1/4 max-w-[160px] opacity-50 group-hover:opacity-100 transition-all duration-300 pointer-events-none z-10">
+                  <Image
+                    src="/assets/profiles/Pic2.png"
+                    alt="Upcoming Matches"
+                    fill
+                    className="object-cover object-top"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-l from-transparent via-[#131313]/30 to-[#131313]" />
+                </div>
+
+                {/* Ambient Fire Glow Overlay */}
+                <div className="absolute -bottom-12 -left-12 w-48 h-48 bg-gradient-to-tr from-[#ff2e2e]/20 via-[#ff544a]/10 to-transparent rounded-full blur-3xl pointer-events-none animate-pulse-glow z-0"></div>
+
+                <div className="relative z-20">
+                  <p className="font-jetbrains text-[10px] text-[#e8bcb7] mb-4 tracking-wider uppercase font-bold">UPCOMING MATCHES</p>
+                  <div className="flex items-center gap-4">
+                    <span className="font-sora text-4xl font-extrabold text-[#ffcb8d] neon-red counter">{rooms.length}</span>
+                    <span className="material-symbols-outlined text-[#ffcb8d]">notifications_active</span>
+                  </div>
                 </div>
               </div>
-              <div className="p-8 rounded-xl relative overflow-hidden group border-t-2 border-[#e9c400]/30 hover:border-[#e9c400]/50 hover:-translate-y-1 transition-all duration-300 bg-white/[0.03] backdrop-blur-md border border-white/10">
-                <div className="absolute -right-4 -bottom-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                  <span className="material-symbols-outlined text-[120px]">payments</span>
+
+              {/* Total Prize Won Card */}
+              <div className="p-8 rounded-2xl relative overflow-hidden group hover:-translate-y-1 transition-all duration-300 bg-white/[0.03] backdrop-blur-md border border-[#ff2e2e]/30 hover:border-[#e9c400]/60 shadow-[0_0_40px_rgba(255,46,46,0.08)] hover:shadow-[0_0_50px_rgba(255,46,46,0.2)]">
+                {/* Scoped Fire Particle Animation */}
+                <div className="absolute left-0 top-0 bottom-0 w-3/5 overflow-hidden pointer-events-none z-0 filter blur-[1.5px]">
+                  <ParticleCanvas count={30} />
                 </div>
-                <p className="font-jetbrains text-[10px] text-[#e8bcb7] mb-2 tracking-wider">TOTAL PRIZE WON</p>
-                <div className="flex items-center gap-4">
-                  <span className="text-3xl font-sora font-bold text-[#e9c400]">₹</span>
-                  <span className="font-sora text-4xl font-bold text-[#e9c400] counter">{totalPrizeWon.toLocaleString()}</span>
+
+                {/* Profile Image Overlay: Medium (opacity-50) -> Full (opacity-100) */}
+                <div className="absolute right-0 top-0 bottom-0 w-1/4 max-w-[160px] opacity-50 group-hover:opacity-100 transition-all duration-300 pointer-events-none z-10">
+                  <Image
+                    src="/assets/profiles/Pic3.png"
+                    alt="Total Prize Won"
+                    fill
+                    className="object-cover object-top"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-l from-transparent via-[#131313]/30 to-[#131313]" />
+                </div>
+
+                {/* Ambient Fire Glow Overlay */}
+                <div className="absolute -bottom-12 -left-12 w-48 h-48 bg-gradient-to-tr from-[#ff2e2e]/20 via-[#ff544a]/10 to-transparent rounded-full blur-3xl pointer-events-none animate-pulse-glow z-0"></div>
+
+                <div className="relative z-20">
+                  <p className="font-jetbrains text-[10px] text-[#e8bcb7] mb-4 tracking-wider uppercase font-bold">TOTAL PRIZE WON</p>
+                  <div className="flex items-center gap-4">
+                    <span className="text-3xl font-sora font-extrabold text-[#e9c400]">₹</span>
+                    <span className="font-sora text-4xl font-extrabold text-[#e9c400] neon-red counter">{totalPrizeWon.toLocaleString()}</span>
+                  </div>
                 </div>
               </div>
             </section>
@@ -246,13 +306,13 @@ export default function PlayerDashboardClient({
                           </div>
                           <div className="flex gap-3 mt-auto">
                                 <Link
-                                  href={`/${user.id}/upcoming-matches/${room.encryptedRoomId || room.roomId}/view`}
+                                  href={`/profile/v1/${user.id}/upcoming-matches/${room.encryptedRoomId || room.roomId}/view`}
                                   className="flex-1 bg-white/[0.03] hover:bg-white/10 border border-white/10 text-white font-sora font-bold py-3 rounded-lg flex items-center justify-center gap-2 transition-colors text-sm"
                                 >
                                   View Details
                                 </Link>
                             <Link
-                              href={`/${user.id}/upcoming-matches/${room.encryptedRoomId || room.roomId}/book-now`}
+                              href={`/profile/v1/${user.id}/upcoming-matches/${room.encryptedRoomId || room.roomId}/book-now`}
                               className="flex-1"
                             >
                               <button className="w-full h-full bg-[#ff544a] text-[#5c0004] py-2 rounded-lg text-sm font-bold shadow-lg hover:shadow-[0_0_15px_#ffb4ab] transition-all">
@@ -267,18 +327,20 @@ export default function PlayerDashboardClient({
                 </div>
               )}
               
-              {/* Pagination / Load More */}
-              <div className="mt-12 flex justify-center">
-                <Link href={`/${user.id}/upcoming-matches`}>
-                  <button className="group relative px-8 py-4 bg-background border-2 border-[#ffb4ab] rounded-xl overflow-hidden transition-all hover:scale-105 active:scale-95">
-                    <div className="absolute inset-0 bg-[#ffb4ab]/10 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
-                    <span className="relative font-bold text-[#ffb4ab] flex items-center gap-2">
-                      LOAD MORE TOURNAMENTS
-                      <span className="material-symbols-outlined">expand_more</span>
-                    </span>
-                  </button>
-                </Link>
-              </div>
+              {/* Pagination / Load More (Shows only when filtered matches length > 3) */}
+              {filteredRooms.length > 3 && (
+                <div className="mt-12 flex justify-center">
+                  <Link href={`/profile/v1/${user.id}/upcoming-matches`}>
+                    <button className="group relative px-8 py-4 bg-background border-2 border-[#ffb4ab] rounded-xl overflow-hidden transition-all hover:scale-105 active:scale-95 cursor-pointer">
+                      <div className="absolute inset-0 bg-[#ffb4ab]/10 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
+                      <span className="relative font-bold text-[#ffb4ab] flex items-center gap-2 font-jetbrains text-xs tracking-widest uppercase">
+                        LOAD MORE TOURNAMENTS ({filteredRooms.length - 3} MORE)
+                        <span className="material-symbols-outlined text-sm">expand_more</span>
+                      </span>
+                    </button>
+                  </Link>
+                </div>
+              )}
             </section>
           </div>
         </main>

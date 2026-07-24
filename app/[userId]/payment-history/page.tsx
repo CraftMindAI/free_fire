@@ -7,7 +7,7 @@ import PaymentHistoryClient from "./PaymentHistoryClient";
 export default async function PaymentHistoryPage({ params }: { params: Promise<{ userId: string }> }) {
   const resolvedParams = await params;
   const user = await getSessionUser();
-  
+
   if (!user) {
     redirect("/v1/auth/login");
   }
@@ -17,17 +17,23 @@ export default async function PaymentHistoryPage({ params }: { params: Promise<{
   if (user.id !== decodedId && user.role.toLowerCase() !== "admin") {
     redirect(`/${encryptId(String(user.id))}/payment-history`);
   }
-  
+
+  const isAdmin = user.role.toLowerCase() === "admin";
   const numericUserId = Number(user.id);
 
   const payments = await prisma.payment.findMany({
-    where: { userId: numericUserId },
-    include: { room: true },
-    orderBy: { createdAt: "desc" }
+    where: isAdmin ? {} : { userId: numericUserId },
+    include: {
+      room: true,
+      user: { select: { id: true, username: true, player_id: true } },
+    },
+    orderBy: { createdAt: "desc" },
   });
 
-  const serializedPayments = payments.map(p => ({
+  const serializedPayments = payments.map((p) => ({
     id: p.id,
+    userId: p.userId,
+    username: p.user?.username || `User_${p.userId}`,
     amount: p.amount,
     prizeAmount: p.prizeAmount,
     status: p.status,
@@ -39,15 +45,15 @@ export default async function PaymentHistoryPage({ params }: { params: Promise<{
       match_type: p.room.match_type,
       total_price: p.room.total_price,
       entry_fee: p.room.entry_fee,
-    }
+    },
   }));
 
   const clientUser = { ...user, id: resolvedParams.userId };
 
   return (
-    <PaymentHistoryClient 
-      initialPayments={serializedPayments} 
-      user={clientUser} 
+    <PaymentHistoryClient
+      initialPayments={serializedPayments}
+      user={clientUser}
     />
   );
 }

@@ -15,6 +15,11 @@ export default async function SettingsPage(props: {
     redirect("/v1/auth/login");
   }
 
+  // Only players can access this route
+  if (sessionUser.role.toLowerCase() !== "player") {
+    redirect(`/profile/v2/${userId}/settings`);
+  }
+
   // Fetch the full details of the logged-in user from the database
   const user = await prisma.user.findUnique({
     where: { id: Number(sessionUser.id) },

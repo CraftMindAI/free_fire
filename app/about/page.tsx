@@ -8,10 +8,10 @@ export const metadata: Metadata = {
 };
 
 const STATS = [
-  { label: "Active Players", value: "50K+" },
-  { label: "Matches Hosted", value: "12K+" },
-  { label: "Cash Rewarded", value: "₹25L+" },
-  { label: "Custom Rooms Daily", value: "200+" },
+  { label: "Active Players", value: "1K+" },
+  { label: "Matches Hosted", value: "500" },
+  { label: "Cash Rewarded", value: "₹15K+" },
+  { label: "Custom Rooms Daily", value: "20+" },
 ];
 
 const VALUES = [
@@ -58,8 +58,8 @@ export default function AboutPage() {
         </h1>
         <p className="max-w-2xl mx-auto text-on-surface-variant text-base md:text-lg leading-relaxed">
           Titan Arena is a Free Fire custom room and tournament platform where
-          every squad gets a fair shot at glory — and cold, hard cash. Daily
-          rooms, real rewards, zero nonsense.
+          every squad gets a fair shot at glory and hard cash. Daily
+          rooms, real rewards.
         </p>
       </section>
 

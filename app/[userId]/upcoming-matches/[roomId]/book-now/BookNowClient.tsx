@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import Header from "@/app/components/common/Header";
+import { useToast } from "@/app/components/common/Toast";
 import Sidebar from "@/app/components/common/Sidebar";
 import ShaderBackground from "@/app/components/ShaderBackground";
 import TermsModal from "@/app/components/common/TermsModal";
@@ -47,6 +48,7 @@ interface BookNowClientProps {
 }
 
 export default function BookNowClient({ user, room, bookedSeats: initialBookedSeats }: BookNowClientProps) {
+  const toast = useToast();
   const router = useRouter();
   const params = useParams();
   const encryptedUserId = params.userId as string;
@@ -149,18 +151,66 @@ export default function BookNowClient({ user, room, bookedSeats: initialBookedSe
     }
   };
 
+  const isMatchStarted = room.matchDateIso ? new Date(room.matchDateIso).getTime() < Date.now() : false;
+
   const handleReserveClick = () => {
+    if (isMatchStarted) {
+      toast.error("Match Started", "Match already started! Go check on Live Stream.");
+      return;
+    }
     if (selectedSeats.length === 0) {
-      toast(<ValidationToast message="Please select at least one seat before proceeding to payment." />, { icon: false });
+      toast.warning("Select Seats", "Please select at least one seat before proceeding to payment.");
       return;
     }
     setIsModalOpen(true);
   };
 
-  const processBooking = async () => {
-    setIsProcessing(true);
+  const handleConfirmBooking = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (isMatchStarted) {
+      toast.error("Match Started", "Match already started! Go check on Live Stream.");
+      return;
+    }
+    if (!agreeRules) {
+      toast.warning("Rules Unaccepted", "Please agree to the tournament rules.");
+      return;
+    }
     
     const p1 = players[0];
+    const missingP1Fields = [];
+    if (!p1.playerId) missingP1Fields.push("Player ID");
+    if (!p1.whatsapp) missingP1Fields.push("WhatsApp Number");
+    if (!p1.phone) missingP1Fields.push("Phone Number");
+    if (!p1.upiId) missingP1Fields.push("UPI ID");
+    if (!p1.isGpayNumber && !p1.gpayNumber) missingP1Fields.push("GPay Number");
+
+    if (missingP1Fields.length > 0) {
+      toast.error("Incomplete Fields", `Please fill all required fields for Player 1: ${missingP1Fields.join(", ")}.`);
+      setActiveTab(0);
+      return;
+    }
+
+    const neededPlayers = isSquad ? 4 : (isDuo ? 2 : 1);
+    
+    const missingPlayers: number[] = [];
+    for (let i = 1; i < neededPlayers; i++) {
+      if (selectedSeats.length > i) {
+        const p = players[i];
+        const isFilled = Boolean(p.playerId && p.whatsapp && p.phone && p.upiId);
+        if (!isFilled) {
+          missingPlayers.push(i + 1);
+        }
+      }
+    }
+
+    if (missingPlayers.length > 0) {
+      const missingList = missingPlayers.map(n => `Player ${n}`).join(", ");
+      const confirm = window.confirm(`You didn't add details for ${missingList}. Are you OK with that?`);
+      if (!confirm) return;
+    }
+
+    setIsProcessing(true);
+    
     const bookingsPayload = [];
     for (let i = 0; i < selectedSeats.length; i++) {
       const p = players[i];
@@ -217,98 +267,11 @@ export default function BookNowClient({ user, room, bookedSeats: initialBookedSe
       ]);
       setActiveTab(0);
 
-      toast(
-        <div className="flex items-start gap-4 pr-6">
-          <span className="material-symbols-outlined text-[#4ade80] text-3xl drop-shadow-[0_0_8px_rgba(74,222,128,0.8)]">check_circle</span>
-          <div className="flex-1 mt-1">
-            <p className="font-bold text-white text-[15px] leading-snug">Slot(s) successfully booked!</p>
-          </div>
-        </div>,
-        { icon: false }
-      );
+      toast.success("Booking Confirmed", "Slot(s) successfully booked!");
     } catch (err: any) {
       setIsProcessing(false);
-      toast(<ValidationToast message={err.message} />, { icon: false });
+      toast.error("Booking Failed", err.message || "Could not process booking.");
     }
-  };
-
-  const ConfirmToast = ({ closeToast, missingList, onConfirm }: any) => (
-    <div className="flex flex-col gap-5 pr-4">
-      <div className="flex items-start gap-4">
-        <span className="material-symbols-outlined text-[#ff2e2e] text-3xl drop-shadow-[0_0_8px_rgba(255,46,46,0.8)]">warning</span>
-        <div className="flex-1 mt-1">
-          <p className="font-bold text-white text-[15px] leading-snug">
-            You didn't add details for {missingList}. Are you OK with that?
-          </p>
-        </div>
-      </div>
-      <div className="flex gap-3 ml-[3.25rem]">
-        <button 
-          onClick={() => {
-            if (closeToast) closeToast();
-            onConfirm();
-          }}
-          className="bg-[#ff2e2e] text-white px-5 py-2 rounded-lg font-bold text-sm shadow-[0_0_10px_rgba(255,46,46,0.5)] hover:bg-red-600 hover:shadow-[0_0_15px_rgba(255,46,46,0.7)] transition-all"
-        >
-          YES, PROCEED
-        </button>
-        <button 
-          onClick={closeToast}
-          className="bg-[#1a1a1a] text-white px-5 py-2 rounded-lg font-bold text-sm border border-gray-600 hover:bg-[#2a2a2a] transition-all"
-        >
-          CANCEL
-        </button>
-      </div>
-    </div>
-  );
-
-  const handleConfirmBooking = async (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
-    if (!agreeRules) {
-      toast(<ValidationToast message="Please agree to the tournament rules." />, { icon: false });
-      return;
-    }
-    
-    const p1 = players[0];
-    const missingP1Fields = [];
-    if (!p1.playerId) missingP1Fields.push("Player ID");
-    if (!p1.whatsapp) missingP1Fields.push("WhatsApp Number");
-    if (!p1.phone) missingP1Fields.push("Phone Number");
-    if (!p1.upiId) missingP1Fields.push("UPI ID");
-    if (!p1.isGpayNumber && !p1.gpayNumber) missingP1Fields.push("GPay Number");
-
-    if (missingP1Fields.length > 0) {
-      toast(<ValidationToast message={`Please fill all required fields for Player 1 before confirming: ${missingP1Fields.join(", ")}.`} />, { icon: false });
-      setActiveTab(0);
-      return;
-    }
-
-    const neededPlayers = isSquad ? 4 : (isDuo ? 2 : 1);
-    
-    const missingPlayers: number[] = [];
-    for (let i = 1; i < neededPlayers; i++) {
-      if (selectedSeats.length > i) {
-        const p = players[i];
-        const isFilled = Boolean(p.playerId && p.whatsapp && p.phone && p.upiId);
-        if (!isFilled) {
-          missingPlayers.push(i + 1);
-        }
-      }
-    }
-
-    if (missingPlayers.length > 0) {
-      const missingList = missingPlayers.map(n => `Player ${n}`).join(", ");
-      toast(
-        <ConfirmToast 
-          missingList={missingList} 
-          onConfirm={processBooking} 
-        />, 
-        { autoClose: false, closeOnClick: false, icon: false }
-      );
-      return;
-    }
-
-    processBooking();
   };
 
   return (
@@ -366,7 +329,7 @@ export default function BookNowClient({ user, room, bookedSeats: initialBookedSe
               
               {/* Back Button */}
               <div className="mb-8">
-                <Link href={`/${encryptedUserId}/upcoming-matches`}>
+                <Link href={`/profile/v1/${encryptedUserId}/upcoming-matches`}>
                   <button className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-white transition-all backdrop-blur-md w-fit">
                     <span className="material-symbols-outlined text-sm">arrow_back</span>
                     <span className="font-jetbrains text-sm font-semibold">BACK TO MATCHES</span>
@@ -694,7 +657,7 @@ export default function BookNowClient({ user, room, bookedSeats: initialBookedSe
                       value={players[activeTab].whatsapp}
                       onChange={(e) => updatePlayer('whatsapp', e.target.value)}
                       required
-                      placeholder="+91 9876543210" 
+                      placeholder="+91 7428730111" 
                       className="w-full bg-transparent border-b-2 border-[#5e3f3b] focus:border-[#ffb4ab] text-white font-sora py-2 px-0 transition-all outline-none"
                     />
                   </div>
@@ -705,7 +668,7 @@ export default function BookNowClient({ user, room, bookedSeats: initialBookedSe
                       value={players[activeTab].phone}
                       onChange={(e) => updatePlayer('phone', e.target.value)}
                       required
-                      placeholder="+91 9876543210" 
+                      placeholder="+91 7428730111" 
                       className="w-full bg-transparent border-b-2 border-[#5e3f3b] focus:border-[#ffb4ab] text-white font-sora py-2 px-0 transition-all outline-none"
                     />
                   </div>

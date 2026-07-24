@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/app/lib/prisma";
+import { encryptId } from "@/app/lib/encryption";
 
 export async function GET() {
   try {
@@ -14,7 +15,11 @@ export async function GET() {
     });
 
     const rooms = await prisma.room.findMany();
-    return NextResponse.json({ success: true, rooms });
+    const roomsWithEncryptedId = rooms.map((r) => ({
+      ...r,
+      encryptedRoomId: encryptId(String(r.id)),
+    }));
+    return NextResponse.json({ success: true, rooms: roomsWithEncryptedId });
   } catch (error) {
     console.error("Failed to get rooms:", error);
     return NextResponse.json(

@@ -95,6 +95,8 @@ export async function POST(req: NextRequest) {
         username: newAdmin.username,
         player_id: newAdmin.player_id,
         email: newAdmin.email,
+        phone: newAdmin.phone || "",
+        whatsapp: newAdmin.whatsapp || "",
         role: newAdmin.role,
         profile_img: newAdmin.profile_img,
       },

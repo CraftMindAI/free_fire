@@ -75,7 +75,7 @@ export default function MatchDetailsClient({ user, room }: MatchDetailsClientPro
             
             {/* Back Button */}
             <div className="mb-6">
-              <Link href={`/${encryptedUserId}/upcoming-matches`}>
+              <Link href={`/profile/v1/${encryptedUserId}/upcoming-matches`}>
                 <button className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-white transition-all backdrop-blur-md">
                   <span className="material-symbols-outlined text-sm">arrow_back</span>
                   <span className="font-jetbrains text-sm font-semibold">BACK TO MATCHES</span>
@@ -175,7 +175,7 @@ export default function MatchDetailsClient({ user, room }: MatchDetailsClientPro
 
                 {/* Book Action */}
                 <div className="mt-auto pt-4">
-                  <Link href={`/${encryptedUserId}/upcoming-matches/${encryptedRoomId}/book-now`}>
+                  <Link href={`/profile/v1/${encryptedUserId}/upcoming-matches/${encryptedRoomId}/book-now`}>
                     <button className="w-full group relative px-8 py-5 bg-[#ff544a] rounded-xl overflow-hidden transition-all hover:scale-[1.02] active:scale-95 shadow-[0_0_20px_rgba(255,84,74,0.3)]">
                       <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
                       <span className="relative font-sora font-bold text-xl text-[#5c0004] flex items-center justify-center gap-2 uppercase tracking-wide">

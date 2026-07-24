@@ -52,6 +52,7 @@ model Room {
   total_price Int  @default(0)
   entry_fee Int    @default(0)
   total_price_genrated Int  @default(0)
+  payment_status String @default("pending")
   match_type String
   startTime DateTime?
   endTime   DateTime?
@@ -84,6 +85,7 @@ model Booking {
   whatsapp      String?
   upiId         String?
   Gpay          String?
+  Confirmat_Id String @default("")
 
   status        String   @default("confirmed")
 

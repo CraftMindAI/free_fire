@@ -2,16 +2,16 @@ import { redirect } from "next/navigation";
 import prisma from "@/app/lib/prisma";
 import { encryptId, decryptId } from "@/app/lib/encryption";
 import { getSessionUser } from "@/app/lib/auth";
-import ViewDetailsClient from "./ViewDetailsClient";
+import BookNowClient from "@/app/[userId]/upcoming-matches/[roomId]/book-now/BookNowClient";
 
-interface ViewDetailsPageProps {
+interface BookNowPageProps {
   params: Promise<{
     userId: string;
     roomId: string;
   }>;
 }
 
-export default async function ViewDetailsPage({ params }: ViewDetailsPageProps) {
+export default async function PlayerBookNowPage({ params }: BookNowPageProps) {
   const { userId, roomId } = await params;
 
   // Validate session
@@ -20,28 +20,38 @@ export default async function ViewDetailsPage({ params }: ViewDetailsPageProps) 
     redirect("/v1/auth/login");
   }
 
+  // Only players can access this route
+  if (user.role.toLowerCase() !== "player") {
+    redirect(`/profile/v2/dashboard/${encryptId(String(user.id))}/home`);
+  }
+
   // Decrypt URL parameter to ensure authorization
   const decodedId = decryptId(userId);
 
-  // Validate authorization
-  if (user.id !== decodedId && user.role.toLowerCase() !== "admin") {
-    redirect(`/${encryptId(String(user.id))}/dashboard`);
+  // Validate the decrypted ID matches the logged-in user
+  if (user.id !== decodedId) {
+    redirect(`/profile/v1/${encryptId(String(user.id))}/upcoming-matches`);
   }
+
+  // Fetch full user to pass extra details
+  const fullUser = await prisma.user.findUnique({
+    where: { id: parseInt(String(user.id), 10) }
+  });
 
   const clientUser = { 
     ...user, 
-    id: userId
+    id: userId,
+    player_id: fullUser?.player_id || "",
+    whatsapp: fullUser?.whatsapp || "",
+    phone: fullUser?.phone || ""
   };
 
-  // Decrypt Room ID (could be encrypted or raw numeric)
-  let numericRoomId = parseInt(roomId, 10);
-  if (isNaN(numericRoomId)) {
-    const decodedRoomId = decryptId(roomId);
-    numericRoomId = decodedRoomId ? parseInt(decodedRoomId, 10) : NaN;
-  }
+  // Decrypt Room ID
+  const decodedRoomId = decryptId(roomId);
+  const numericRoomId = decodedRoomId ? parseInt(decodedRoomId, 10) : NaN;
 
   if (isNaN(numericRoomId)) {
-    redirect(`/${userId}/matches`);
+    redirect(`/profile/v1/${encryptId(String(user.id))}/upcoming-matches`);
   }
 
   // Fetch the room and its confirmed bookings
@@ -56,7 +66,7 @@ export default async function ViewDetailsPage({ params }: ViewDetailsPageProps) 
   });
 
   if (!room) {
-    redirect(`/${userId}/matches`);
+    redirect(`/profile/v1/${encryptId(String(user.id))}/upcoming-matches`);
   }
 
   const bookedSeats = room.bookings.map(b => b.seatNumber);
@@ -81,5 +91,5 @@ export default async function ViewDetailsPage({ params }: ViewDetailsPageProps) 
     encryptedRoomId: encryptId(String(room.id)),
   };
 
-  return <ViewDetailsClient user={clientUser} room={roomData} bookedSeats={bookedSeats} />;
+  return <BookNowClient user={clientUser} room={roomData} bookedSeats={bookedSeats} />;
 }

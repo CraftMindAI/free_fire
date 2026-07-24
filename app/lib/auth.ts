@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { cookies } from "next/headers";
 import { jwtVerify } from "jose";
 
@@ -7,7 +8,11 @@ const SECRET = new TextEncoder().encode(
 
 import prisma from "@/app/lib/prisma";
 
-export async function getSessionUser() {
+// Deduped per-request: Server Components and layouts on the same request
+// (e.g. a layout plus a page, or an admin guard plus the page it guards)
+// can each call getSessionUser() independently. React's cache() ensures
+// only one DB round-trip happens per request instead of one per call site.
+export const getSessionUser = cache(async () => {
   try {
     const cookieStore = await cookies();
     const token = cookieStore.get("titan_token")?.value;
@@ -32,4 +37,4 @@ export async function getSessionUser() {
     console.error("JWT verification failed:", error);
     return null;
   }
-}
+});

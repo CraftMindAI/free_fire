@@ -2,11 +2,14 @@ import type { Metadata } from "next";
 import "./globals.css";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
+import { ToastProvider } from "./components/common/Toast";
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 export const metadata: Metadata = {
   title: "Free Fire — Ultimate Battle Tournament",
   description:
-    "Join Daily Custom Rooms • Win Cash Rewards • Compete with the Best Players",
+    "Join Daily Custom Rooms, Win Cash Rewards and  Compete with the Best Players",
 };
 
 export default function RootLayout({
@@ -23,9 +26,12 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-full flex flex-col bg-[#131313] font-sora">
-        <Navbar />
-        {children}
-        <Footer />
+        <ToastProvider>
+          <Navbar />
+          {children}
+          <Footer />
+        </ToastProvider>
+        <ToastContainer theme="dark" />
       </body>
     </html>
   );

@@ -20,6 +20,8 @@ export interface RoomData {
   map_img?: string;
   matchDateIso?: string;
   encryptedRoomId?: string;
+  paymentStatus?: string;
+  dbId?: number;
 }
 
 interface ActiveRoomsProps {

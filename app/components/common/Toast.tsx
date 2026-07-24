@@ -10,7 +10,7 @@ import React, {
 } from "react";
 
 // ── Types ────────────────────────────────────────────────────────
-type ToastType = "success" | "error" | "delete" | "update" | "info";
+type ToastType = "success" | "error" | "warning" | "delete" | "update" | "info";
 
 interface Toast {
   id: string;
@@ -23,6 +23,7 @@ interface Toast {
 interface ToastContextValue {
   success: (title: string, message?: string) => void;
   error:   (title: string, message?: string) => void;
+  warning: (title: string, message?: string) => void;
   delete:  (title: string, message?: string) => void;
   update:  (title: string, message?: string) => void;
   info:    (title: string, message?: string) => void;
@@ -53,16 +54,34 @@ const THEMES: Record<
   success: {
     icon: "check_circle",
     label: "SUCCESS",
-    glow: "shadow-[0_0_30px_rgba(34,197,94,0.35)]",
-    bar: "bg-green-400",
-    border: "border-green-500/40",
-    iconBg: "bg-green-500/15",
-    iconColor: "text-green-400",
+    glow: "shadow-[0_0_25px_rgba(255,46,46,0.25)]",
+    bar: "bg-[#ff2e2e]",
+    border: "border-crimson/40",
+    iconBg: "bg-crimson/15",
+    iconColor: "text-[#ffb4ab]",
+  },
+  error: {
+    icon: "gpp_bad",
+    label: "ERROR",
+    glow: "shadow-[0_0_25px_rgba(255,46,46,0.35)]",
+    bar: "bg-[#ff2e2e]",
+    border: "border-[#ff2e2e]/60",
+    iconBg: "bg-[#ff2e2e]/20",
+    iconColor: "text-[#ffb4ab]",
+  },
+  warning: {
+    icon: "warning",
+    label: "ATTENTION",
+    glow: "shadow-[0_0_25px_rgba(255,180,171,0.25)]",
+    bar: "bg-[#ffb4ab]",
+    border: "border-[#ffb4ab]/40",
+    iconBg: "bg-[#ffb4ab]/15",
+    iconColor: "text-[#ffb4ab]",
   },
   delete: {
     icon: "delete_forever",
     label: "DELETED",
-    glow: "shadow-[0_0_30px_rgba(185,28,28,0.45)]",
+    glow: "shadow-[0_0_25px_rgba(255,46,46,0.3)]",
     bar: "bg-red-700",
     border: "border-red-800/60",
     iconBg: "bg-red-900/40",
@@ -71,29 +90,20 @@ const THEMES: Record<
   update: {
     icon: "edit_note",
     label: "UPDATED",
-    glow: "shadow-[0_0_30px_rgba(234,179,8,0.35)]",
-    bar: "bg-yellow-400",
-    border: "border-yellow-500/40",
-    iconBg: "bg-yellow-500/15",
-    iconColor: "text-yellow-300",
-  },
-  error: {
-    icon: "gpp_bad",
-    label: "ERROR",
-    glow: "shadow-[0_0_30px_rgba(255,46,46,0.4)]",
-    bar: "bg-[#ff2e2e]",
-    border: "border-[#ff2e2e]/50",
-    iconBg: "bg-[#ff2e2e]/15",
+    glow: "shadow-[0_0_25px_rgba(255,180,171,0.25)]",
+    bar: "bg-[#ffb4ab]",
+    border: "border-[#ffb4ab]/40",
+    iconBg: "bg-[#ffb4ab]/15",
     iconColor: "text-[#ffb4ab]",
   },
   info: {
     icon: "info",
     label: "INFO",
-    glow: "shadow-[0_0_30px_rgba(96,165,250,0.3)]",
-    bar: "bg-blue-400",
-    border: "border-blue-500/40",
-    iconBg: "bg-blue-500/15",
-    iconColor: "text-blue-300",
+    glow: "shadow-[0_0_25px_rgba(255,180,171,0.2)]",
+    bar: "bg-[#ffb4ab]",
+    border: "border-[#ffb4ab]/30",
+    iconBg: "bg-[#ffb4ab]/10",
+    iconColor: "text-[#ffb4ab]",
   },
 };
 
@@ -130,7 +140,7 @@ function ToastCard({
       className={`
         relative w-80 rounded-2xl overflow-hidden
         border ${t.border}
-        bg-[#111]/80 backdrop-blur-xl
+        bg-[#131313]/90 backdrop-blur-xl
         ${t.glow}
         animate-[toastIn_0.3s_cubic-bezier(0.34,1.56,0.64,1)_both]
         font-sora
@@ -154,7 +164,7 @@ function ToastCard({
           </p>
           <p className="text-sm font-semibold text-white leading-snug">{toast.title}</p>
           {toast.message && (
-            <p className="text-[11px] text-white/50 mt-1 leading-snug">{toast.message}</p>
+            <p className="text-[11px] text-white/60 mt-0.5 leading-snug">{toast.message}</p>
           )}
         </div>
 
@@ -171,7 +181,7 @@ function ToastCard({
       <div className="h-[2px] bg-white/5">
         <div
           className={`h-full ${t.bar} transition-none`}
-          style={{ width: `${progress}%`, opacity: 0.6 }}
+          style={{ width: `${progress}%`, opacity: 0.8 }}
         />
       </div>
     </div>
@@ -198,6 +208,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   const value: ToastContextValue = {
     success: (title, msg) => add("success", title, msg),
     error:   (title, msg) => add("error",   title, msg),
+    warning: (title, msg) => add("warning", title, msg),
     delete:  (title, msg) => add("delete",  title, msg),
     update:  (title, msg) => add("update",  title, msg),
     info:    (title, msg) => add("info",    title, msg),

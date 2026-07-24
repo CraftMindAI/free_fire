@@ -13,12 +13,14 @@ export default function LoginPage() {
   const [remember, setRemember] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   const [isForgotModalOpen, setIsForgotModalOpen] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
     setLoading(true);
+    setError("");
     try {
       const res = await fetch("/api/auth/login", {
         method: "POST",
@@ -41,9 +43,9 @@ export default function LoginPage() {
         }
 
         if (role.toLowerCase() === "admin") {
-          router.push(`/dashboard/${data.user.encryptedId}`);
+          router.push(`/profile/v2/dashboard/${data.user.encryptedId}/home`);
         } else {
-          router.push(`/${data.user.encryptedId}/dashboard/home`);
+          router.push(`/profile/v1/${data.user.encryptedId}/dashboard/home`);
         }
       }
     } catch {
@@ -113,6 +115,11 @@ export default function LoginPage() {
 
             {/* Form */}
             <form className="flex flex-col gap-6" onSubmit={handleSubmit}>
+              {error && (
+                <div className="p-3.5 rounded-lg text-xs font-semibold bg-crimson/10 border border-crimson/40 text-[#ffb4ab]">
+                  {error}
+                </div>
+              )}
               {/* ID Entifier */}
               <div className="flex flex-col gap-2">
                 <label className="font-jetbrains text-[10px] tracking-[0.22em] text-on-surface-variant uppercase">

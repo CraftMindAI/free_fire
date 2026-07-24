@@ -73,7 +73,7 @@ export default function Footer() {
           </nav>
 
           <p className="text-on-surface-variant/50 text-[10px] font-bold tracking-widest uppercase">
-            © 2024 Free Fire Esports. All Rights Reserved.
+            © 2024 Tintan Arena Esports. All Rights Reserved.
           </p>
         </div>
       </footer>

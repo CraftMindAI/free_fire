@@ -49,7 +49,7 @@ export default function PrivacyModal({ isOpen, onClose }: PrivacyModalProps) {
 
           <section>
             <h3 className="text-white font-bold mb-2">5. Contact Us</h3>
-            <p>If you have any questions about this Privacy Policy, please contact us at support@titanarena.com.</p>
+            <p>If you have any questions about this Privacy Policy, please contact us at sankaranvishnupriya@gmail.com.</p>
           </section>
         </div>
 

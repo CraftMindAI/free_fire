@@ -1,7 +1,6 @@
-import { redirect } from "next/navigation";
 import prisma from "@/app/lib/prisma";
-import { encryptId, decryptId } from "@/app/lib/encryption";
-import { getSessionUser } from "@/app/lib/auth";
+import { encryptId } from "@/app/lib/encryption";
+import { requireAdminMatch } from "@/app/lib/adminGuard";
 import DashboardClient from "./DashboardClient";
 async function getRooms() {
   const rooms = await prisma.room.findMany();
@@ -64,39 +63,22 @@ async function getStats(roomsCount: number) {
 }
 
 export default async function DashboardPage(props: {
-  params: Promise<{ slug: string[] }>;
+  params: Promise<{ userId: string }>;
 }) {
-  const { slug } = await props.params;
+  const { userId } = await props.params;
 
-  const user = await getSessionUser();
+  const user = await requireAdminMatch(userId);
 
-  // If no user session, redirect to login
-  if (!user) {
-    redirect("/v1/auth/login");
-  }
+  const rooms = await getRooms();
+  const activeRoomsCount = rooms.filter((r) => r.isPublished).length;
+  const stats = await getStats(activeRoomsCount);
 
-  // Handle routing based on route depth/structure
-  // Admin route has 1 slug segment (e.g. /dashboard/[admin_id])
-  // Player route has 2 slug segments (e.g. /dashboard/[roleId]/[userId])
-  if (slug.length === 1) {
-    const decodedId = decryptId(slug[0]);
-
-    if (user.role.toLowerCase() !== "admin" || user.id !== decodedId) {
-      redirect(`/${encryptId(String(user.id))}/dashboard/home`);
-    }
-
-    const rooms = await getRooms();
-    const activeRoomsCount = rooms.filter((r) => r.isPublished).length;
-    const stats = await getStats(activeRoomsCount);
-
-    return (
-      <DashboardClient
-        user={user}
-        initialStats={stats}
-        initialRooms={rooms}
-      />
-    );
-  } else {
-    redirect(`/${encryptId(String(user.id))}/dashboard/home`);
-  }
+  return (
+    <DashboardClient
+      user={user}
+      initialStats={stats}
+      initialRooms={rooms}
+      encryptedUserId={encryptId(String(user.id))}
+    />
+  );
 }

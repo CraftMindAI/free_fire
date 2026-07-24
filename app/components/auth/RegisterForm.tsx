@@ -172,7 +172,7 @@ export default function RegisterForm({ role, mode = "create", initialData, admin
           <label className={labelClass}>Phone Number</label>
           <input
             type="tel"
-            placeholder="+1 (555) 000-0000"
+            placeholder="+91 7428730111"
             value={form.phone}
             onChange={(e) => set("phone", e.target.value)}
             className={inputClass}
@@ -182,7 +182,7 @@ export default function RegisterForm({ role, mode = "create", initialData, admin
           <label className={labelClass}>WhatsApp Number</label>
           <input
             type="tel"
-            placeholder="+1 (555) 000-0000"
+            placeholder="+91 7428730111"
             value={form.whatsapp}
             onChange={(e) => set("whatsapp", e.target.value)}
             className={inputClass}

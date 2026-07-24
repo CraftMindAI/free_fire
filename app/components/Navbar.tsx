@@ -26,6 +26,13 @@ export default function Navbar() {
         </Link>
 
         <div className="flex items-center gap-6">
+           <Link
+            href="/"
+            className="font-orbitron text-white text-xs font-bold tracking-[0.18em] uppercase
+                       hover:text-[#ffb4ab] transition-colors duration-200"
+          >
+            HOME
+          </Link>
           <Link
             href="/about"
             className="font-orbitron text-white text-xs font-bold tracking-[0.18em] uppercase
