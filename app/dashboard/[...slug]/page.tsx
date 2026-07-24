@@ -94,6 +94,7 @@ export default async function DashboardPage(props: {
         user={user}
         initialStats={stats}
         initialRooms={rooms}
+        encryptedUserId={encryptId(String(user.id))}
       />
     );
   } else {

@@ -1,13 +1,12 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useMemo } from "react";
 import Image from "next/image";
 import Header from "@/app/components/common/Header";
 import Sidebar from "@/app/components/common/Sidebar";
 import { RoomData } from "@/app/components/admin/ActiveRooms";
 import { ToastProvider, useToast } from "@/app/components/common/Toast";
 import ParticleCanvas from "@/app/components/ParticleCanvas";
-import { encryptId } from "@/app/lib/encryption";
 
 const MAP_OPTIONS = [
   { value: "Bermuda", label: "BERMUDA", src: "/assets/map/Bermuda.png" },
@@ -239,20 +238,13 @@ interface MatchDetailsClientProps {
     profile_img?: string | null;
   };
   initialRooms: RoomData[];
-  initialStats: {
-    activeRooms: number;
-    draftRooms: number;
-    closedRooms: number;
-  };
 }
 
 function MatchDetailsClientInner({
   user,
   initialRooms,
-  initialStats,
 }: MatchDetailsClientProps) {
   const [rooms, setRooms] = useState<RoomData[]>(initialRooms);
-  const [stats, setStats] = useState(initialStats);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingRoom, setEditingRoom] = useState<RoomData | null>(null);
@@ -291,16 +283,10 @@ function MatchDetailsClientInner({
 
   const fetchUpdatedData = async () => {
     try {
-      const [statsRes, roomsRes] = await Promise.all([
-        fetch("/api/stats", { cache: 'no-store' }),
-        fetch("/api/rooms", { cache: 'no-store' })
-      ]);
+      const roomsRes = await fetch("/api/rooms", { cache: 'no-store' });
 
-      if (statsRes.ok && roomsRes.ok) {
-        const statsData = await statsRes.json();
+      if (roomsRes.ok) {
         const roomsData = await roomsRes.json();
-
-        setStats(statsData.stats);
 
         // Map raw DB rooms to RoomData shape (same as page.tsx)
         const mappedRooms: RoomData[] = (roomsData.rooms ?? []).map(
@@ -324,7 +310,7 @@ function MatchDetailsClientInner({
             endTimeIso: r.endTime ? new Date(r.endTime).toISOString() : "",
             status: r.status,
             isPublished: r.status === "active",
-            encryptedRoomId: encryptId(String(r.id)),
+            encryptedRoomId: r.encryptedRoomId,
             tier: "Legendary",
             icon: "sports_esports",
           })
@@ -336,6 +322,35 @@ function MatchDetailsClientInner({
       console.error("Failed to refresh data:", err);
     }
   };
+
+  // Sort rooms by status: active, then draft, then closed
+  const sortedRooms = useMemo(() => {
+    const statusRank = (room: RoomData) => {
+      const normalizedStatus = (room.status || "").toLowerCase();
+      const isPublished = room.isPublished || normalizedStatus === "active" || normalizedStatus === "published" || normalizedStatus === "live";
+      const isClosed = normalizedStatus === "closed" || normalizedStatus === "completed" || normalizedStatus === "finished";
+      if (isPublished) return 0;
+      if (isClosed) return 2;
+      return 1;
+    };
+    return [...rooms].sort((a, b) => statusRank(a) - statusRank(b));
+  }, [rooms]);
+
+  // Derive stats from the already-loaded rooms instead of a separate API call
+  const stats = useMemo(() => {
+    let activeRooms = 0;
+    let closedRooms = 0;
+    let draftRooms = 0;
+    for (const room of rooms) {
+      const normalizedStatus = (room.status || "").toLowerCase();
+      const isPublished = room.isPublished || normalizedStatus === "active" || normalizedStatus === "published" || normalizedStatus === "live";
+      const isClosed = normalizedStatus === "closed" || normalizedStatus === "completed" || normalizedStatus === "finished";
+      if (isPublished) activeRooms++;
+      else if (isClosed) closedRooms++;
+      else draftRooms++;
+    }
+    return { activeRooms, draftRooms, closedRooms };
+  }, [rooms]);
 
   const handleOpenCreateModal = () => {
     setEditingRoom(null);
@@ -544,38 +559,104 @@ function MatchDetailsClientInner({
               </button>
             </div>
 
-            {/* Stats Overview */}
+            {/* Stats Overview Cards with Scoped Fire Animation & Medium to Full Visible Image Overlay */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {/* Closed Rooms */}
-              <div className="p-8 rounded-xl relative overflow-hidden group hover:border-[#ffb4ab]/50 hover:-translate-y-1 transition-all duration-300 bg-white/[0.03] backdrop-blur-md border border-white/10">
-                <div className="absolute -right-4 -bottom-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                  <span className="material-symbols-outlined text-[120px]">cancel</span>
+              {/* Closed Rooms Card */}
+              <div className="p-8 rounded-2xl relative overflow-hidden group hover:-translate-y-1 transition-all duration-300 bg-white/[0.03] backdrop-blur-md border border-[#ff2e2e]/30 hover:border-[#ffb4ab]/60 shadow-[0_0_40px_rgba(255,46,46,0.08)] hover:shadow-[0_0_50px_rgba(255,46,46,0.2)]">
+                {/* Live Fire Particle Animation Scoped Strictly to Left Side (Away from Background Image) */}
+                <div className="absolute left-0 top-0 bottom-0 w-3/5 overflow-hidden pointer-events-none z-0 filter blur-[1.5px]">
+                  <ParticleCanvas count={30} />
                 </div>
-                <p className="font-jetbrains text-[10px] text-[#e8bcb7] mb-2 tracking-wider">CLOSED ROOMS</p>
-                <div className="flex items-center gap-4">
-                  <span className="font-sora text-4xl font-bold text-[#ffb4ab] glow-crimson counter">{stats.closedRooms}</span>
+
+                {/* Background Profile Image Overlay: Medium Visible Default (opacity-50) -> Full Visible Hover (opacity-100) */}
+                <div className="absolute right-0 top-0 bottom-0 w-2/5 opacity-50 group-hover:opacity-100 transition-all duration-300 pointer-events-none z-10">
+                  <Image
+                    src="/assets/profiles/Pic1.png"
+                    alt="Closed Rooms Profile"
+                    fill
+                    className="object-cover object-top"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-l from-transparent via-[#131313]/30 to-[#131313]" />
+                </div>
+
+                {/* Soft Fire Glow Blur Overlay */}
+                <div className="absolute -bottom-12 -left-12 w-48 h-48 bg-gradient-to-tr from-[#ff2e2e]/20 via-[#ff544a]/10 to-transparent rounded-full blur-3xl pointer-events-none animate-pulse-glow z-0"></div>
+
+                <div className="relative z-20">
+                  <p className="font-jetbrains text-[10px] text-[#e8bcb7] tracking-wider uppercase font-bold mb-4">
+                    CLOSED ROOMS
+                  </p>
+                  <div className="flex items-center gap-4">
+                    <span className="font-sora text-4xl font-extrabold text-[#ffb4ab] neon-red counter">
+                      {stats.closedRooms}
+                    </span>
+                  </div>
                 </div>
               </div>
 
-              {/* Active Rooms */}
-              <div className="p-8 rounded-xl relative overflow-hidden group hover:border-[#ffcb8d]/50 hover:-translate-y-1 transition-all duration-300 bg-white/[0.03] backdrop-blur-md border border-white/10">
-                <div className="absolute -right-4 -bottom-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                  <span className="material-symbols-outlined text-[120px]">sensors</span>
+              {/* Active Rooms Card */}
+              <div className="p-8 rounded-2xl relative overflow-hidden group hover:-translate-y-1 transition-all duration-300 bg-white/[0.03] backdrop-blur-md border border-[#ff2e2e]/30 hover:border-[#ffcb8d]/60 shadow-[0_0_40px_rgba(255,46,46,0.08)] hover:shadow-[0_0_50px_rgba(255,46,46,0.2)]">
+                {/* Live Fire Particle Animation Scoped Strictly to Left Side (Away from Background Image) */}
+                <div className="absolute left-0 top-0 bottom-0 w-3/5 overflow-hidden pointer-events-none z-0 filter blur-[1.5px]">
+                  <ParticleCanvas count={30} />
                 </div>
-                <p className="font-jetbrains text-[10px] text-[#e8bcb7] mb-2 tracking-wider">ACTIVE ROOMS</p>
-                <div className="flex items-center gap-4">
-                  <span className="font-sora text-4xl font-bold text-[#ffcb8d] counter">{stats.activeRooms}</span>
+
+                {/* Background Profile Image Overlay: Medium Visible Default (opacity-50) -> Full Visible Hover (opacity-100) */}
+                <div className="absolute right-0 top-0 bottom-0 w-2/5 opacity-50 group-hover:opacity-100 transition-all duration-300 pointer-events-none z-10">
+                  <Image
+                    src="/assets/profiles/Pic2.png"
+                    alt="Active Rooms Profile"
+                    fill
+                    className="object-cover object-top"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-l from-transparent via-[#131313]/30 to-[#131313]" />
+                </div>
+
+                {/* Soft Fire Glow Blur Overlay */}
+                <div className="absolute -bottom-12 -left-12 w-48 h-48 bg-gradient-to-tr from-[#ff2e2e]/20 via-[#ff544a]/10 to-transparent rounded-full blur-3xl pointer-events-none animate-pulse-glow z-0"></div>
+
+                <div className="relative z-20">
+                  <p className="font-jetbrains text-[10px] text-[#e8bcb7] tracking-wider uppercase font-bold mb-4">
+                    ACTIVE ROOMS
+                  </p>
+                  <div className="flex items-center gap-4">
+                    <span className="font-sora text-4xl font-extrabold text-[#ffcb8d] neon-red counter">
+                      {stats.activeRooms}
+                    </span>
+                  </div>
                 </div>
               </div>
 
-              {/* Draft Rooms */}
-              <div className="p-8 rounded-xl relative overflow-hidden group hover:border-white/30 hover:-translate-y-1 transition-all duration-300 bg-white/[0.03] backdrop-blur-md border border-white/10">
-                <div className="absolute -right-4 -bottom-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                  <span className="material-symbols-outlined text-[120px]">draft</span>
+              {/* Draft Rooms Card */}
+              <div className="p-8 rounded-2xl relative overflow-hidden group hover:-translate-y-1 transition-all duration-300 bg-white/[0.03] backdrop-blur-md border border-[#ff2e2e]/30 hover:border-white/50 shadow-[0_0_40px_rgba(255,46,46,0.08)] hover:shadow-[0_0_50px_rgba(255,46,46,0.2)]">
+                {/* Live Fire Particle Animation Scoped Strictly to Left Side (Away from Background Image) */}
+                <div className="absolute left-0 top-0 bottom-0 w-3/5 overflow-hidden pointer-events-none z-0 filter blur-[1.5px]">
+                  <ParticleCanvas count={30} />
                 </div>
-                <p className="font-jetbrains text-[10px] text-[#e8bcb7] mb-2 tracking-wider">DRAFT ROOMS</p>
-                <div className="flex items-center gap-4">
-                  <span className="font-sora text-4xl font-bold text-on-surface counter">{stats.draftRooms}</span>
+
+                {/* Background Profile Image Overlay: Medium Visible Default (opacity-50) -> Full Visible Hover (opacity-100) */}
+                <div className="absolute right-0 top-0 bottom-0 w-2/5 opacity-50 group-hover:opacity-100 transition-all duration-300 pointer-events-none z-10">
+                  <Image
+                    src="/assets/profiles/Pic3.png"
+                    alt="Draft Rooms Profile"
+                    fill
+                    className="object-cover object-top"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-l from-transparent via-[#131313]/30 to-[#131313]" />
+                </div>
+
+                {/* Soft Fire Glow Blur Overlay */}
+                <div className="absolute -bottom-12 -left-12 w-48 h-48 bg-gradient-to-tr from-[#ff2e2e]/20 via-[#ff544a]/10 to-transparent rounded-full blur-3xl pointer-events-none animate-pulse-glow z-0"></div>
+
+                <div className="relative z-20">
+                  <p className="font-jetbrains text-[10px] text-[#e8bcb7] tracking-wider uppercase font-bold mb-4">
+                    DRAFT ROOMS
+                  </p>
+                  <div className="flex items-center gap-4">
+                    <span className="font-sora text-4xl font-extrabold text-on-surface neon-red counter">
+                      {stats.draftRooms}
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -598,7 +679,7 @@ function MatchDetailsClientInner({
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-white/5 font-sora">
-                    {rooms.map((room) => {
+                    {sortedRooms.map((room) => {
                       const normalizedStatus = (room.status || "").toLowerCase();
                       const isPublished = room.isPublished || normalizedStatus === "active" || normalizedStatus === "published" || normalizedStatus === "live";
                       const isClosed = normalizedStatus === "closed" || normalizedStatus === "completed" || normalizedStatus === "finished";
@@ -824,17 +905,13 @@ function MatchDetailsClientInner({
                   </label>
                   <input
                     value={seats}
-                    onChange={(e) => {
-                      const max = MODE_MAX[gameMode] ?? 48;
-                      const v = Math.min(max, Math.max(1, Number(e.target.value)));
-                      setSeats(String(v));
-                    }}
+                    readOnly
                     required
                     type="number"
                     min="1"
                     max={MODE_MAX[gameMode] ?? 48}
                     placeholder={String(MODE_MAX[gameMode] ?? 48)}
-                    className="w-full bg-[#353534]/50 border-b-2 border-[#ffb4ab]/30 focus:border-[#ffb4ab] outline-none py-3 px-2 text-on-surface transition-all rounded"
+                    className="w-full bg-[#353534]/30 border-b-2 border-white/10 outline-none py-3 px-2 text-on-surface-variant cursor-not-allowed rounded"
                   />
 
                 </div>

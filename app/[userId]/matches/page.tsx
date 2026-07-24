@@ -67,21 +67,11 @@ export default async function MatchDetailsPage(props: {
   const clientUser = { ...user, id: userId };
 
   const rooms = await getRooms();
-  const activeRoomsCount = rooms.filter((r) => r.isPublished).length;
-  const draftRoomsCount = rooms.filter((r) => r.status === "DRAFT").length;
-  const closedRoomsCount = rooms.filter((r) => r.status === "closed" || r.status === "completed").length;
-
-  const stats = {
-    activeRooms: activeRoomsCount,
-    draftRooms: draftRoomsCount,
-    closedRooms: closedRoomsCount,
-  };
 
   return (
     <MatchDetailsClient
       user={clientUser}
       initialRooms={rooms}
-      initialStats={stats}
     />
   );
 }

@@ -78,8 +78,7 @@ export default function ViewDetailsClient({ user, room, bookedSeats }: ViewDetai
 
       <div className="flex-1 flex flex-col min-h-screen min-w-0 relative z-10">
         <Header
-          role={user.role}
-          userName={user.name}
+          username={user.name}
           profileImg={user.profile_img || undefined}
           onToggleSidebar={() => setIsSidebarOpen((prev) => !prev)}
           isSidebarOpen={isSidebarOpen}

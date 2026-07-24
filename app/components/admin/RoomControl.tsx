@@ -1,21 +1,24 @@
 "use client";
 
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 import { RoomData } from "./ActiveRooms";
 
 interface RoomControlProps {
   rooms: RoomData[];
+  userId?: string;
   onPublish: (roomId: string) => Promise<void>;
   onDelete: (roomId: string) => Promise<void>;
 }
 
-export default function RoomControl({ rooms, onPublish, onDelete }: RoomControlProps) {
+export default function RoomControl({ rooms, userId, onPublish, onDelete }: RoomControlProps) {
+  const router = useRouter();
   // Local state for tracking success feedback ping animation for each room
   const [feedbackRoomIds, setFeedbackRoomIds] = useState<string[]>([]);
   const [processingIds, setProcessingIds] = useState<string[]>([]);
 
   // Get draft rooms only
-  const controlRooms = rooms.filter((r) => !r.isPublished);
+  const controlRooms = rooms.filter((r) => r.status.toLowerCase() === "draft");
 
   const handlePublishClick = async (roomId: string) => {
     if (processingIds.includes(roomId)) return;
@@ -32,16 +35,6 @@ export default function RoomControl({ rooms, onPublish, onDelete }: RoomControlP
       console.error("Failed to publish:", err);
     } finally {
       setProcessingIds((prev) => prev.filter((id) => id !== roomId));
-    }
-  };
-
-  const handleDeleteClick = async (roomId: string) => {
-    if (confirm("Are you sure you want to delete this room?")) {
-      try {
-        await onDelete(roomId);
-      } catch (err) {
-        console.error("Failed to delete:", err);
-      }
     }
   };
 
@@ -93,18 +86,14 @@ export default function RoomControl({ rooms, onPublish, onDelete }: RoomControlP
               {/* Action Buttons Row */}
               {!isLive && (
                 <div className="flex gap-2 mt-2 z-10">
-                  <button className="flex-1 bg-[#353534] py-2 rounded text-xs font-bold hover:bg-[#5e3f3b]/30 text-on-surface transition-colors flex items-center justify-center gap-1 font-sora">
-                    <span className="material-symbols-outlined text-sm">edit</span>{" "}
-                    EDIT
-                  </button>
                   <button
-                    onClick={() => handleDeleteClick(room.roomId)}
-                    className="flex-1 bg-red-950/20 text-red-400 py-2 rounded text-xs font-bold hover:bg-red-950/40 transition-colors flex items-center justify-center gap-1 font-sora"
+                    onClick={() => router.push(`/${userId}/matches`)}
+                    className="flex-1 bg-[#353534] py-2 rounded text-xs font-bold hover:bg-[#5e3f3b]/30 text-on-surface transition-colors flex items-center justify-center gap-1 font-sora"
                   >
                     <span className="material-symbols-outlined text-sm">
-                      delete
+                      visibility
                     </span>{" "}
-                    DELETE
+                    VIEW
                   </button>
                 </div>
               )}
@@ -134,8 +123,17 @@ export default function RoomControl({ rooms, onPublish, onDelete }: RoomControlP
           );
         })}
         {controlRooms.length === 0 && (
-          <div className="bg-white/[0.03] backdrop-blur-md border border-white/10 p-6 rounded-xl text-center text-on-surface-variant font-sora text-sm">
-            No draft matches found.
+          <div className="bg-white/[0.03] backdrop-blur-md border border-white/10 p-6 rounded-xl text-center flex flex-col items-center gap-4">
+            <p className="text-on-surface-variant font-sora text-sm">
+              No draft matches found.
+            </p>
+            <button
+              onClick={() => router.push(`/${userId}/matches`)}
+              className="bg-[#ffb4ab]/20 text-[#ffb4ab] border border-[#ffb4ab]/40 hover:bg-[#ffb4ab] hover:text-[#690005] active:scale-95 px-5 py-3 rounded-lg font-bold font-orbitron text-xs tracking-widest transition-all flex items-center gap-2"
+            >
+              <span className="material-symbols-outlined text-sm">add</span>
+              CREATE ROOM
+            </button>
           </div>
         )}
       </div>

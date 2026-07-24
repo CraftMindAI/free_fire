@@ -23,12 +23,14 @@ interface DashboardClientProps {
     totalPrizePaid: string;
   };
   initialRooms: RoomData[];
+  encryptedUserId: string;
 }
 
 export default function DashboardClient({
   user,
   initialStats,
   initialRooms,
+  encryptedUserId,
 }: DashboardClientProps) {
   const [stats, setStats] = useState(initialStats);
   const [rooms, setRooms] = useState<RoomData[]>(initialRooms);
@@ -143,6 +145,7 @@ export default function DashboardClient({
 
             <RoomControl
               rooms={rooms}
+              userId={encryptedUserId}
               onPublish={handlePublishRoom}
               onDelete={handleDeleteRoom}
             />
