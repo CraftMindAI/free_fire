@@ -849,7 +849,7 @@ export default function SettingsClient({
                   value={profilePhone}
                   onChange={(e) => setProfilePhone(e.target.value)}
                   className="w-full bg-[#1c1b1b] border border-white/10 rounded-lg py-2.5 px-3 text-sm focus:border-[#ffb4ab] focus:ring-1 focus:ring-[#ffb4ab] focus:outline-none transition-all placeholder:text-[#e8bcb7]/20"
-                  placeholder="+91 Your Mobile Number"
+                  placeholder="+91 7428730111"
                 />
               </div>
               <div className="space-y-1">
@@ -861,7 +861,7 @@ export default function SettingsClient({
                   value={profileWhatsapp}
                   onChange={(e) => setProfileWhatsapp(e.target.value)}
                   className="w-full bg-[#1c1b1b] border border-white/10 rounded-lg py-2.5 px-3 text-sm focus:border-[#ffb4ab] focus:ring-1 focus:ring-[#ffb4ab] focus:outline-none transition-all placeholder:text-[#e8bcb7]/20"
-                  placeholder="+91 Your Mobile Number"
+                  placeholder="+91 7428730111"
                 />
               </div>
             </div>

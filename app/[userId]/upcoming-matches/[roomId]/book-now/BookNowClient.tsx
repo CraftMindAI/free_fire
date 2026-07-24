@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import Header from "@/app/components/common/Header";
-import { toast } from 'react-toastify';
+import { useToast } from "@/app/components/common/Toast";
 import Sidebar from "@/app/components/common/Sidebar";
 import ShaderBackground from "@/app/components/ShaderBackground";
 import TermsModal from "@/app/components/common/TermsModal";
@@ -28,6 +28,7 @@ interface BookNowClientProps {
 }
 
 export default function BookNowClient({ user, room, bookedSeats: initialBookedSeats }: BookNowClientProps) {
+  const toast = useToast();
   const router = useRouter();
   const params = useParams();
   const encryptedUserId = params.userId as string;
@@ -134,11 +135,11 @@ export default function BookNowClient({ user, room, bookedSeats: initialBookedSe
 
   const handleReserveClick = () => {
     if (isMatchStarted) {
-      toast.error("Match already started! Go check on Live Stream.");
+      toast.error("Match Started", "Match already started! Go check on Live Stream.");
       return;
     }
     if (selectedSeats.length === 0) {
-      toast.warning("Please select at least one seat before proceeding to payment.");
+      toast.warning("Select Seats", "Please select at least one seat before proceeding to payment.");
       return;
     }
     setIsModalOpen(true);
@@ -147,11 +148,11 @@ export default function BookNowClient({ user, room, bookedSeats: initialBookedSe
   const handleConfirmBooking = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (isMatchStarted) {
-      toast.error("Match already started! Go check on Live Stream.");
+      toast.error("Match Started", "Match already started! Go check on Live Stream.");
       return;
     }
     if (!agreeRules) {
-      toast.warning("Please agree to the tournament rules.");
+      toast.warning("Rules Unaccepted", "Please agree to the tournament rules.");
       return;
     }
     
@@ -164,7 +165,7 @@ export default function BookNowClient({ user, room, bookedSeats: initialBookedSe
     if (!p1.isGpayNumber && !p1.gpayNumber) missingP1Fields.push("GPay Number");
 
     if (missingP1Fields.length > 0) {
-      toast.error(`Please fill all required fields for Player 1 before confirming: ${missingP1Fields.join(", ")}.`);
+      toast.error("Incomplete Fields", `Please fill all required fields for Player 1: ${missingP1Fields.join(", ")}.`);
       setActiveTab(0);
       return;
     }
@@ -246,10 +247,10 @@ export default function BookNowClient({ user, room, bookedSeats: initialBookedSe
       ]);
       setActiveTab(0);
 
-      toast.success("Slot(s) successfully booked!");
+      toast.success("Booking Confirmed", "Slot(s) successfully booked!");
     } catch (err: any) {
       setIsProcessing(false);
-      toast.error(err.message);
+      toast.error("Booking Failed", err.message || "Could not process booking.");
     }
   };
 

@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import ParticleCanvas from "@/app/components/ParticleCanvas";
 import ForgotAccessModal from "@/app/components/auth/ForgotAccessModal";
-import { toast } from 'react-toastify';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -13,11 +12,13 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [remember, setRemember] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   const [isForgotModalOpen, setIsForgotModalOpen] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
+    setError("");
     try {
       const res = await fetch("/api/auth/login", {
         method: "POST",
@@ -26,7 +27,7 @@ export default function LoginPage() {
       });
       const data = await res.json();
       if (!res.ok) {
-        toast.error(data.error ?? "Login failed.");
+        setError(data.error ?? "Login failed.");
       } else {
         // Convert user name to binary and use as route
         console.log(data.user);
@@ -34,12 +35,11 @@ export default function LoginPage() {
         const role = data.user?.role as string;
 
         if (!name || !role) {
-          toast.error("User data is incomplete.");
+          setError("User data is incomplete.");
           setLoading(false);
           return;
         }
 
-        toast.success("Login successful");
         if (role.toLowerCase() === "admin") {
           router.push(`/profile/v2/dashboard/${data.user.encryptedId}/home`);
         } else {
@@ -47,7 +47,7 @@ export default function LoginPage() {
         }
       }
     } catch {
-      toast.error("Network error. Please try again.");
+      setError("Network error. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -113,6 +113,11 @@ export default function LoginPage() {
 
             {/* Form */}
             <form className="flex flex-col gap-6" onSubmit={handleSubmit}>
+              {error && (
+                <div className="p-3.5 rounded-lg text-xs font-semibold bg-crimson/10 border border-crimson/40 text-[#ffb4ab]">
+                  {error}
+                </div>
+              )}
               {/* ID Entifier */}
               <div className="flex flex-col gap-2">
                 <label className="font-jetbrains text-[10px] tracking-[0.22em] text-on-surface-variant uppercase">

@@ -1,17 +1,17 @@
 "use client";
 
 import { useState } from "react";
+import { useToast } from "@/app/components/common/Toast";
 import ParticleCanvas from "@/app/components/ParticleCanvas";
 
 export default function ContactPage() {
+  const toast = useToast();
   const [form, setForm] = useState({ name: "", email: "", mobile: "", message: "" });
   const [loading, setLoading] = useState(false);
-  const [status, setStatus] = useState<{type: "success" | "error" | null, text: string}>({ type: null, text: "" });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setStatus({ type: null, text: "" });
 
     try {
       const res = await fetch("/api/contact", {
@@ -23,13 +23,13 @@ export default function ContactPage() {
       const data = await res.json();
 
       if (res.ok) {
-        setStatus({ type: "success", text: "Message sent successfully!" });
+        toast.success("Message Sent", "We have received your message and will respond shortly.");
         setForm({ name: "", email: "", mobile: "", message: "" });
       } else {
-        setStatus({ type: "error", text: data.error || "Failed to send message." });
+        toast.error("Send Failed", data.error || "Failed to send message.");
       }
     } catch (err) {
-      setStatus({ type: "error", text: "An error occurred. Please try again." });
+      toast.error("Error Occurred", "An error occurred. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -138,23 +138,21 @@ export default function ContactPage() {
             </div>
 
             <div>
-              <label htmlFor="message" className="block text-sm font-bold text-on-surface-variant mb-2">Message</label>
+              <div className="flex items-center justify-between mb-2">
+                <label htmlFor="message" className="block text-sm font-bold text-on-surface-variant">Message</label>
+                <span className="text-xs text-on-surface-variant/60">{form.message.length}/250</span>
+              </div>
               <textarea
                 id="message"
                 rows={5}
                 required
+                maxLength={250}
                 value={form.message}
-                onChange={(e) => setForm({ ...form, message: e.target.value })}
-                placeholder="How can we help you?"
+                onChange={(e) => setForm({ ...form, message: e.target.value.slice(0, 250) })}
+                placeholder="How can we help you? (max 250 characters)"
                 className="w-full bg-black/30 border border-white/10 rounded-md px-4 py-3 text-white placeholder-white/30 focus:outline-none focus:border-crimson focus:ring-1 focus:ring-crimson transition-all duration-200 resize-none"
               ></textarea>
             </div>
-
-            {status.type && (
-              <div className={`p-4 rounded-md text-sm font-bold border ${status.type === "success" ? "bg-green-500/10 border-green-500 text-green-500" : "bg-crimson/10 border-crimson text-crimson"}`}>
-                {status.text}
-              </div>
-            )}
 
             <button
               type="submit"

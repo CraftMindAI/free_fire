@@ -44,7 +44,7 @@ export default function TermsModal({ isOpen, onClose }: TermsModalProps) {
           
           <section>
             <h3 className="text-white font-bold mb-2">4. Payouts and Rewards</h3>
-            <p>All cash rewards will be processed within the stipulated timeframe. Titan Arena reserves the right to withhold payouts if suspicious activity or rule violations are detected during the gameplay.</p>
+            <p>All cash rewards will be processed within 24-48 hours of match completion. Titan Arena reserves the right to withhold payouts if suspicious activity or rule violations are detected during the gameplay.</p>
           </section>
 
           <section>
