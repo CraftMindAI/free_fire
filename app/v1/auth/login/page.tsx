@@ -13,14 +13,12 @@ export default function LoginPage() {
   const [remember, setRemember] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
   const [isForgotModalOpen, setIsForgotModalOpen] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
     setLoading(true);
-    setError("");
     try {
       const res = await fetch("/api/auth/login", {
         method: "POST",

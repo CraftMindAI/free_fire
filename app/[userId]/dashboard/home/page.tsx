@@ -41,6 +41,9 @@ export default async function PlayerDashboardPage(props: {
   }
 
   const decodedId = decryptId(userId);
+  if (!decodedId) {
+    redirect("/v1/auth/login");
+  }
 
   // Ensure user can only see their own dashboard
   if (user.id !== decodedId && user.role.toLowerCase() !== "admin") {
