@@ -15,6 +15,7 @@ const LINKS = [
 const LINK_HREFS: Record<string, string> = {
   "About Us": "/about",
   "Contact Us": "/contact",
+  "Privacy Policy": "/privacy-policy",
 };
 
 export default function Footer() {
@@ -27,6 +28,7 @@ export default function Footer() {
     pathname === "/" ||
     pathname === "/about" ||
     pathname === "/contact" ||
+    pathname === "/privacy-policy" ||
     pathname === "/v1/auth/login" ||
     pathname === "/v1/auth/register";
 
@@ -45,19 +47,29 @@ export default function Footer() {
 
           <nav className="flex flex-wrap justify-center gap-8">
             {LINKS.map((link) => {
-              if (link === "Terms of Service" || link === "Privacy Policy") {
+              if (link === "Terms of Service") {
                 return (
                   <button
                     key={link}
                     onClick={(e) => {
                       e.preventDefault();
-                      if (link === "Terms of Service") setIsTermsOpen(true);
-                      if (link === "Privacy Policy") setIsPrivacyOpen(true);
+                      setIsTermsOpen(true);
                     }}
-                    className="text-on-surface-variant text-xs font-bold tracking-widest uppercase hover:text-crimson transition-colors duration-200"
+                    className="text-on-surface-variant text-xs font-bold tracking-widest uppercase hover:text-crimson transition-colors duration-200 cursor-pointer"
                   >
                     {link}
                   </button>
+                );
+              }
+              if (link === "Privacy Policy") {
+                return (
+                  <Link
+                    key={link}
+                    href="/privacy-policy"
+                    className="text-on-surface-variant text-xs font-bold tracking-widest uppercase hover:text-crimson transition-colors duration-200"
+                  >
+                    {link}
+                  </Link>
                 );
               }
               return (
