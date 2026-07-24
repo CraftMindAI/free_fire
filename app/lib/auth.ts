@@ -34,6 +34,15 @@ export const getSessionUser = cache(async () => {
       profile_img: userDb?.profile_img || null,
     };
   } catch (error) {
+    // Next.js throws this internally when `cookies()` is called during static
+    // prerendering to signal the route must render dynamically. Let it bubble
+    // up instead of swallowing it as a JWT failure.
+    if (
+      error instanceof Error &&
+      (error as { digest?: string }).digest === "DYNAMIC_SERVER_USAGE"
+    ) {
+      throw error;
+    }
     console.error("JWT verification failed:", error);
     return null;
   }
