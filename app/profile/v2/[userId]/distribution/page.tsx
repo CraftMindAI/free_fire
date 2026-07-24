@@ -1,8 +1,6 @@
-import { redirect } from "next/navigation";
-import { getSessionUser } from "@/app/lib/auth";
 import prisma from "@/app/lib/prisma";
-import { encryptId, decryptId } from "@/app/lib/encryption";
 import { getBookingGroupsByRoom } from "@/app/lib/bookingGroups";
+import { requireAdminMatch } from "@/app/lib/adminGuard";
 import DistributionClient from "./DistributionClient";
 
 export interface TransactionRecord {
@@ -113,19 +111,7 @@ export default async function DistributionPage(props: {
 }) {
   const { userId } = await props.params;
 
-  const user = await getSessionUser();
-
-  // If no user session, redirect to login
-  if (!user) {
-    redirect("/v1/auth/login");
-  }
-
-  // Double check authorization: must be Admin
-  const decodedId = decryptId(userId);
-
-  if (user.id !== decodedId && user.role.toLowerCase() !== "admin") {
-    redirect(`/${encryptId(String(user.id))}/distribution`);
-  }
+  const user = await requireAdminMatch(userId);
 
   const clientUser = { ...user, id: userId };
 

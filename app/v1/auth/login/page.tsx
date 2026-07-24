@@ -41,9 +41,9 @@ export default function LoginPage() {
 
         toast.success("Login successful");
         if (role.toLowerCase() === "admin") {
-          router.push(`/dashboard/${data.user.encryptedId}`);
+          router.push(`/profile/v2/dashboard/${data.user.encryptedId}/home`);
         } else {
-          router.push(`/${data.user.encryptedId}/dashboard/home`);
+          router.push(`/profile/v1/${data.user.encryptedId}/dashboard/home`);
         }
       }
     } catch {

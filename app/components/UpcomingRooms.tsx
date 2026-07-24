@@ -126,9 +126,9 @@ export default async function UpcomingRooms() {
       const encryptedId = encryptId(userId);
       
       if (role === "admin") {
-        targetHref = `/dashboard/${encryptedId}`;
+        targetHref = `/profile/v2/dashboard/${encryptedId}/home`;
       } else {
-        targetHref = `/${encryptedId}/dashboard/home`;
+        targetHref = `/profile/v1/${encryptedId}/dashboard/home`;
       }
     } catch (e) {
       targetHref = "/v1/auth/login";

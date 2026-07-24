@@ -16,20 +16,25 @@ export default async function MyMatchesPage({ params }: MyMatchesPageProps) {
   // Validate session
   const user = await getSessionUser();
   if (!user) {
-    redirect("/login");
+    redirect("/v1/auth/login");
+  }
+
+  // Only players can access this route
+  if (user.role.toLowerCase() !== "player") {
+    redirect(`/profile/v2/dashboard/${encryptId(String(user.id))}/home`);
   }
 
   // Decrypt URL parameter to ensure authorization
   const decodedId = decryptId(userId);
 
-  // Validate the decrypted ID matches the logged-in user or admin
-  if (user.id !== decodedId && user.role.toLowerCase() !== "admin") {
+  // Validate the decrypted ID matches the logged-in user
+  if (user.id !== decodedId) {
     redirect(`/profile/v1/${encryptId(String(user.id))}/my-matches`);
   }
 
   const numericUserId = parseInt(decodedId || "", 10);
   if (isNaN(numericUserId)) {
-    redirect(`/dashboard/player/${userId}`);
+    redirect(`/profile/v1/${encryptId(String(user.id))}/dashboard/home`);
   }
 
   // Fetch full user details

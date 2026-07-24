@@ -87,7 +87,7 @@ export default function RoomControl({ rooms, userId, onPublish, onDelete }: Room
               {!isLive && (
                 <div className="flex gap-2 mt-2 z-10">
                   <button
-                    onClick={() => router.push(`/${userId}/matches`)}
+                    onClick={() => router.push(`/profile/v2/${userId}/matches`)}
                     className="flex-1 bg-[#353534] py-2 rounded text-xs font-bold hover:bg-[#5e3f3b]/30 text-on-surface transition-colors flex items-center justify-center gap-1 font-sora"
                   >
                     <span className="material-symbols-outlined text-sm">
@@ -128,7 +128,7 @@ export default function RoomControl({ rooms, userId, onPublish, onDelete }: Room
               No draft matches found.
             </p>
             <button
-              onClick={() => router.push(`/${userId}/matches`)}
+              onClick={() => router.push(`/profile/v2/${userId}/matches`)}
               className="bg-[#ffb4ab]/20 text-[#ffb4ab] border border-[#ffb4ab]/40 hover:bg-[#ffb4ab] hover:text-[#690005] active:scale-95 px-5 py-3 rounded-lg font-bold font-orbitron text-xs tracking-widest transition-all flex items-center gap-2"
             >
               <span className="material-symbols-outlined text-sm">add</span>

@@ -1,26 +1,15 @@
 import { redirect } from "next/navigation";
-import { getSessionUser } from "@/app/lib/auth";
 import prisma from "@/app/lib/prisma";
-import SettingsClient from "./SettingsClient";
+import { requireAdminMatch } from "@/app/lib/adminGuard";
+import SettingsClient from "@/app/profile/v1/[userId]/settings/SettingsClient";
 
-export default async function SettingsPage(props: {
+export default async function AdminSettingsPage(props: {
   params: Promise<{ userId: string }>;
 }) {
   const { userId } = await props.params;
 
-  const sessionUser = await getSessionUser();
+  const sessionUser = await requireAdminMatch(userId);
 
-  // If no user session, redirect to login
-  if (!sessionUser) {
-    redirect("/v1/auth/login");
-  }
-
-  // Only players can access this route
-  if (sessionUser.role.toLowerCase() !== "player") {
-    redirect(`/profile/v2/${userId}/settings`);
-  }
-
-  // Fetch the full details of the logged-in user from the database
   const user = await prisma.user.findUnique({
     where: { id: Number(sessionUser.id) },
     select: {
@@ -39,30 +28,21 @@ export default async function SettingsPage(props: {
     redirect("/v1/auth/login");
   }
 
-  // Fetch administrator team details if the user is an Admin
-  let admins: any[] = [];
-  const isAdmin = user.role.toLowerCase() === "admin";
-  if (isAdmin) {
-    admins = await prisma.user.findMany({
-      where: {
-        role: "admin",
-      },
-      select: {
-        id: true,
-        username: true,
-        player_id: true,
-        email: true,
-        phone: true,
-        whatsapp: true,
-        role: true,
-        profile_img: true,
-        createdAt: true,
-      },
-      orderBy: {
-        id: "asc",
-      },
-    });
-  }
+  const admins = await prisma.user.findMany({
+    where: { role: "admin" },
+    select: {
+      id: true,
+      username: true,
+      player_id: true,
+      email: true,
+      phone: true,
+      whatsapp: true,
+      role: true,
+      profile_img: true,
+      createdAt: true,
+    },
+    orderBy: { id: "asc" },
+  });
 
   return (
     <SettingsClient
@@ -84,7 +64,7 @@ export default async function SettingsPage(props: {
         phone: adm.phone || "",
         whatsapp: adm.whatsapp || "",
         role: adm.role,
-        status: "Active", // Custom UI status
+        status: "Active",
         profile_img: adm.profile_img,
       }))}
     />

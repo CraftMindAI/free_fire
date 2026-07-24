@@ -19,7 +19,7 @@ const stats: Stat[] = [
   },
   {
     id: 2,
-    value: "4.2M",
+    value: "1K",
     label: "ACTIVE USERS",
     description:
       "Join the world's fastest growing gaming community and find matches within seconds.",

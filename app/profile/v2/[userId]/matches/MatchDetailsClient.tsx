@@ -771,7 +771,7 @@ function MatchDetailsClientInner({
                               {/* VIEW (Only if Published or Closed) */}
                               {(isPublished || isClosed) && (
                                 <a
-                                  href={`/${user.id}/matches/${room.encryptedRoomId}/view-details`}
+                                  href={`/profile/v2/${user.id}/matches/${room.encryptedRoomId}/view-details`}
                                   className="p-2 rounded-lg transition-all bg-white/5 text-on-surface-variant hover:text-[#ffb4ab] hover:bg-white/10 cursor-pointer"
                                   title="View match details"
                                 >

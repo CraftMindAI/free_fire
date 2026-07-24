@@ -2,33 +2,19 @@ import { redirect } from "next/navigation";
 import { getSessionUser } from "@/app/lib/auth";
 import prisma from "@/app/lib/prisma";
 import { encryptId, decryptId } from "@/app/lib/encryption";
-import MatchDetailsClient from "./MatchDetailsClient";
+import UpcomingMatchesClient from "@/app/[userId]/upcoming-matches/UpcomingMatchesClient";
 
-// Infer matchType from maxPlayers since DB column not yet migrated
-function inferMatchType(maxPlayers: number): string {
-  if (maxPlayers <= 12) return "Squad";
-  if (maxPlayers <= 24) return "Duo";
-  return "Solo";
-}
-
-async function getRooms() {
-  const now = new Date();
-  await prisma.room.updateMany({
-    where: {
-      status: "active",
-      endTime: { lt: now },
-    },
-    data: { status: "closed" },
+async function getPublishedRooms() {
+  const rooms = await prisma.room.findMany({
+    where: { status: "active" },
   });
-
-  const rooms = await prisma.room.findMany();
 
   return rooms.map((r) => ({
     roomId: String(r.id),
     name: r.roomName,
     map: r.roomName,
     map_img: r.map_img || undefined,
-    matchType: r.match_type ? `Battle Royale (${r.match_type})` : inferMatchType(r.maxPlayers),
+    matchType: r.match_type ? `Battle Royale (${r.match_type})` : r.maxPlayers === 48 ? "Battle Royale (Solo)" : r.maxPlayers === 24 ? "Battle Royale (Duo)" : "Battle Royale (Squad)",
     entryFee: r.entry_fee || 0,
     prizePool: r.total_price || 0,
     playersCount: r.currentPlayers,
@@ -36,7 +22,6 @@ async function getRooms() {
     matchDate: r.startTime?.toLocaleDateString() || "",
     matchTime: r.startTime?.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }) || "",
     matchDateIso: r.startTime?.toISOString() || "",
-    endTimeIso: r.endTime?.toISOString() || "",
     encryptedRoomId: encryptId(String(r.id)),
     status: r.status,
     isPublished: r.status === "active",
@@ -45,33 +30,35 @@ async function getRooms() {
   }));
 }
 
-export default async function MatchDetailsPage(props: {
+export default async function PlayerUpcomingMatchesPage(props: {
   params: Promise<{ userId: string }>;
 }) {
   const { userId } = await props.params;
-
   const user = await getSessionUser();
 
-  // If no user session, redirect to login
   if (!user) {
     redirect("/v1/auth/login");
   }
 
+  // Only players can access this route
+  if (user.role.toLowerCase() !== "player") {
+    redirect(`/profile/v2/dashboard/${encryptId(String(user.id))}/home`);
+  }
+
   const decodedId = decryptId(userId);
 
-  // Double check authorization: must be Admin
-  if (user.role.toLowerCase() !== "admin") {
-    redirect(`/${encryptId(String(user.id))}/dashboard/home`);
+  // Ensure user can only see their own page
+  if (user.id !== decodedId) {
+    redirect(`/profile/v1/${encryptId(String(user.id))}/upcoming-matches`);
   }
 
   const clientUser = { ...user, id: userId };
-
-  const rooms = await getRooms();
+  const activeRooms = await getPublishedRooms();
 
   return (
-    <MatchDetailsClient
+    <UpcomingMatchesClient
       user={clientUser}
-      initialRooms={rooms}
+      initialRooms={activeRooms}
     />
   );
 }

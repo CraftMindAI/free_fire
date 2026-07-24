@@ -37,6 +37,7 @@ export default function PaymentHistoryClient({
     profile_img?: string | null;
   };
 }) {
+  const isAdmin = user.role.toLowerCase() === "admin";
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [roomFilter, setRoomFilter] = useState<string>("ALL");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
@@ -159,7 +160,7 @@ export default function PaymentHistoryClient({
                     <span className="material-symbols-outlined text-[32px]">payments</span>
                   </div>
                   <div>
-                    <p className="text-[#e8bcb7] font-jetbrains text-[10px] tracking-widest font-bold mb-1 uppercase">TOTAL AMOUNT RECEIVED</p>
+                    <p className="text-[#e8bcb7] font-jetbrains text-[10px] tracking-widest font-bold mb-1 uppercase">{isAdmin ? "TOTAL AMOUNT RECEIVED" : "TOTAL AMOUNT PAID"}</p>
                     <h3 className="font-sora text-4xl font-extrabold text-on-surface neon-red">₹{totalReceived.toLocaleString()}</h3>
                   </div>
                 </div>
@@ -191,7 +192,7 @@ export default function PaymentHistoryClient({
                     <span className="material-symbols-outlined text-[32px]">trophy</span>
                   </div>
                   <div>
-                    <p className="text-[#e8bcb7] font-jetbrains text-[10px] tracking-widest font-bold mb-1 uppercase">TOTAL AMOUNT PAID</p>
+                    <p className="text-[#e8bcb7] font-jetbrains text-[10px] tracking-widest font-bold mb-1 uppercase">{isAdmin ? "TOTAL AMOUNT PAID" : "TOTAL AMOUNT RECEIVED"}</p>
                     <h3 className="font-sora text-4xl font-extrabold text-[#ffcb8d] neon-red">₹{totalPaidOut.toLocaleString()}</h3>
                   </div>
                 </div>
@@ -209,7 +210,7 @@ export default function PaymentHistoryClient({
                       type="text"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      placeholder="Search room or player..."
+                      placeholder={isAdmin ? "Search room or player..." : "Search room..."}
                       className="bg-white/5 border border-white/10 rounded-full py-1.5 pl-9 pr-4 text-[12px] focus:border-[#ffb4ab] outline-none transition-all w-56 text-on-surface placeholder:text-[#e8bcb7]"
                     />
                   </div>
@@ -218,7 +219,7 @@ export default function PaymentHistoryClient({
                     <select
                       value={statusFilter}
                       onChange={(e) => setStatusFilter(e.target.value)}
-                      className="bg-white/5 border border-white/10 rounded px-3 py-1.5 text-[11px] font-jetbrains font-bold tracking-widest outline-none text-on-surface focus:border-[#ffb4ab]"
+                      className="bg-white/5 border border-white/10 rounded px-3 py-1.5 text-[11px] font-jetbrains font-bold tracking-widest outline-none text-on-surface opacity-80 shadow-[0_0_15px_rgba(255,180,171,0.15)] hover:opacity-100 focus:opacity-100 focus:border-[#ffb4ab] focus:shadow-[0_0_15px_rgba(255,180,171,0.4)] transition-all"
                     >
                       <option value="ALL" className="bg-[#131313]">ALL</option>
                       <option value="Success" className="bg-[#131313]">SUCCESS</option>

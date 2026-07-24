@@ -1,8 +1,10 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import Image from "next/image";
 import Header from "@/app/components/common/Header";
 import Sidebar from "@/app/components/common/Sidebar";
+import ParticleCanvas from "@/app/components/ParticleCanvas";
 
 interface BookingData {
   id: string;
@@ -41,10 +43,13 @@ export default function MyMatchesClient({
   const [selectedBookingForSeats, setSelectedBookingForSeats] =
     useState<BookingData | null>(null);
 
-  // Real-time ticking state to evaluate match start times
-  const [now, setNow] = useState<Date>(new Date());
+  // Real-time ticking state to evaluate match start times.
+  // Starts null so the server-rendered markup and the client's first
+  // hydration pass match exactly; the real clock only kicks in after mount.
+  const [now, setNow] = useState<Date | null>(null);
 
   useEffect(() => {
+    setNow(new Date());
     const interval = setInterval(() => {
       setNow(new Date());
     }, 1000); // Update every 1 second for real-time countdown
@@ -99,7 +104,7 @@ export default function MyMatchesClient({
   };
 
   return (
-    <div className="flex bg-[#131313] text-on-surface min-h-screen relative font-sora">
+    <div className="flex bg-transparent text-on-surface min-h-screen relative font-sora overflow-hidden">
       {/* Sidebar */}
       <Sidebar
         role={user.role}
@@ -157,6 +162,103 @@ export default function MyMatchesClient({
             </div>
           </div>
 
+          {/* Hero Stats Grid with Scoped Fire Animation & Hover Profile Overlay */}
+          <section className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+            {/* Total Bookings Card */}
+            <div className="p-8 rounded-2xl relative overflow-hidden group hover:-translate-y-1 transition-all duration-300 bg-white/[0.03] backdrop-blur-md border border-[#ff2e2e]/30 hover:border-[#ffb4ab]/60 shadow-[0_0_40px_rgba(255,46,46,0.08)] hover:shadow-[0_0_50px_rgba(255,46,46,0.2)]">
+              {/* Scoped Fire Particle Animation */}
+              <div className="absolute left-0 top-0 bottom-0 w-3/5 overflow-hidden pointer-events-none z-0 filter blur-[1.5px]">
+                <ParticleCanvas count={30} />
+              </div>
+
+              {/* Profile Image Overlay: Medium (opacity-50) -> Full (opacity-100) */}
+              <div className="absolute right-0 top-0 bottom-0 w-1/4 max-w-[160px] opacity-50 group-hover:opacity-100 transition-all duration-300 pointer-events-none z-10">
+                <Image
+                  src="/assets/profiles/Pic1.png"
+                  alt="Total Bookings"
+                  fill
+                  className="object-cover object-top"
+                />
+                <div className="absolute inset-0 bg-gradient-to-l from-transparent via-[#131313]/30 to-[#131313]" />
+              </div>
+
+              {/* Ambient Fire Glow Overlay */}
+              <div className="absolute -bottom-12 -left-12 w-48 h-48 bg-gradient-to-tr from-[#ff2e2e]/20 via-[#ff544a]/10 to-transparent rounded-full blur-3xl pointer-events-none animate-pulse-glow z-0"></div>
+
+              <div className="relative z-20">
+                <p className="font-jetbrains text-[10px] text-[#e8bcb7] mb-4 tracking-wider uppercase font-bold">TOTAL BOOKINGS</p>
+                <div className="flex items-center gap-4">
+                  <span className="font-sora text-4xl font-extrabold text-[#ffb4ab] neon-red counter">{bookings.length}</span>
+                  <span className="material-symbols-outlined text-[#ffb4ab]">confirmation_number</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Active Matches Card */}
+            <div className="p-8 rounded-2xl relative overflow-hidden group hover:-translate-y-1 transition-all duration-300 bg-white/[0.03] backdrop-blur-md border border-[#ff2e2e]/30 hover:border-[#ffcb8d]/60 shadow-[0_0_40px_rgba(255,46,46,0.08)] hover:shadow-[0_0_50px_rgba(255,46,46,0.2)]">
+              {/* Scoped Fire Particle Animation */}
+              <div className="absolute left-0 top-0 bottom-0 w-3/5 overflow-hidden pointer-events-none z-0 filter blur-[1.5px]">
+                <ParticleCanvas count={30} />
+              </div>
+
+              {/* Profile Image Overlay: Medium (opacity-50) -> Full (opacity-100) */}
+              <div className="absolute right-0 top-0 bottom-0 w-1/4 max-w-[160px] opacity-50 group-hover:opacity-100 transition-all duration-300 pointer-events-none z-10">
+                <Image
+                  src="/assets/profiles/Pic2.png"
+                  alt="Active Matches"
+                  fill
+                  className="object-cover object-top"
+                />
+                <div className="absolute inset-0 bg-gradient-to-l from-transparent via-[#131313]/30 to-[#131313]" />
+              </div>
+
+              {/* Ambient Fire Glow Overlay */}
+              <div className="absolute -bottom-12 -left-12 w-48 h-48 bg-gradient-to-tr from-[#ff2e2e]/20 via-[#ff544a]/10 to-transparent rounded-full blur-3xl pointer-events-none animate-pulse-glow z-0"></div>
+
+              <div className="relative z-20">
+                <p className="font-jetbrains text-[10px] text-[#e8bcb7] mb-4 tracking-wider uppercase font-bold">ACTIVE MATCHES</p>
+                <div className="flex items-center gap-4">
+                  <span className="font-sora text-4xl font-extrabold text-[#ffcb8d] neon-red counter">
+                    {bookings.filter(b => b.bookingStatus !== 'cancelled' && b.roomStatus !== 'completed' && b.roomStatus !== 'closed').length}
+                  </span>
+                  <span className="material-symbols-outlined text-[#ffcb8d]">sports_esports</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Completed History Card */}
+            <div className="p-8 rounded-2xl relative overflow-hidden group hover:-translate-y-1 transition-all duration-300 bg-white/[0.03] backdrop-blur-md border border-[#ff2e2e]/30 hover:border-emerald-400/60 shadow-[0_0_40px_rgba(255,46,46,0.08)] hover:shadow-[0_0_50px_rgba(255,46,46,0.2)]">
+              {/* Scoped Fire Particle Animation */}
+              <div className="absolute left-0 top-0 bottom-0 w-3/5 overflow-hidden pointer-events-none z-0 filter blur-[1.5px]">
+                <ParticleCanvas count={30} />
+              </div>
+
+              {/* Profile Image Overlay: Medium (opacity-50) -> Full (opacity-100) */}
+              <div className="absolute right-0 top-0 bottom-0 w-1/4 max-w-[160px] opacity-50 group-hover:opacity-100 transition-all duration-300 pointer-events-none z-10">
+                <Image
+                  src="/assets/profiles/Pic3.png"
+                  alt="Match History"
+                  fill
+                  className="object-cover object-top"
+                />
+                <div className="absolute inset-0 bg-gradient-to-l from-transparent via-[#131313]/30 to-[#131313]" />
+              </div>
+
+              {/* Ambient Fire Glow Overlay */}
+              <div className="absolute -bottom-12 -left-12 w-48 h-48 bg-gradient-to-tr from-[#ff2e2e]/20 via-[#ff544a]/10 to-transparent rounded-full blur-3xl pointer-events-none animate-pulse-glow z-0"></div>
+
+              <div className="relative z-20">
+                <p className="font-jetbrains text-[10px] text-[#e8bcb7] mb-4 tracking-wider uppercase font-bold">MATCH HISTORY</p>
+                <div className="flex items-center gap-4">
+                  <span className="font-sora text-4xl font-extrabold text-white neon-red counter">
+                    {bookings.filter(b => b.bookingStatus === 'cancelled' || b.roomStatus === 'completed' || b.roomStatus === 'closed').length}
+                  </span>
+                  <span className="material-symbols-outlined text-white/80">history</span>
+                </div>
+              </div>
+            </div>
+          </section>
+
           {/* Bookings Grid */}
           <div className="grid grid-cols-1 gap-6">
             {filteredBookings.length === 0 ? (
@@ -184,7 +286,7 @@ export default function MyMatchesClient({
                 let isStartingSoon = false;
                 let countdownStr = "00:00:00";
 
-                if (b.startTime) {
+                if (b.startTime && now) {
                   const matchTime = new Date(b.startTime);
                   const diffMs = matchTime.getTime() - now.getTime();
                   isStarted = diffMs < 0;
@@ -206,7 +308,7 @@ export default function MyMatchesClient({
                 return (
                   <div
                     key={b.id}
-                    className={`glass-card rounded-2xl overflow-hidden flex flex-col md:flex-row items-stretch ${
+                    className={`rounded-2xl overflow-hidden flex flex-col md:flex-row items-stretch bg-white/[0.03] backdrop-blur-md border border-[#ff2e2e]/30 hover:border-[#ffb4ab]/60 shadow-[0_0_30px_rgba(255,46,46,0.08)] hover:shadow-[0_0_40px_rgba(255,46,46,0.18)] transition-all duration-300 hover:-translate-y-1 relative ${
                       isCancelled
                         ? "opacity-60"
                         : isCompleted
@@ -564,6 +666,17 @@ export default function MyMatchesClient({
           </div>
         </div>
       )}
+
+      {/* Cinematic Layout Background & Particle Canvas */}
+      <div className="fixed inset-0 pointer-events-none z-[-1] overflow-hidden bg-[#131313]">
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#131313]/80 to-[#131313]"></div>
+        <img
+          className="w-full h-full object-cover"
+          alt="Cinematic Background"
+          src="https://lh3.googleusercontent.com/aida-public/AB6AXuCuMWIu9K9ojjXGGV5slkQjRyrZeZFeO_j89XI8miWv0JRrI7n4TVvrh68knezlnDp_i-st0zcrVduGJoBo1dikufmZ56jtWqwReXUplnd_yzrlSKeTzaTUa85ouME3ZDn0Qw20JaWBngiymQJzghy4pypFj3c1WYgEvJFw24A78YN1agjBtc_NeOpkGOhfCLG8dakRZ_UYHEMqAm3vuDWPT4JwYvJzbePYotshdpc5yU7_9bmVLuWukU_HJn4WUg2dk2OwxI5ZLp0"
+        />
+      </div>
+      <ParticleCanvas count={90} />
     </div>
   );
 }

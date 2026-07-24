@@ -130,7 +130,13 @@ export default function BookNowClient({ user, room, bookedSeats: initialBookedSe
     }
   };
 
+  const isMatchStarted = room.matchDateIso ? new Date(room.matchDateIso).getTime() < Date.now() : false;
+
   const handleReserveClick = () => {
+    if (isMatchStarted) {
+      toast.error("Match already started! Go check on Live Stream.");
+      return;
+    }
     if (selectedSeats.length === 0) {
       toast.warning("Please select at least one seat before proceeding to payment.");
       return;
@@ -140,6 +146,10 @@ export default function BookNowClient({ user, room, bookedSeats: initialBookedSe
 
   const handleConfirmBooking = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
+    if (isMatchStarted) {
+      toast.error("Match already started! Go check on Live Stream.");
+      return;
+    }
     if (!agreeRules) {
       toast.warning("Please agree to the tournament rules.");
       return;
@@ -275,7 +285,7 @@ export default function BookNowClient({ user, room, bookedSeats: initialBookedSe
               
               {/* Back Button */}
               <div className="mb-8">
-                <Link href={`/${encryptedUserId}/upcoming-matches`}>
+                <Link href={`/profile/v1/${encryptedUserId}/upcoming-matches`}>
                   <button className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-white transition-all backdrop-blur-md w-fit">
                     <span className="material-symbols-outlined text-sm">arrow_back</span>
                     <span className="font-jetbrains text-sm font-semibold">BACK TO MATCHES</span>
@@ -603,7 +613,7 @@ export default function BookNowClient({ user, room, bookedSeats: initialBookedSe
                       value={players[activeTab].whatsapp}
                       onChange={(e) => updatePlayer('whatsapp', e.target.value)}
                       required
-                      placeholder="+91 9876543210" 
+                      placeholder="+91 7428730111" 
                       className="w-full bg-transparent border-b-2 border-[#5e3f3b] focus:border-[#ffb4ab] text-white font-sora py-2 px-0 transition-all outline-none"
                     />
                   </div>
@@ -614,7 +624,7 @@ export default function BookNowClient({ user, room, bookedSeats: initialBookedSe
                       value={players[activeTab].phone}
                       onChange={(e) => updatePlayer('phone', e.target.value)}
                       required
-                      placeholder="+91 9876543210" 
+                      placeholder="+91 7428730111" 
                       className="w-full bg-transparent border-b-2 border-[#5e3f3b] focus:border-[#ffb4ab] text-white font-sora py-2 px-0 transition-all outline-none"
                     />
                   </div>

@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { randomUUID } from "crypto";
 import prisma from "@/app/lib/prisma";
 import { getSessionUser } from "@/app/lib/auth";
 import { decryptId } from "@/app/lib/encryption";
@@ -54,8 +53,23 @@ export async function POST(
     }
     const numericUserId = typeof user.id === "string" ? parseInt(user.id, 10) : (user.id as number);
 
-    // Shared confirmation id for every seat booked together in this request
-    const confirmationId = randomUUID();
+    // Shared confirmation id for every seat booked together in this request,
+    // formatted as R<roomId>_<random unique 3-digit number> e.g. R18_002
+    const existingConfirmations = new Set(
+      (
+        await prisma.booking.findMany({
+          where: { roomId: numericRoomId },
+          select: { Confirmat_Id: true },
+          distinct: ["Confirmat_Id"],
+        })
+      ).map((b) => b.Confirmat_Id)
+    );
+
+    let confirmationId = "";
+    do {
+      const suffix = String(Math.floor(Math.random() * 1000)).padStart(3, "0");
+      confirmationId = `R${numericRoomId}_${suffix}`;
+    } while (existingConfirmations.has(confirmationId));
 
     // Use createMany to insert multiple bookings atomically
     const bookingsData = bookingsPayload.map(b => ({

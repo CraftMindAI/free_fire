@@ -76,7 +76,7 @@ export default function ContactPage() {
                 WhatsApp
               </div>
               <a href="https://wa.me/YOUR_NUMBER_HERE" target="_blank" rel="noopener noreferrer" className="text-xl md:text-2xl font-bold hover:text-crimson transition-colors duration-200">
-                +91 9876543210
+                +91 6379102170
               </a>
               <p className="text-on-surface-variant text-sm mt-1">Available 9AM - 9PM IST</p>
             </div>
@@ -85,8 +85,8 @@ export default function ContactPage() {
               <div className="font-orbitron text-[#ffb4ab] text-xs font-bold tracking-widest uppercase mb-2 mt-8">
                 Email
               </div>
-              <a href="mailto:support@titanarena.com" className="text-lg md:text-xl font-bold hover:text-crimson transition-colors duration-200">
-                support@titanarena.com
+              <a href="mailto:sankaranvishnupriya@gmail.com" className="text-lg md:text-xl font-bold hover:text-crimson transition-colors duration-200">
+                sankaranvishnupriya@gmail.com
               </a>
               <p className="text-on-surface-variant text-sm mt-1">Usually responds within 24 hours</p>
             </div>
@@ -119,7 +119,7 @@ export default function ContactPage() {
                 required
                 value={form.mobile}
                 onChange={(e) => setForm({ ...form, mobile: e.target.value })}
-                placeholder="+91 9876543210"
+                placeholder="+91 7428730111"
                 className="w-full bg-black/30 border border-white/10 rounded-md px-4 py-3 text-white placeholder-white/30 focus:outline-none focus:border-crimson focus:ring-1 focus:ring-crimson transition-all duration-200"
               />
             </div>

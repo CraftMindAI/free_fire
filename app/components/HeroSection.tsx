@@ -95,8 +95,8 @@ export default function HeroSection() {
             className="font-sora text-on-surface-variant font-semibold max-w-2xl
                          text-sm md:text-lg lg:text-xl mt-4 mb-6 md:mb-8"
           >
-            Join Daily Custom Rooms • Win Cash Rewards • Compete with
-            <br className="hidden md:block" /> the Best Players
+            Join Daily Custom Rooms, Win Cash Rewards
+            <br className="hidden md:block" /> Compete with the Best Players
           </p>
 
           {/* Red divider */}

@@ -29,7 +29,7 @@ const features: Feature[] = [
     icon: "payments",
     title: "Prize Pools",
     description:
-      "Competing for over $50,000 in monthly prizes. Instant withdrawals and cryptocurrency support for winners across the globe.",
+      "Competing for over $10,000 in monthly prizes. Instant withdrawals and cryptocurrency support for winners across the India.",
     tags: ["Daily Payouts", "Crypto Ready"],
     borderTop: "border-t-secondary",
     iconColor: "text-secondary",
@@ -41,7 +41,7 @@ const features: Feature[] = [
     title: "Match Types",
     description:
       "From Solo Battle Royale to Squad-based Tactical missions, choose your path to glory in our diverse selection of custom game modes.",
-    tags: ["1v1 Duels", "Squad Arena"],
+    tags: ["1v1","Duels", "Squad Arena"],
     borderTop: "border-t-tertiary",
     iconColor: "text-tertiary",
     iconBg: "bg-tertiary/10",

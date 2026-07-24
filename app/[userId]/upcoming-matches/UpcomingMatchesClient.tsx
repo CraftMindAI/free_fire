@@ -214,13 +214,13 @@ export default function UpcomingMatchesClient({
 
                         {/* Updated Buttons as requested by User */}
                         <div className="flex gap-3 mt-auto">
-                          <Link href={`/${user.id}/upcoming-matches/${(room as any).encryptedRoomId || room.roomId}/view`} className="flex-1">
+                          <Link href={`/profile/v1/${user.id}/upcoming-matches/${(room as any).encryptedRoomId || room.roomId}/view`} className="flex-1">
                             <button className="w-full bg-white/[0.03] backdrop-blur-md border border-white/10 py-3 rounded-lg text-sm font-semibold hover:bg-white/10 transition-colors text-[#e5e2e1]">
                               View Details
                             </button>
                           </Link>
                           <Link
-                            href={`/${user.id}/upcoming-matches/${(room as any).encryptedRoomId || room.roomId}/book-now`}
+                            href={`/profile/v1/${user.id}/upcoming-matches/${(room as any).encryptedRoomId || room.roomId}/book-now`}
                             className="flex-1"
                           >
                             <button className="w-full h-full bg-[#ff544a] text-[#5c0004] py-3 rounded-lg text-sm font-bold shadow-lg hover:shadow-[0_0_15px_#ffb4ab] transition-all">

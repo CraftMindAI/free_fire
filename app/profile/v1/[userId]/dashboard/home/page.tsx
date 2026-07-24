@@ -1,0 +1,82 @@
+import { redirect } from "next/navigation";
+import { getSessionUser } from "@/app/lib/auth";
+import prisma from "@/app/lib/prisma";
+import { encryptId, decryptId } from "@/app/lib/encryption";
+import PlayerDashboardClient from "@/app/[userId]/dashboard/home/PlayerDashboardClient";
+
+async function getPublishedRooms() {
+  const rooms = await prisma.room.findMany({
+    where: { status: "active" },
+  });
+
+  return rooms.map((r) => ({
+    roomId: String(r.id),
+    name: r.roomName,
+    map: r.roomName,
+    map_img: r.map_img || undefined,
+    matchType: r.match_type ? `Battle Royale (${r.match_type})` : r.maxPlayers === 48 ? "Battle Royale (Solo)" : r.maxPlayers === 24 ? "Battle Royale (Duo)" : "Battle Royale (Squad)",
+    entryFee: r.entry_fee || 0,
+    prizePool: r.total_price || 0,
+    playersCount: r.currentPlayers,
+    maxPlayers: r.maxPlayers,
+    matchDate: r.startTime?.toLocaleDateString() || "",
+    matchTime: r.startTime?.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }) || "",
+    matchDateIso: r.startTime?.toISOString() || "",
+    encryptedRoomId: encryptId(String(r.id)),
+    status: r.status,
+    isPublished: r.status === "active",
+    tier: "Legendary",
+    icon: "sports_esports",
+  }));
+}
+
+export default async function PlayerDashboardPage(props: {
+  params: Promise<{ userId: string }>;
+}) {
+  const { userId } = await props.params;
+  const user = await getSessionUser();
+
+  if (!user) {
+    redirect("/v1/auth/login");
+  }
+
+  // Only players can access this route
+  if (user.role.toLowerCase() !== "player") {
+    redirect(`/profile/v2/dashboard/${encryptId(String(user.id))}/home`);
+  }
+
+  const decodedId = decryptId(userId);
+
+  // Ensure user can only see their own dashboard
+  if (user.id !== decodedId) {
+    redirect(`/profile/v1/${encryptId(String(user.id))}/dashboard/home`);
+  }
+
+  const numericId = parseInt(decodedId || "0", 10);
+  const clientUser = { ...user, id: userId };
+  const activeRooms = await getPublishedRooms();
+
+  // Matches played
+  const matchesPlayedData = await prisma.booking.findMany({
+    where: { userId: numericId },
+    distinct: ['roomId'],
+    select: { roomId: true },
+  });
+  const totalMatchesPlayed = matchesPlayedData.length;
+
+  // Prize won
+  const prizeWonData = await prisma.payment.aggregate({
+    where: { userId: numericId, distributionStatus: "received" },
+    _sum: { prizeAmount: true },
+  });
+  const totalPrizeWon = prizeWonData._sum.prizeAmount || 0;
+
+  return (
+    <PlayerDashboardClient
+      user={clientUser}
+      initialRooms={activeRooms}
+      totalMatchesPlayed={totalMatchesPlayed}
+      totalPrizeWon={totalPrizeWon}
+    />
+  );
+}

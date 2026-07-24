@@ -8,7 +8,7 @@ import 'react-toastify/dist/ReactToastify.css';
 export const metadata: Metadata = {
   title: "Free Fire — Ultimate Battle Tournament",
   description:
-    "Join Daily Custom Rooms • Win Cash Rewards • Compete with the Best Players",
+    "Join Daily Custom Rooms, Win Cash Rewards and  Compete with the Best Players",
 };
 
 export default function RootLayout({

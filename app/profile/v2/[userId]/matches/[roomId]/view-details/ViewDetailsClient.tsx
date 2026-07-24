@@ -94,7 +94,7 @@ export default function ViewDetailsClient({ user, room, bookedSeats }: ViewDetai
               
               {/* Back Button */}
               <div className="mb-8">
-                <Link href={`/${user.id}/matches`}>
+                <Link href={`/profile/v2/${user.id}/matches`}>
                   <button className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-white transition-all backdrop-blur-md w-fit cursor-pointer">
                     <span className="material-symbols-outlined text-sm">arrow_back</span>
                     <span className="font-jetbrains text-sm font-semibold">BACK TO MATCHES</span>
