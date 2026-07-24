@@ -50,9 +50,23 @@ export async function POST(req: NextRequest) {
         startTime = new Date(`${matchDate}T${matchTime}:00`);
         if (providedEndTime) {
           endTime = new Date(`${matchDate}T${providedEndTime}:00`);
+          // A match can run past midnight (e.g. 11:30 PM -> 12:30 AM); if the
+          // end clock time is at/before the start clock time, it lands the next day.
+          if (providedEndTime <= matchTime) {
+            endTime.setDate(endTime.getDate() + 1);
+          }
         } else {
           endTime = new Date(startTime.getTime() + 1 * 60 * 60 * 1000); // add 1 hour by default
         }
+      }
+
+      // Rooms can be created at any time of day, but the scheduled match
+      // itself must lie in the future or it gets auto-closed as soon as it's published.
+      if (startTime && startTime.getTime() <= Date.now()) {
+        return NextResponse.json({ error: "Start time must be in the future." }, { status: 400 });
+      }
+      if (startTime && endTime && endTime.getTime() <= startTime.getTime()) {
+        return NextResponse.json({ error: "End time must be after the start time." }, { status: 400 });
       }
 
       // ── Duplicate check ──────────────────────────────────────────
@@ -102,6 +116,14 @@ export async function POST(req: NextRequest) {
     }
 
     if (action === "publish") {
+      const roomToPublish = await prisma.room.findUnique({ where: { id: Number(roomId) } });
+      if (roomToPublish?.endTime && roomToPublish.endTime.getTime() <= Date.now()) {
+        return NextResponse.json(
+          { error: "This match's scheduled time has already passed. Edit the start/end time before publishing." },
+          { status: 409 }
+        );
+      }
+
       const result = await prisma.room.update({
         where: { id: Number(roomId) },
         data: { status: "active" },
@@ -123,8 +145,17 @@ export async function POST(req: NextRequest) {
         updateData.startTime = new Date(`${matchDate}T${matchTime}:00`);
         if (providedEndTime) {
           updateData.endTime = new Date(`${matchDate}T${providedEndTime}:00`);
+          // A match can run past midnight (e.g. 11:30 PM -> 12:30 AM); if the
+          // end clock time is at/before the start clock time, it lands the next day.
+          if (providedEndTime <= matchTime) {
+            updateData.endTime.setDate(updateData.endTime.getDate() + 1);
+          }
         } else {
           updateData.endTime = new Date(updateData.startTime.getTime() + 1 * 60 * 60 * 1000); // add 1 hour
+        }
+
+        if (updateData.endTime.getTime() <= updateData.startTime.getTime()) {
+          return NextResponse.json({ error: "End time must be after the start time." }, { status: 400 });
         }
       }
 

@@ -151,7 +151,7 @@ function MapCarousel({
 }
 // ────────────────────────────────────────────────────────────────
 
-// ── Custom 12-Hour Time Picker ─────────────────────────────────
+// ── Custom 12-Hour Time Picker with Upward Scrollable Dropdowns ───
 function TimePicker12({
   value,
   onChange,
@@ -161,6 +161,9 @@ function TimePicker12({
   onChange: (val: string) => void;
   label: string;
 }) {
+  const [openMenu, setOpenMenu] = useState<"none" | "hour" | "minute" | "ampm">("none");
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
   const parse24 = (time24: string) => {
     if (!time24) return { h: "12", m: "00", ampm: "PM" };
     const [hh, mm] = time24.split(":");
@@ -182,46 +185,124 @@ function TimePicker12({
     onChange(time24);
   };
 
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setOpenMenu("none");
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   const hours = Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, "0"));
   const minutes = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, "0"));
 
   return (
-    <div className="space-y-2 w-full">
+    <div className="space-y-1.5 w-full relative" ref={dropdownRef}>
       <label className="font-jetbrains text-on-surface-variant text-[10px] uppercase tracking-wider">
         {label}
       </label>
-      <div className="flex bg-[#353534]/50 border-b-2 border-[#ffb4ab]/30 rounded focus-within:border-[#ffb4ab] transition-all">
-        <select
-          value={h}
-          onChange={(e) => handleUpdate(e.target.value, m, ampm)}
-          className="bg-transparent outline-none py-3 px-1 text-on-surface w-full appearance-none text-center cursor-pointer"
-        >
-          {hours.map((hour) => (
-            <option key={hour} value={hour} className="bg-[#1e1e1e] text-white">
-              {hour}
-            </option>
-          ))}
-        </select>
-        <span className="text-on-surface-variant flex items-center">:</span>
-        <select
-          value={m}
-          onChange={(e) => handleUpdate(h, e.target.value, ampm)}
-          className="bg-transparent outline-none py-3 px-1 text-on-surface w-full appearance-none text-center cursor-pointer"
-        >
-          {minutes.map((min) => (
-            <option key={min} value={min} className="bg-[#1e1e1e] text-white">
-              {min}
-            </option>
-          ))}
-        </select>
-        <select
-          value={ampm}
-          onChange={(e) => handleUpdate(h, m, e.target.value)}
-          className="bg-transparent outline-none py-3 px-1 text-[#ffb4ab] font-bold w-full appearance-none text-center cursor-pointer"
-        >
-          <option value="AM" className="bg-[#1e1e1e] text-white">AM</option>
-          <option value="PM" className="bg-[#1e1e1e] text-white">PM</option>
-        </select>
+
+      <div className="flex items-center bg-[#353534]/50 border-b-2 border-[#ffb4ab]/30 rounded focus-within:border-[#ffb4ab] transition-all relative">
+        {/* Hour Custom Dropdown (Pops UP at TOP) */}
+        <div className="relative flex-1">
+          <button
+            type="button"
+            onClick={() => setOpenMenu((prev) => (prev === "hour" ? "none" : "hour"))}
+            className="w-full py-2.5 px-1 text-center font-bold text-on-surface hover:text-[#ffb4ab] transition-colors flex items-center justify-center gap-0.5 cursor-pointer text-xs font-mono"
+          >
+            {h}
+            <span className="material-symbols-outlined text-[16px] opacity-40">arrow_drop_up</span>
+          </button>
+
+          {openMenu === "hour" && (
+            <div className="absolute left-0 bottom-full mb-1 w-full bg-[#1e1e1e] border border-[#ffb4ab]/40 rounded-xl shadow-[0_-10px_25px_rgba(0,0,0,0.8)] z-[150] max-h-36 overflow-y-auto py-1">
+              {hours.map((hour) => (
+                <button
+                  key={hour}
+                  type="button"
+                  onClick={() => {
+                    handleUpdate(hour, m, ampm);
+                    setOpenMenu("none");
+                  }}
+                  className={`w-full py-1.5 text-center text-xs font-mono transition-colors hover:bg-[#ffb4ab]/20 cursor-pointer ${
+                    hour === h ? "text-[#ffb4ab] font-bold bg-[#ffb4ab]/10" : "text-white/80"
+                  }`}
+                >
+                  {hour}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <span className="text-on-surface-variant font-bold">:</span>
+
+        {/* Minute Custom Dropdown (Pops UP at TOP) */}
+        <div className="relative flex-1">
+          <button
+            type="button"
+            onClick={() => setOpenMenu((prev) => (prev === "minute" ? "none" : "minute"))}
+            className="w-full py-2.5 px-1 text-center font-bold text-on-surface hover:text-[#ffb4ab] transition-colors flex items-center justify-center gap-0.5 cursor-pointer text-xs font-mono"
+          >
+            {m}
+            <span className="material-symbols-outlined text-[16px] opacity-40">arrow_drop_up</span>
+          </button>
+
+          {openMenu === "minute" && (
+            <div className="absolute left-0 bottom-full mb-1 w-full bg-[#1e1e1e] border border-[#ffb4ab]/40 rounded-xl shadow-[0_-10px_25px_rgba(0,0,0,0.8)] z-[150] max-h-36 overflow-y-auto py-1">
+              {minutes.map((min) => (
+                <button
+                  key={min}
+                  type="button"
+                  onClick={() => {
+                    handleUpdate(h, min, ampm);
+                    setOpenMenu("none");
+                  }}
+                  className={`w-full py-1.5 text-center text-xs font-mono transition-colors hover:bg-[#ffb4ab]/20 cursor-pointer ${
+                    min === m ? "text-[#ffb4ab] font-bold bg-[#ffb4ab]/10" : "text-white/80"
+                  }`}
+                >
+                  {min}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* AM/PM Custom Dropdown (Pops UP at TOP) */}
+        <div className="relative flex-1">
+          <button
+            type="button"
+            onClick={() => setOpenMenu((prev) => (prev === "ampm" ? "none" : "ampm"))}
+            className="w-full py-2.5 px-1 text-center font-bold text-[#ffb4ab] hover:text-white transition-colors flex items-center justify-center gap-0.5 cursor-pointer text-xs font-jetbrains"
+          >
+            {ampm}
+            <span className="material-symbols-outlined text-[16px] opacity-60">arrow_drop_up</span>
+          </button>
+
+          {openMenu === "ampm" && (
+            <div className="absolute right-0 bottom-full mb-1 w-full bg-[#1e1e1e] border border-[#ffb4ab]/40 rounded-xl shadow-[0_-10px_25px_rgba(0,0,0,0.8)] z-[150] py-1">
+              {["AM", "PM"].map((opt) => (
+                <button
+                  key={opt}
+                  type="button"
+                  onClick={() => {
+                    handleUpdate(h, m, opt);
+                    setOpenMenu("none");
+                  }}
+                  className={`w-full py-1.5 text-center text-xs font-jetbrains font-bold transition-colors hover:bg-[#ffb4ab]/20 cursor-pointer ${
+                    opt === ampm ? "text-[#ffb4ab] bg-[#ffb4ab]/10" : "text-white/80"
+                  }`}
+                >
+                  {opt}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -261,6 +342,16 @@ function MatchDetailsClientInner({
 
   const handleStartTimeChange = (val: string) => {
     setStartTime(val);
+    // Keep end time consistent so a stale default (e.g. left at 19:00 while
+    // start time is moved later in the evening) can't produce an end time
+    // that's already in the past.
+    if (val) {
+      const [h, m] = val.split(":").map(Number);
+      const bumped = new Date(2000, 0, 1, h, m);
+      bumped.setHours(bumped.getHours() + 1);
+      const newEnd = `${String(bumped.getHours()).padStart(2, "0")}:${String(bumped.getMinutes()).padStart(2, "0")}`;
+      setEndTime((prevEnd) => (!prevEnd || prevEnd <= val ? newEnd : prevEnd));
+    }
   };
 
   const [loading, setLoading] = useState(false);
@@ -438,6 +529,22 @@ function MatchDetailsClientInner({
         setLoading(false);
         return;
       }
+    }
+
+    // End time must always be after the start time. A match can run past
+    // midnight (e.g. 11:30 PM -> 12:30 AM), so if the clock time on the end
+    // is at/before the start's clock time, treat it as landing the next day.
+    const scheduledStart = new Date(`${startDate}T${startTime}:00`);
+    const scheduledEnd = new Date(`${startDate}T${endTime}:00`);
+    if (!isNaN(scheduledEnd.getTime()) && endTime <= startTime) {
+      scheduledEnd.setDate(scheduledEnd.getDate() + 1);
+    }
+    if (isNaN(scheduledEnd.getTime()) || scheduledEnd.getTime() <= scheduledStart.getTime()) {
+      const msg = "End time must be after the start time.";
+      setError(msg);
+      toast.error("Invalid End Time", msg);
+      setLoading(false);
+      return;
     }
 
     let statusCode = 200;
@@ -825,10 +932,10 @@ function MatchDetailsClientInner({
         <div className="fixed inset-0 z-[100] items-center justify-center bg-black/80 backdrop-blur-md p-6 flex">
           <div className="glass-panel w-full max-w-2xl rounded-3xl relative border border-[#ffb4ab]/20 shadow-[0_0_50px_rgba(255,46,46,0.15)] overflow-y-auto max-h-[90vh]">
             {/* Modal Header */}
-            <div className="bg-[#ffb4ab]/5 px-8 py-6 border-b border-white/10 flex justify-between items-center">
+            <div className="bg-[#ffb4ab]/5 px-6 py-4 border-b border-white/10 flex justify-between items-center">
               <div className="flex items-center gap-3">
-                <div className="w-2 h-8 bg-[#ffb4ab] rounded-full shadow-[0_0_10px_#ffb4ab]"></div>
-                <h2 className="font-orbitron text-xl uppercase tracking-widest text-[#ffb4ab]">
+                <div className="w-2 h-7 bg-[#ffb4ab] rounded-full shadow-[0_0_10px_#ffb4ab]"></div>
+                <h2 className="font-orbitron text-lg uppercase tracking-widest text-[#ffb4ab]">
                   {editingRoom ? "Configure Arena" : "Initialize Arena"}
                 </h2>
               </div>
@@ -836,29 +943,29 @@ function MatchDetailsClientInner({
                 className="text-on-surface-variant hover:text-white transition-colors cursor-pointer"
                 onClick={() => setIsModalOpen(false)}
               >
-                <span className="material-symbols-outlined text-3xl">close</span>
+                <span className="material-symbols-outlined text-2xl">close</span>
               </button>
             </div>
 
             {/* Modal Content (Form) */}
-            <form onSubmit={handleFormSubmit} className="p-8 space-y-6">
+            <form onSubmit={handleFormSubmit} className="px-6 py-5 space-y-4">
               {error && (
-                <div className="bg-red-950/40 border border-red-500/30 text-red-200 px-4 py-2.5 rounded-lg text-sm">
+                <div className="bg-red-950/40 border border-red-500/30 text-red-200 px-4 py-2 rounded-lg text-xs">
                   {error}
                 </div>
               )}
 
               <MapCarousel map={map} setMap={setMap} />
 
-              <div className="grid grid-cols-1 md:grid-cols-1 gap-6">
-                <div className="space-y-2">
+              <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
+                <div className="space-y-1.5">
                   <label className="font-jetbrains text-on-surface-variant text-[10px] uppercase tracking-wider">
                     GAME MODE
                   </label>
                   <select
                     value={gameMode}
                     onChange={(e) => setGameMode(e.target.value)}
-                    className="w-full bg-[#353534]/80 border-b-2 border-[#ffb4ab]/30 focus:border-[#ffb4ab] outline-none py-3 px-2 text-on-surface transition-all rounded"
+                    className="w-full bg-[#353534]/80 border-b-2 border-[#ffb4ab]/30 focus:border-[#ffb4ab] outline-none py-2.5 px-2 text-on-surface text-xs transition-all rounded"
                   >
                     <option value="Solo" className="bg-[#1e1e1e] text-white">Solo </option>
                     <option value="Duo" className="bg-[#1e1e1e] text-white">Duo </option>
@@ -867,8 +974,8 @@ function MatchDetailsClientInner({
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="space-y-2">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="space-y-1.5">
                   <label className="font-jetbrains text-on-surface-variant text-[10px] uppercase tracking-wider">
                     ENTRY FEE (CR)
                   </label>
@@ -879,10 +986,10 @@ function MatchDetailsClientInner({
                     type="number"
                     min="0"
                     placeholder="50"
-                    className="w-full bg-[#353534]/50 border-b-2 border-[#ffb4ab]/30 focus:border-[#ffb4ab] outline-none py-3 px-2 text-on-surface transition-all rounded"
+                    className="w-full bg-[#353534]/50 border-b-2 border-[#ffb4ab]/30 focus:border-[#ffb4ab] outline-none py-2.5 px-2 text-on-surface text-xs transition-all rounded"
                   />
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-1.5">
                   <label className="font-jetbrains text-on-surface-variant text-[10px] uppercase tracking-wider">
                     PRIZE POOL
                   </label>
@@ -893,10 +1000,10 @@ function MatchDetailsClientInner({
                     type="number"
                     min="0"
                     placeholder="5000"
-                    className="w-full bg-[#353534]/50 border-b-2 border-[#ffb4ab]/30 focus:border-[#ffb4ab] outline-none py-3 px-2 text-on-surface transition-all rounded"
+                    className="w-full bg-[#353534]/50 border-b-2 border-[#ffb4ab]/30 focus:border-[#ffb4ab] outline-none py-2.5 px-2 text-on-surface text-xs transition-all rounded"
                   />
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-1.5">
                   <label className="font-jetbrains text-on-surface-variant text-[10px] uppercase tracking-wider">
                     SEATS{" "}
                     <span className="text-[#ffb4ab]">
@@ -911,14 +1018,13 @@ function MatchDetailsClientInner({
                     min="1"
                     max={MODE_MAX[gameMode] ?? 48}
                     placeholder={String(MODE_MAX[gameMode] ?? 48)}
-                    className="w-full bg-[#353534]/30 border-b-2 border-white/10 outline-none py-3 px-2 text-on-surface-variant cursor-not-allowed rounded"
+                    className="w-full bg-[#353534]/30 border-b-2 border-white/10 outline-none py-2.5 px-2 text-on-surface-variant text-xs cursor-not-allowed rounded"
                   />
-
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="space-y-2">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="space-y-1.5">
                   <label className="font-jetbrains text-on-surface-variant text-[10px] uppercase tracking-wider">
                     START DATE
                   </label>
@@ -927,7 +1033,7 @@ function MatchDetailsClientInner({
                     onChange={(e) => setStartDate(e.target.value)}
                     required
                     type="date"
-                    className="w-full bg-[#353534]/50 border-b-2 border-[#ffb4ab]/30 focus:border-[#ffb4ab] outline-none py-3 px-2 text-on-surface transition-all rounded"
+                    className="w-full bg-[#353534]/50 border-b-2 border-[#ffb4ab]/30 focus:border-[#ffb4ab] outline-none py-2.5 px-2 text-on-surface text-xs transition-all rounded [color-scheme:dark]"
                   />
                 </div>
                 <TimePicker12
@@ -942,18 +1048,18 @@ function MatchDetailsClientInner({
                 />
               </div>
 
-              <div className="pt-6 flex gap-4">
+              <div className="pt-4 flex gap-3">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="flex-1 py-4 font-bold border border-white/20 hover:bg-white/5 transition-all uppercase tracking-widest text-sm rounded-xl cursor-pointer"
+                  className="flex-1 py-3 font-bold border border-white/20 hover:bg-white/5 transition-all uppercase tracking-widest text-xs rounded-xl cursor-pointer"
                 >
                   Discard
                 </button>
                 <button
                   type="submit"
                   disabled={loading}
-                  className="flex-1 py-4 font-bold bg-[#ffb4ab] text-[#690005] hover:shadow-[0_0_25px_#ffb4ab] transition-all uppercase tracking-widest text-sm rounded-xl cursor-pointer disabled:opacity-50"
+                  className="flex-1 py-3 font-bold bg-[#ffb4ab] text-[#690005] hover:shadow-[0_0_25px_#ffb4ab] transition-all uppercase tracking-widest text-xs rounded-xl cursor-pointer disabled:opacity-50"
                 >
                   {loading ? "SAVING..." : editingRoom ? "Update Match" : "Deploy Match"}
                 </button>
