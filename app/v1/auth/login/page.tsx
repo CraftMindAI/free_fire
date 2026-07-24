@@ -11,12 +11,14 @@ export default function LoginPage() {
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [remember, setRemember] = useState(false);
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [isForgotModalOpen, setIsForgotModalOpen] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    setError("");
     setLoading(true);
     setError("");
     try {
@@ -232,6 +234,16 @@ export default function LoginPage() {
                   Forgot Access?
                 </button>
               </div>
+
+              {/* Error message */}
+              {error && (
+                <p
+                  className="font-jetbrains text-[11px] tracking-widest text-crimson uppercase
+                              text-center border border-crimson/30 rounded-lg px-4 py-2.5 bg-crimson/5"
+                >
+                  {error}
+                </p>
+              )}
 
               {/* Login button */}
               <button

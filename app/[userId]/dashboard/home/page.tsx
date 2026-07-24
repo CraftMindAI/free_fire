@@ -47,7 +47,7 @@ export default async function PlayerDashboardPage(props: {
     redirect(`/${encryptId(String(user.id))}/dashboard/home`);
   }
 
-  const numericId = parseInt(decodedId || "0", 10);
+  const numericId = parseInt(decodedId, 10);
 
   const clientUser = { ...user, id: userId };
 

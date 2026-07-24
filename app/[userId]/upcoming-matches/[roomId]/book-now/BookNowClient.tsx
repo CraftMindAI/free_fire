@@ -9,6 +9,26 @@ import ShaderBackground from "@/app/components/ShaderBackground";
 import TermsModal from "@/app/components/common/TermsModal";
 import { RoomData } from "@/app/components/admin/ActiveRooms";
 import { useRouter, useParams } from "next/navigation";
+import { ToastContainer, toast, Slide } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
+const CustomCloseButton = ({ closeToast }: any) => (
+  <button 
+    onClick={closeToast} 
+    className="absolute top-[18px] right-[18px] text-white opacity-60 hover:opacity-100 transition-opacity"
+  >
+    <span className="text-2xl leading-none font-bold">&times;</span>
+  </button>
+);
+
+const ValidationToast = ({ message }: { message: string }) => (
+  <div className="flex items-start gap-4 pr-6">
+    <span className="material-symbols-outlined text-[#ff2e2e] text-3xl drop-shadow-[0_0_8px_rgba(255,46,46,0.8)]">warning</span>
+    <div className="flex-1 mt-1">
+      <p className="font-bold text-white text-[15px] leading-snug">{message}</p>
+    </div>
+  </div>
+);
 
 interface BookNowClientProps {
   user: {
@@ -256,6 +276,29 @@ export default function BookNowClient({ user, room, bookedSeats: initialBookedSe
 
   return (
     <div className="flex bg-[#000] text-[#e5e2e1] min-h-screen font-sora overflow-hidden relative">
+      <ToastContainer
+        position="top-right"
+        autoClose={5000}
+        hideProgressBar={true}
+        newestOnTop={false}
+        closeOnClick={false}
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        transition={Slide}
+        closeButton={CustomCloseButton}
+        toastStyle={{
+          backgroundColor: '#121212',
+          border: '1px solid rgba(255, 46, 46, 0.6)',
+          boxShadow: '0 0 20px rgba(255, 46, 46, 0.3)',
+          borderRadius: '20px',
+          width: '420px',
+          padding: '22px',
+          color: '#ffffff',
+          fontFamily: '"Sora", sans-serif'
+        }}
+      />
       {/* Background Shader Animation */}
       <div className="fixed inset-0 pointer-events-none z-0 bg-[#000]">
         <ShaderBackground />
