@@ -5,6 +5,12 @@ export const metadata: Metadata = {
   title: "Privacy Policy — Titan Arena",
   description:
     "Read the Privacy Policy for Titan Arena, detailing how we collect, use, and protect your personal data.",
+  keywords: [
+    "Titan Arena Privacy Policy",
+    "Free Fire Platform Data Privacy",
+    "Titan Arena Data Protection",
+    "Titan Arena Terms",
+  ],
 };
 
 const SECTIONS = [

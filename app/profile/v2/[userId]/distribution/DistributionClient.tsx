@@ -227,7 +227,7 @@ export default function DistributionClient({
   const successfulTransactions = transactions.filter((t) => t.distributionStatus === "Success");
   const errorTransactions = transactions.filter((t) => t.distributionStatus === "Error" || t.distributionStatus === "Invalid");
 
-  const successDisplayCount = successfulTransactions.length > 0 ? successfulTransactions.length : 1150;
+  const successDisplayCount = successfulTransactions.length > 0 ? successfulTransactions.length : 0;
   const errorDisplayCount = errorTransactions.length > 0 ? errorTransactions.length : 0;
 
   // Filtered transactions for active modal

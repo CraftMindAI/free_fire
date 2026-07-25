@@ -14,7 +14,7 @@ const LINKS = [
 ];
 const LINK_HREFS: Record<string, string> = {
   "About Us": "/about",
-  "Contact Us": "/contact",
+  "Contact Us": "/contact-us",
   "Privacy Policy": "/privacy-policy",
 };
 
@@ -28,6 +28,7 @@ export default function Footer() {
     pathname === "/" ||
     pathname === "/about" ||
     pathname === "/contact" ||
+    pathname === "/contact-us" ||
     pathname === "/privacy-policy" ||
     pathname === "/v1/auth/login" ||
     pathname === "/v1/auth/register";

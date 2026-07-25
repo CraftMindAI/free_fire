@@ -10,6 +10,7 @@ export default function Navbar() {
     pathname === "/" ||
     pathname === "/about" ||
     pathname === "/contact" ||
+    pathname === "/contact-us" ||
     pathname === "/v1/auth/login" ||
     pathname === "/v1/auth/register";
 
@@ -41,7 +42,7 @@ export default function Navbar() {
             ABOUT
           </Link>
           <Link
-            href="/contact"
+            href="/contact-us"
             className="font-orbitron text-white text-xs font-bold tracking-[0.18em] uppercase
                        hover:text-[#ffb4ab] transition-colors duration-200"
           >

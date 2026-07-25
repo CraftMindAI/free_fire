@@ -1,3 +1,4 @@
+import Image from "next/image";
 import type { Metadata } from "next";
 import ParticleCanvas from "@/app/components/ParticleCanvas";
 
@@ -5,6 +6,16 @@ export const metadata: Metadata = {
   title: "About Us — Titan Arena",
   description:
     "Learn more about Titan Arena, the ultimate Free Fire custom room and tournament platform.",
+  keywords: [
+    "About Titan Arena",
+    "Free Fire Custom Room Platform",
+    "Free Fire Tournament Platform India",
+    "Fair Play Free Fire",
+    "Free Fire Anti-Cheat Monitoring",
+    "Instant Cash Rewards Free Fire",
+    "Free Fire Community Platform",
+    "Built by Gamers",
+  ],
 };
 
 const STATS = [
@@ -84,20 +95,31 @@ export default function AboutPage() {
 
       {/* Story */}
       <section className="px-6 max-w-[1440px] w-full mx-auto pb-16">
-        <div className="glass rounded-2xl p-10 md:p-14">
-          <h2 className="font-sora text-2xl md:text-3xl font-bold mb-6">Our Story</h2>
-          <p className="text-on-surface-variant leading-relaxed text-base mb-4">
-            Titan Arena started with a simple frustration: finding a legit,
-            well-run custom room shouldn't feel like a side quest. So we built
-            one. What began as a handful of late-night squad matches has grown
-            into a daily arena hosting thousands of players competing for real
-            cash rewards.
-          </p>
-          <p className="text-on-surface-variant leading-relaxed text-base">
-            Today, Titan Arena runs solo, duo, and squad rooms around the
-            clock, with instant payouts and a dashboard that keeps every
-            player in the loop — from registration to the victory royale.
-          </p>
+        <div className="glass rounded-2xl p-10 md:p-14 flex flex-col md:flex-row items-center gap-8 md:gap-12">
+          <div className="shrink-0 flex items-center justify-center bg-transparent">
+            <Image
+              src="/favicon.ico"
+              alt="Titan Arena Logo"
+              width={180}
+              height={180}
+              className="w-32 h-32 md:w-44 md:h-44 object-contain filter drop-shadow-[0_0_20px_rgba(255,180,171,0.25)] bg-transparent"
+            />
+          </div>
+          <div className="flex-1">
+            <h2 className="font-sora text-2xl md:text-3xl font-bold mb-6">Our Story</h2>
+            <p className="text-on-surface-variant leading-relaxed text-base mb-4">
+              Titan Arena started with a simple frustration: finding a legit,
+              well-run custom room shouldn't feel like a side quest. So we built
+              one. What began as a handful of late-night squad matches has grown
+              into a daily arena hosting thousands of players competing for real
+              cash rewards.
+            </p>
+            <p className="text-on-surface-variant leading-relaxed text-base">
+              Today, Titan Arena runs solo, duo, and squad rooms around the
+              clock, with instant payouts and a dashboard that keeps every
+              player in the loop — from registration to the victory royale.
+            </p>
+          </div>
         </div>
       </section>
 
