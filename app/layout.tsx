@@ -25,11 +25,11 @@ title: {
   authors: [{ name: "Titan Arena Gaming Team" }],
   creator: "Titan Arena Gaming",
   publisher: "Titan Arena Gaming",
-  icons: {
-    icon: "/og-image.png",
-    shortcut: "/og-image.png",
-    apple: "/apple-touch-icon.png",
-  },
+ icons: {
+  icon: "/favicon_b.ico",
+  shortcut: "/favicon_b.ico",
+  apple: "/apple-touch-icon.png",
+},
   openGraph: {
   title: "Titan Arena Gaming | Free Fire Custom Rooms & Tournaments",
   description:
