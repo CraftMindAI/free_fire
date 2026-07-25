@@ -8,6 +8,8 @@ import PrivacyModal from "./common/PrivacyModal";
 const LINKS = [
   "About Us",
   "Contact Us",
+  "FAQ",
+  "Tournament Rules",
   "Privacy Policy",
   "Terms of Service",
   "Discord",
@@ -15,6 +17,8 @@ const LINKS = [
 const LINK_HREFS: Record<string, string> = {
   "About Us": "/about",
   "Contact Us": "/contact-us",
+  "FAQ": "/faq",
+  "Tournament Rules": "/tournament-rules",
   "Privacy Policy": "/privacy-policy",
 };
 
@@ -29,6 +33,8 @@ export default function Footer() {
     pathname === "/about" ||
     pathname === "/contact" ||
     pathname === "/contact-us" ||
+    pathname === "/faq" ||
+    pathname === "/tournament-rules" ||
     pathname === "/privacy-policy" ||
     pathname === "/v1/auth/login" ||
     pathname === "/v1/auth/register";

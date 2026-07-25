@@ -22,6 +22,16 @@ const icons: Record<string, ReactElement> = {
 export default function FeaturesSection() {
   return (
     <section className="py-12 px-6 max-w-[1440px] mx-auto">
+      {/* Section Header for SEO and Context */}
+      <div className="mb-12">
+        <h2 className="font-orbitron text-3xl md:text-4xl text-on-surface font-bold tracking-tight mb-2">
+          Why Choose Titan Arena Gaming
+        </h2>
+        <p className="font-sora text-on-surface-variant text-sm md:text-base max-w-3xl leading-relaxed">
+          Engineered for competitive Free Fire players across India. Experience rigorous anti-cheat fair play enforcement, transparent prize distribution, and versatile match formats designed to test squad coordination and individual gunplay.
+        </p>
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8 [perspective:1200px]">
         {features.map((f) => (
           <div

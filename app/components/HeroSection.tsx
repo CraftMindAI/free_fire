@@ -24,7 +24,7 @@ export default function HeroSection() {
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/imega1.jpg"
-            alt="Soldier left"
+            alt="Free Fire Tournament Warrior Character Left"
             className="w-full h-full object-cover object-center brightness-90"
           />
           <div className="absolute top-0 inset-x-0 h-10 bg-gradient-to-b from-black/50 to-transparent" />
@@ -35,7 +35,7 @@ export default function HeroSection() {
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/imegae2.jpg"
-            alt="Soldier center"
+            alt="Free Fire Esports Champion Center"
             className="w-full h-full object-cover object-center brightness-95"
           />
           <div className="absolute top-0 inset-x-0 h-10 bg-gradient-to-b from-black/40 to-transparent" />
@@ -46,7 +46,7 @@ export default function HeroSection() {
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/image3.jpg"
-            alt="Soldier right"
+            alt="Free Fire Custom Room Competitor Right"
             className="w-full h-full object-cover object-center brightness-90"
           />
           <div className="absolute top-0 inset-x-0 h-10 bg-gradient-to-b from-black/50 to-transparent" />
@@ -79,7 +79,7 @@ export default function HeroSection() {
 
         {/* Content */}
         <div className="relative z-10 flex flex-col items-center px-4">
-          {/* Title */}
+          {/* Single H1 Title for the page */}
           <h1
             className="font-orbitron font-black uppercase leading-[0.92] tracking-tight
                           text-[2rem] sm:text-[3rem] md:text-[4.2rem] lg:text-[5.5rem] xl:text-[6.5rem]
@@ -90,13 +90,13 @@ export default function HeroSection() {
             <span className="block text-white neon-red">Tournament</span>
           </h1>
 
-          {/* Subtitle */}
+          {/* Optimized Subtitle explaining Free Fire Custom Rooms & Cash Prizes */}
           <p
             className="font-sora text-on-surface-variant font-semibold max-w-2xl
                          text-sm md:text-lg lg:text-xl mt-4 mb-6 md:mb-8"
           >
-            Join Daily Custom Rooms, Win Cash Rewards
-            <br className="hidden md:block" /> Compete with the Best Players
+            Join Daily Free Fire Custom Rooms, Compete for Cash Prizes
+            <br className="hidden md:block" /> Experience Fair Play & Instant Payouts in India&apos;s Top Esports Platform
           </p>
 
           {/* Red divider */}

@@ -144,10 +144,10 @@ export default async function UpcomingRooms() {
       <div className="flex justify-between items-end mb-12 px-6">
         <div>
           <h2 className="font-orbitron text-3xl md:text-4xl text-on-surface font-bold tracking-tight mb-2">
-            Upcoming Rooms
+            Free Fire Custom Rooms & Matches
           </h2>
-          <p className="font-sora text-on-surface-variant text-sm md:text-base">
-            Join the next available battlegrounds and claim your glory.
+          <p className="font-sora text-on-surface-variant text-sm md:text-base max-w-3xl leading-relaxed">
+            Reserve your slot in upcoming daily Free Fire custom room matches. Choose from Solo, Duo, or Squad formats, enter with transparent fees, receive automated Room ID &amp; Password details before match time, and compete for verified cash prizes.
           </p>
         </div>
         <Link href={targetHref} className="text-crimson text-xs font-bold tracking-widest uppercase hover:underline">

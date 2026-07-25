@@ -12,10 +12,10 @@ export default function DashboardSection() {
       {/* Heading */}
       <div className="mb-12">
         <h2 className="font-orbitron text-3xl md:text-4xl text-on-surface font-bold tracking-tight mb-2">
-          Control Your Destiny
+          Advanced Player &amp; Esports Dashboard
         </h2>
-        <p className="font-sora text-on-surface-variant">
-          The most advanced pro-gaming dashboard ever built.
+        <p className="font-sora text-on-surface-variant text-sm md:text-base max-w-3xl leading-relaxed">
+          Track your Free Fire performance in real-time. Monitor your Kill/Death (K/D) ratio, win rate percentages, total match history, tournament earnings, and squad rankings directly inside your personalized player hub.
         </p>
       </div>
 
