@@ -26,8 +26,8 @@ title: {
   creator: "Titan Arena Gaming",
   publisher: "Titan Arena Gaming",
   icons: {
-    icon: "/favicon.ico",
-    shortcut: "/favicon.ico",
+    icon: "/og-image.png",
+    shortcut: "/og-image.png",
     apple: "/apple-touch-icon.png",
   },
   openGraph: {
